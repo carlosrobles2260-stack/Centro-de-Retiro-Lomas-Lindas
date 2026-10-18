@@ -11,6 +11,7 @@ import { Badge, fechaHora } from '../components/ui';
 
 const TIPOS = ['acceso', 'robo', 'emergencia', 'daño', 'otro'];
 const GRAVEDADES = ['baja', 'media', 'alta', 'critica'];
+const INVOLUCRADOS = ['visitante', 'propietario', 'empleado', 'seguridad', 'otro'];
 
 export default function IncidentesScreen() {
   const [filas, setFilas] = useState([]);
@@ -40,7 +41,10 @@ export default function IncidentesScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardTop}>
-                <Text style={styles.tipo}>{item.tipo}</Text>
+                <View>
+                  <Text style={styles.tipo}>{item.tipo}</Text>
+                  {item.involucrado ? <Text style={styles.sub}>con {item.involucrado}</Text> : null}
+                </View>
                 <Badge estado={item.gravedad} />
               </View>
               {item.foto ? <Image source={{ uri: API_URL + item.foto }} style={styles.foto} /> : null}
@@ -68,6 +72,7 @@ export default function IncidentesScreen() {
 
 function FormIncidente({ onCerrar, onGuardado }) {
   const [tipo, setTipo] = useState('otro');
+  const [involucrado, setInvolucrado] = useState('');
   const [gravedad, setGravedad] = useState('baja');
   const [descripcion, setDescripcion] = useState('');
   const [ubicacion, setUbicacion] = useState('');
@@ -107,7 +112,7 @@ function FormIncidente({ onCerrar, onGuardado }) {
     if (!descripcion.trim()) { Alert.alert('Falta la descripción'); return; }
     setGuardando(true);
     try {
-      const payload = { tipo, gravedad, descripcion, ubicacion, estado: 'abierto', responsable_id: responsableId || null, propietario_id: propietarioId || null };
+      const payload = { tipo, involucrado: involucrado || null, gravedad, descripcion, ubicacion, estado: 'abierto', responsable_id: responsableId || null, propietario_id: propietarioId || null };
       if (foto?.base64) payload.foto_base64 = `data:image/jpeg;base64,${foto.base64}`;
       await api.post('/incidentes', payload);
       onGuardado();
@@ -123,6 +128,9 @@ function FormIncidente({ onCerrar, onGuardado }) {
 
       <Text style={styles.label}>Tipo</Text>
       <Chips opciones={TIPOS} valor={tipo} onElegir={setTipo} />
+
+      <Text style={styles.label}>¿Con quién fue el incidente?</Text>
+      <Chips opciones={INVOLUCRADOS} valor={involucrado} onElegir={setInvolucrado} />
 
       <Text style={styles.label}>Gravedad</Text>
       <Chips opciones={GRAVEDADES} valor={gravedad} onElegir={setGravedad} />

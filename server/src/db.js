@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS incidentes (
   reportado_por  INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   responsable_id INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
   propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
+  involucrado    TEXT,   -- visitante | propietario | empleado | seguridad | otro
   foto           TEXT,
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
@@ -194,6 +195,9 @@ if (!(await tieneColumna('incidentes', 'foto'))) {
 }
 if (!(await tieneColumna('incidentes', 'propietario_id'))) {
   await db.exec('ALTER TABLE incidentes ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
+}
+if (!(await tieneColumna('incidentes', 'involucrado'))) {
+  await db.exec('ALTER TABLE incidentes ADD COLUMN involucrado TEXT');
 }
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {

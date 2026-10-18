@@ -12,6 +12,14 @@ const TIPOS = [
 ];
 const GRAVEDADES = ['baja', 'media', 'alta', 'critica'];
 const ESTADOS = ['abierto', 'en_proceso', 'cerrado'];
+const INVOLUCRADOS = [
+  { valor: 'visitante', label: 'Visitante' },
+  { valor: 'propietario', label: 'Propietario' },
+  { valor: 'empleado', label: 'Empleado' },
+  { valor: 'seguridad', label: 'Personal de seguridad' },
+  { valor: 'otro', label: 'Otro / externo' },
+];
+const etiquetaInvolucrado = (v) => INVOLUCRADOS.find((i) => i.valor === v)?.label || v;
 
 export default function Incidentes() {
   const [filas, setFilas] = useState([]);
@@ -83,7 +91,10 @@ export default function Incidentes() {
               {filas.map((i) => (
                 <tr key={i.id}>
                   <td>{fecha(i.fecha)}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{i.tipo}</td>
+                  <td style={{ textTransform: 'capitalize' }}>
+                    {i.tipo}
+                    {i.involucrado && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>con {etiquetaInvolucrado(i.involucrado).toLowerCase()}</div>}
+                  </td>
                   <td>{i.descripcion}{i.ubicacion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>📍 {i.ubicacion}</div>}</td>
                   <td>{i.propietario_nombre || '—'}{i.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{i.propiedad}</div>}</td>
                   <td>
@@ -124,6 +135,7 @@ function ModalIncidente({ incidente, empleados, propietarios, onCerrar, onGuarda
   const esNuevo = !incidente.id;
   const [datos, setDatos] = useState({
     tipo: incidente.tipo || 'otro',
+    involucrado: incidente.involucrado || '',
     gravedad: incidente.gravedad || 'baja',
     estado: incidente.estado || 'abierto',
     descripcion: incidente.descripcion || '',
@@ -190,6 +202,14 @@ function ModalIncidente({ incidente, empleados, propietarios, onCerrar, onGuarda
               {GRAVEDADES.map((g) => <option key={g} value={g} style={{ textTransform: 'capitalize' }}>{g}</option>)}
             </select>
           </div>
+        </div>
+
+        <div className="campo">
+          <label>¿Con quién fue el incidente?</label>
+          <select value={datos.involucrado} onChange={(e) => set('involucrado', e.target.value)}>
+            <option value="">Sin especificar</option>
+            {INVOLUCRADOS.map((o) => <option key={o.valor} value={o.valor}>{o.label}</option>)}
+          </select>
         </div>
 
         <div className="campo">
