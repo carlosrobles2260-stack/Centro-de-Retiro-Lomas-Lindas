@@ -1,7 +1,32 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { notificarPropietario } from '../notificaciones.js';
 
 const router = Router();
+
+// Construye y envía la notificación al propietario para una visita.
+function notificarVisita(visitaId, tipo) {
+  const v = db.prepare(SELECT_VISITA + ' WHERE vi.id = ?').get(visitaId);
+  if (!v || !v.propietario_id) return;
+  const mensajes = {
+    registrada: {
+      asunto: `Solicitud de acceso: ${v.visitante_nombre}`,
+      mensaje: `Estimado(a) ${v.propietario_nombre}, el visitante ${v.visitante_nombre}` +
+        `${v.placa_vehiculo ? ` (vehículo ${v.placa_vehiculo})` : ''} ha sido registrado en la entrada` +
+        `${v.motivo ? ` por "${v.motivo}"` : ''}. Por favor confirme la autorización de acceso.`,
+    },
+    ingreso: {
+      asunto: `Su visitante ingresó: ${v.visitante_nombre}`,
+      mensaje: `Estimado(a) ${v.propietario_nombre}, le informamos que ${v.visitante_nombre} ingresó al Centro de Retiro Lomas Lindas.`,
+    },
+  };
+  const m = mensajes[tipo];
+  if (!m) return;
+  // No se espera (no bloquea la respuesta HTTP).
+  notificarPropietario({ propietario_id: v.propietario_id, visita_id: visitaId, ...m }).catch((e) =>
+    console.error('Error notificando:', e)
+  );
+}
 
 const SELECT_VISITA = `
   SELECT vi.*,
@@ -63,6 +88,7 @@ router.post('/', (req, res) => {
       estado ?? 'pendiente',
       req.usuario?.id ?? null
     );
+  notificarVisita(info.lastInsertRowid, 'registrada');
   res.status(201).json(db.prepare(SELECT_VISITA + ' WHERE vi.id = ?').get(info.lastInsertRowid));
 });
 
@@ -93,6 +119,10 @@ router.patch('/:id/estado', (req, res) => {
     fecha_salida,
     req.params.id
   );
+  // Notifica al propietario cuando el visitante ingresa (primera vez).
+  if (estado === 'dentro' && visita.estado !== 'dentro') {
+    notificarVisita(Number(req.params.id), 'ingreso');
+  }
   res.json(db.prepare(SELECT_VISITA + ' WHERE vi.id = ?').get(req.params.id));
 });
 

@@ -23,6 +23,7 @@ const COLORES = {
   abierto: 'rojo', en_proceso: 'amarillo', cerrado: 'verde',
   baja: 'gris', media: 'amarillo', alta: 'rojo', critica: 'rojo',
   normal: 'verde', novedad: 'amarillo',
+  enviada: 'verde', simulada: 'azul', error: 'rojo',
 };
 export function colorEstado(estado) {
   return COLORES[estado] || 'gris';

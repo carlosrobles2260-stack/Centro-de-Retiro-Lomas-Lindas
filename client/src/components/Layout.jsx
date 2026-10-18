@@ -17,6 +17,7 @@ const MENU = [
       { a: '/visitantes', texto: 'Visitantes', roles: ['seguridad', 'administracion'] },
       { a: '/incidentes', texto: 'Incidentes', roles: ['seguridad'] },
       { a: '/rondas', texto: 'Rondas de vigilancia', roles: ['seguridad'] },
+      { a: '/notificaciones', texto: 'Notificaciones', roles: ['seguridad', 'administracion'] },
     ],
   },
   {

@@ -141,6 +141,21 @@ CREATE TABLE IF NOT EXISTS pagos (
   creado_en  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ===== Notificaciones (bandeja de salida hacia propietarios) =====
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
+  visita_id      INTEGER REFERENCES visitas(id) ON DELETE SET NULL,
+  canal          TEXT DEFAULT 'email',   -- email | sms | whatsapp
+  destino        TEXT,                    -- correo o teléfono del propietario
+  asunto         TEXT,
+  mensaje        TEXT NOT NULL,
+  estado         TEXT NOT NULL DEFAULT 'pendiente', -- pendiente | enviada | simulada | error
+  detalle        TEXT,                    -- info de error o del proveedor
+  creado_en      TEXT NOT NULL DEFAULT (datetime('now')),
+  enviado_en     TEXT
+);
+
 CREATE TABLE IF NOT EXISTS gastos (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   concepto      TEXT NOT NULL,
