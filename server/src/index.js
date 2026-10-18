@@ -25,6 +25,24 @@ app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ ok: true, servicio: 'ERP Lomas Lindas' }));
 
+// Página pública de la credencial del visitante (para compartir por enlace/WhatsApp).
+app.get('/credencial/:codigo', async (req, res) => {
+  try {
+    const { default: db } = await import('./db.js');
+    const { generarQrDataUrl, paginaCredencialHTML } = await import('./credencial.js');
+    const v = await db.get(
+      `SELECT v.*, p.nombre AS propietario_nombre FROM visitantes v
+       LEFT JOIN propietarios p ON p.id = v.propietario_id WHERE v.codigo = ?`,
+      [req.params.codigo]
+    );
+    if (!v) return res.status(404).send('<h1>Credencial no encontrada</h1>');
+    const qr = await generarQrDataUrl(v.codigo);
+    res.type('html').send(paginaCredencialHTML(v, qr));
+  } catch (e) {
+    res.status(500).send('Error al generar la credencial');
+  }
+});
+
 // Autenticación (login es público; el resto protegido dentro del router)
 app.use('/api/auth', authRoutes);
 

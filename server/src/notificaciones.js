@@ -21,6 +21,28 @@ async function obtenerTransporter() {
 }
 
 /**
+ * Envía un correo genérico (con HTML y adjuntos opcionales).
+ * Devuelve { estado: 'enviada' | 'simulada', detalle }.
+ */
+export async function enviarEmail({ to, subject, text, html, attachments }) {
+  if (!to) return { estado: 'error', detalle: 'Sin destinatario' };
+  const transporter = await obtenerTransporter();
+  if (!transporter) {
+    console.log(`📨 [simulada] Correo a ${to}: ${subject}`);
+    return { estado: 'simulada', detalle: 'SMTP no configurado; correo no enviado realmente' };
+  }
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || 'no-reply@lomaslindas.com',
+      to, subject, text, html, attachments,
+    });
+    return { estado: 'enviada', detalle: null };
+  } catch (e) {
+    return { estado: 'error', detalle: String(e.message || e) };
+  }
+}
+
+/**
  * Registra una notificación para el propietario y la intenta enviar.
  * Si no hay SMTP configurado, queda en estado 'simulada'.
  */

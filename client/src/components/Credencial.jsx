@@ -1,8 +1,43 @@
 import { useEffect, useState } from 'react';
+import { api } from '../lib/api.js';
 
 // Muestra la credencial de un visitante con su código QR e imprime.
 export default function Credencial({ visitante, onCerrar }) {
   const [qr, setQr] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+  const [aviso, setAviso] = useState(null);
+
+  // Enlace público de la credencial (el proxy lo redirige al backend).
+  const urlPublica = `${window.location.origin}/credencial/${visitante.codigo}`;
+
+  async function enviarCorreo() {
+    let email = visitante.email;
+    if (!email) {
+      email = prompt('El visitante no tiene correo. Escribe el correo del invitado:');
+      if (!email) return;
+    }
+    setEnviando(true);
+    setAviso(null);
+    try {
+      const r = await api.post(`/visitantes/${visitante.id}/enviar-credencial`, { email });
+      if (r.estado === 'enviada') setAviso({ ok: true, texto: `Credencial enviada a ${r.destino}.` });
+      else if (r.estado === 'simulada') setAviso({ ok: true, texto: `Registrado (modo demo, sin SMTP). En producción se enviaría a ${r.destino}.` });
+      else setAviso({ ok: false, texto: r.detalle || 'No se pudo enviar.' });
+    } catch (e) {
+      setAviso({ ok: false, texto: e.message });
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  function enviarWhatsApp() {
+    const tel = (visitante.telefono || '').replace(/\D/g, '');
+    const mensaje = `Hola ${visitante.nombre}, esta es tu credencial de acceso al Centro de Retiro Lomas Lindas.\n` +
+      `Código: ${visitante.codigo}\n` +
+      `Ver credencial con QR: ${urlPublica}`;
+    const url = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+  }
 
   useEffect(() => {
     let activo = true;
@@ -58,7 +93,29 @@ export default function Credencial({ visitante, onCerrar }) {
           <div className="cargando">Generando QR...</div>
         )}
         <div style={{ fontFamily: 'monospace', fontSize: 16, letterSpacing: 1 }}>{visitante.codigo}</div>
-        <div className="pie-modal" style={{ justifyContent: 'center' }}>
+
+        {aviso && (
+          <p style={{ marginTop: 12, fontSize: 13, color: aviso.ok ? 'var(--verde)' : 'var(--rojo)' }}>
+            {aviso.texto}
+          </p>
+        )}
+
+        {/* Enviar la credencial al invitado */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button className="secundario" onClick={enviarCorreo} disabled={enviando || !qr}>
+            {enviando ? 'Enviando...' : '✉️ Enviar por correo'}
+          </button>
+          <button
+            onClick={enviarWhatsApp}
+            disabled={!visitante.telefono}
+            title={visitante.telefono ? '' : 'El visitante no tiene teléfono registrado'}
+            style={{ background: '#25D366' }}
+          >
+            💬 WhatsApp
+          </button>
+        </div>
+
+        <div className="pie-modal" style={{ justifyContent: 'center', marginTop: 16 }}>
           <button className="secundario" onClick={onCerrar}>Cerrar</button>
           <button onClick={imprimir} disabled={!qr}>Imprimir credencial</button>
         </div>

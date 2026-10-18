@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS visitantes (
   tipo           TEXT DEFAULT 'invitado',
   propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
   placa_vehiculo TEXT,
+  email          TEXT,
   notas          TEXT,
   codigo         TEXT,
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
@@ -178,6 +179,9 @@ async function tieneColumna(tabla, columna) {
 
 if (!(await tieneColumna('visitantes', 'codigo'))) {
   await db.exec('ALTER TABLE visitantes ADD COLUMN codigo TEXT');
+}
+if (!(await tieneColumna('visitantes', 'email'))) {
+  await db.exec('ALTER TABLE visitantes ADD COLUMN email TEXT');
 }
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {

@@ -39,9 +39,10 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    // Redirige las llamadas /api al backend durante el desarrollo.
+    // Redirige las llamadas /api y la página pública de credencial al backend.
     proxy: {
       '/api': 'http://localhost:4000',
+      '/credencial': 'http://localhost:4000',
     },
   },
 });

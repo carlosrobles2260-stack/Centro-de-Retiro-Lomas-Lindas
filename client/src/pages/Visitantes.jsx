@@ -23,7 +23,8 @@ export default function Visitantes() {
         campos={[
           { name: 'nombre', label: 'Nombre completo', requerido: true },
           { name: 'documento', label: 'Documento de identidad' },
-          { name: 'telefono', label: 'Teléfono' },
+          { name: 'telefono', label: 'Teléfono (para WhatsApp)' },
+          { name: 'email', label: 'Correo electrónico (para enviar la credencial)', type: 'email' },
           {
             name: 'tipo', label: 'Tipo de visitante', type: 'select', defecto: 'invitado',
             opciones: [
