@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { fechaHora, Badge } from '../lib/format.jsx';
+import EscanerQR from '../components/EscanerQR.jsx';
 
 const ESTADOS = [
   { valor: 'pendiente', label: 'Pendiente' },
@@ -29,6 +30,8 @@ export default function Visitas() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(false);
+  const [visitantePre, setVisitantePre] = useState(null); // visitante preseleccionado por QR
+  const [escaneando, setEscaneando] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
 
@@ -43,6 +46,17 @@ export default function Visitas() {
   }, [filtroEstado, buscar]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  async function alEscanear(codigo) {
+    setEscaneando(false);
+    try {
+      const visitante = await api.get(`/visitantes/codigo/${encodeURIComponent(codigo)}`);
+      setVisitantePre(visitante);
+      setModal(true);
+    } catch {
+      alert(`No se encontró ningún visitante con el código "${codigo}". Regístralo en la sección Visitantes.`);
+    }
+  }
 
   async function cambiarEstado(visita, estado) {
     let autorizado_por = visita.autorizado_por;
@@ -60,7 +74,10 @@ export default function Visitas() {
           <h2>Registro de visitas</h2>
           <p className="descripcion">Control de acceso de visitantes, familiares e invitados de los propietarios.</p>
         </div>
-        <button onClick={() => setModal(true)}>+ Registrar visita</button>
+        <div className="filtros">
+          <button className="secundario" onClick={() => setEscaneando(true)}>📷 Escanear QR</button>
+          <button onClick={() => { setVisitantePre(null); setModal(true); }}>+ Registrar visita</button>
+        </div>
       </div>
 
       <div className="barra">
@@ -119,15 +136,28 @@ export default function Visitas() {
         )}
       </div>
 
-      {modal && <ModalVisita onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); cargar(); }} />}
+      {escaneando && <EscanerQR onDetectado={alEscanear} onCerrar={() => setEscaneando(false)} />}
+      {modal && (
+        <ModalVisita
+          visitantePre={visitantePre}
+          onCerrar={() => { setModal(false); setVisitantePre(null); }}
+          onGuardado={() => { setModal(false); setVisitantePre(null); cargar(); }}
+        />
+      )}
     </div>
   );
 }
 
-function ModalVisita({ onCerrar, onGuardado }) {
+function ModalVisita({ visitantePre, onCerrar, onGuardado }) {
   const [visitantes, setVisitantes] = useState([]);
   const [propietarios, setPropietarios] = useState([]);
-  const [datos, setDatos] = useState({ visitante_id: '', propietario_id: '', motivo: '', autorizado_por: '', estado: 'pendiente' });
+  const [datos, setDatos] = useState({
+    visitante_id: visitantePre?.id || '',
+    propietario_id: visitantePre?.propietario_id || '',
+    motivo: '',
+    autorizado_por: visitantePre?.propietario_nombre || '',
+    estado: 'pendiente',
+  });
   const [error, setError] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -162,6 +192,11 @@ function ModalVisita({ onCerrar, onGuardado }) {
     <div className="modal-fondo" onClick={onCerrar}>
       <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={enviar}>
         <h3>Registrar visita</h3>
+        {visitantePre && (
+          <div className="card" style={{ background: 'var(--verde-muy-claro)', borderColor: 'var(--verde-claro)', marginBottom: 14, padding: 12 }}>
+            ✅ Credencial escaneada: <strong>{visitantePre.nombre}</strong> ({visitantePre.codigo})
+          </div>
+        )}
         <div className="campo">
           <label>Visitante *</label>
           <select value={datos.visitante_id} required onChange={(e) => elegirVisitante(e.target.value)}>

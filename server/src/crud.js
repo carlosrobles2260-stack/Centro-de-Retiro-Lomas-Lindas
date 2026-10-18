@@ -9,7 +9,7 @@ import db from './db.js';
  * @param {string} [opts.orden]      Cláusula ORDER BY (sin la palabra ORDER BY).
  * @param {Function} [opts.listSql]  Función opcional que devuelve { sql, params } para el listado.
  */
-export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql }) {
+export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql, alCrear }) {
   // Listar
   router.get('/', (req, res) => {
     if (listSql) {
@@ -30,6 +30,7 @@ export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql })
   // Crear
   router.post('/', (req, res) => {
     const datos = filtrarCampos(req.body, campos);
+    if (alCrear) alCrear(datos, req); // permite agregar campos generados (p.ej. un código)
     const columnas = Object.keys(datos);
     if (columnas.length === 0) {
       return res.status(400).json({ error: 'No se enviaron datos válidos' });

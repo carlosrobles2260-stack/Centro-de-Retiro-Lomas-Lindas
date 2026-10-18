@@ -22,6 +22,7 @@ export default function CrudModule({
   campos = [],
   filtros = [],
   permiteCrear = true,
+  accionesExtra = [], // [{ texto, onClick(fila), clase }]
 }) {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -124,6 +125,9 @@ export default function CrudModule({
                   ))}
                   <td>
                     <div className="acciones">
+                      {accionesExtra.map((a) => (
+                        <button key={a.texto} className={a.clase || 'secundario'} onClick={() => a.onClick(fila)}>{a.texto}</button>
+                      ))}
                       <button className="secundario" onClick={() => setModal(fila)}>Editar</button>
                       <button className="peligro" onClick={() => eliminar(fila)}>Eliminar</button>
                     </div>

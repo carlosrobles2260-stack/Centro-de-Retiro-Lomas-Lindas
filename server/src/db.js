@@ -153,4 +153,23 @@ CREATE TABLE IF NOT EXISTS gastos (
 );
 `);
 
+// ===== Migraciones ligeras (para bases ya existentes) =====
+function tieneColumna(tabla, columna) {
+  return db.prepare(`PRAGMA table_info(${tabla})`).all().some((c) => c.name === columna);
+}
+
+// Código único por visitante para la credencial / QR.
+if (!tieneColumna('visitantes', 'codigo')) {
+  db.exec('ALTER TABLE visitantes ADD COLUMN codigo TEXT');
+  const sinCodigo = db.prepare('SELECT id FROM visitantes WHERE codigo IS NULL').all();
+  const set = db.prepare('UPDATE visitantes SET codigo = ? WHERE id = ?');
+  for (const v of sinCodigo) set.run(generarCodigo(), v.id);
+}
+
+export function generarCodigo() {
+  // Ej: LL-3F9A2C7E
+  const hex = Math.random().toString(16).slice(2, 10).toUpperCase().padEnd(8, '0');
+  return `LL-${hex}`;
+}
+
 export default db;
