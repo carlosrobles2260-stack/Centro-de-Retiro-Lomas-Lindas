@@ -50,8 +50,11 @@ export default function Layout() {
     <div className="app">
       <aside className="sidebar">
         <div className="marca">
-          <strong>Lomas Lindas</strong>
-          <span>Centro de Retiro · ERP</span>
+          <img src="/emblema.png" alt="" className="marca-logo" />
+          <div>
+            <strong>Lomas Lindas</strong>
+            <span>Centro de Retiro · ERP</span>
+          </div>
         </div>
         <nav>
           {MENU.map((seccion) => {

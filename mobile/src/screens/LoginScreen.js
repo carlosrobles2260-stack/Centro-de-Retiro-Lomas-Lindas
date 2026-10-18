@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator, Image,
 } from 'react-native';
 import { useAuth } from '../auth';
 import { colores } from '../theme';
@@ -30,7 +30,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        <Text style={styles.titulo}>Lomas Lindas</Text>
+        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.sub}>Centro de Retiro · Seguridad</Text>
 
         <Text style={styles.label}>Correo electrónico</Text>
@@ -68,8 +68,8 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   fondo: { flex: 1, backgroundColor: colores.verde, justifyContent: 'center', padding: 20 },
   card: { backgroundColor: '#fff', borderRadius: 18, padding: 28 },
-  titulo: { fontSize: 24, fontWeight: '700', color: colores.verde },
-  sub: { color: colores.textoSuave, marginBottom: 22, marginTop: 2 },
+  logo: { width: 170, height: 150, alignSelf: 'center', marginBottom: 6 },
+  sub: { color: colores.textoSuave, marginBottom: 22, marginTop: 2, textAlign: 'center' },
   label: { fontSize: 13, fontWeight: '600', color: colores.textoSuave, marginBottom: 6, marginTop: 10 },
   input: {
     borderWidth: 1, borderColor: colores.borde, borderRadius: 10,

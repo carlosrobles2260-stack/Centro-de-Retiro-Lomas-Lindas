@@ -23,8 +23,8 @@ export default function Login() {
   return (
     <div className="login-wrap">
       <form className="login-card" onSubmit={enviar}>
-        <h1>Lomas Lindas</h1>
-        <p className="sub">Sistema de gestión del Centro de Retiro</p>
+        <img src="/logo.png" alt="Lomas Lindas · Centro de Retiro" className="login-logo" />
+        <p className="sub" style={{ textAlign: 'center' }}>Sistema de gestión del centro de retiro</p>
 
         <div className="campo">
           <label>Correo electrónico</label>
