@@ -16,6 +16,7 @@ const ESTADOS = ['abierto', 'en_proceso', 'cerrado'];
 export default function Incidentes() {
   const [filas, setFilas] = useState([]);
   const [empleados, setEmpleados] = useState([]);
+  const [propietarios, setPropietarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar
   const [filtroEstado, setFiltroEstado] = useState('');
@@ -31,7 +32,10 @@ export default function Incidentes() {
   }, [filtroEstado, filtroGravedad]);
 
   useEffect(() => { cargar(); }, [cargar]);
-  useEffect(() => { api.get('/empleados').then(setEmpleados).catch(() => {}); }, []);
+  useEffect(() => {
+    api.get('/empleados').then(setEmpleados).catch(() => {});
+    api.get('/propietarios').then(setPropietarios).catch(() => {});
+  }, []);
 
   async function eliminar(f) {
     if (!confirm('¿Eliminar este incidente?')) return;
@@ -71,7 +75,7 @@ export default function Incidentes() {
           <table>
             <thead>
               <tr>
-                <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Foto</th>
+                <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Propietario</th><th>Foto</th>
                 <th>Responsable</th><th>Gravedad</th><th>Estado</th><th>Acciones</th>
               </tr>
             </thead>
@@ -80,7 +84,8 @@ export default function Incidentes() {
                 <tr key={i.id}>
                   <td>{fecha(i.fecha)}</td>
                   <td style={{ textTransform: 'capitalize' }}>{i.tipo}</td>
-                  <td>{i.descripcion}{i.ubicacion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{i.ubicacion}</div>}</td>
+                  <td>{i.descripcion}{i.ubicacion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>📍 {i.ubicacion}</div>}</td>
+                  <td>{i.propietario_nombre || '—'}{i.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{i.propiedad}</div>}</td>
                   <td>
                     {i.foto
                       ? <a href={i.foto} target="_blank" rel="noreferrer"><img src={i.foto} alt="evidencia" style={{ width: 46, height: 46, objectFit: 'cover', borderRadius: 6 }} /></a>
@@ -106,6 +111,7 @@ export default function Incidentes() {
         <ModalIncidente
           incidente={modal}
           empleados={empleados}
+          propietarios={propietarios}
           onCerrar={() => setModal(null)}
           onGuardado={() => { setModal(null); cargar(); }}
         />
@@ -114,7 +120,7 @@ export default function Incidentes() {
   );
 }
 
-function ModalIncidente({ incidente, empleados, onCerrar, onGuardado }) {
+function ModalIncidente({ incidente, empleados, propietarios, onCerrar, onGuardado }) {
   const esNuevo = !incidente.id;
   const [datos, setDatos] = useState({
     tipo: incidente.tipo || 'otro',
@@ -123,6 +129,7 @@ function ModalIncidente({ incidente, empleados, onCerrar, onGuardado }) {
     descripcion: incidente.descripcion || '',
     ubicacion: incidente.ubicacion || '',
     responsable_id: incidente.responsable_id || '',
+    propietario_id: incidente.propietario_id || '',
   });
   const [fotoBase64, setFotoBase64] = useState(null);
   const [preview, setPreview] = useState(incidente.foto || null);
@@ -146,7 +153,7 @@ function ModalIncidente({ incidente, empleados, onCerrar, onGuardado }) {
     setGuardando(true);
     setError(null);
     try {
-      const payload = { ...datos, responsable_id: datos.responsable_id || null };
+      const payload = { ...datos, responsable_id: datos.responsable_id || null, propietario_id: datos.propietario_id || null };
       if (fotoBase64) payload.foto_base64 = fotoBase64;
       if (esNuevo) await api.post('/incidentes', payload);
       else await api.put(`/incidentes/${incidente.id}`, payload);
@@ -158,6 +165,12 @@ function ModalIncidente({ incidente, empleados, onCerrar, onGuardado }) {
   }
 
   const set = (k, v) => setDatos((d) => ({ ...d, [k]: v }));
+
+  // Al elegir propietario, sugiere su propiedad como lugar si está vacío.
+  function elegirPropietario(id) {
+    const p = propietarios.find((x) => String(x.id) === String(id));
+    setDatos((d) => ({ ...d, propietario_id: id, ubicacion: d.ubicacion || p?.propiedad || '' }));
+  }
 
   return (
     <div className="modal-fondo" onClick={onCerrar}>
@@ -183,9 +196,18 @@ function ModalIncidente({ incidente, empleados, onCerrar, onGuardado }) {
           <label>Descripción *</label>
           <textarea rows={3} value={datos.descripcion} required onChange={(e) => set('descripcion', e.target.value)} />
         </div>
-        <div className="campo">
-          <label>Ubicación</label>
-          <input value={datos.ubicacion} onChange={(e) => set('ubicacion', e.target.value)} />
+        <div className="fila">
+          <div className="campo">
+            <label>Propietario relacionado</label>
+            <select value={datos.propietario_id} onChange={(e) => elegirPropietario(e.target.value)}>
+              <option value="">Ninguno</option>
+              {propietarios.map((p) => <option key={p.id} value={p.id}>{p.nombre}{p.propiedad ? ` · ${p.propiedad}` : ''}</option>)}
+            </select>
+          </div>
+          <div className="campo">
+            <label>Lugar</label>
+            <input value={datos.ubicacion} onChange={(e) => set('ubicacion', e.target.value)} placeholder="Dónde ocurrió" />
+          </div>
         </div>
 
         <div className="fila">

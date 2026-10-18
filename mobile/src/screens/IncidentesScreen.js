@@ -46,8 +46,9 @@ export default function IncidentesScreen() {
               {item.foto ? <Image source={{ uri: API_URL + item.foto }} style={styles.foto} /> : null}
               <Text style={styles.desc}>{item.descripcion}</Text>
               <Text style={styles.sub}>
-                {item.ubicacion ? `${item.ubicacion} · ` : ''}{fechaHora(item.fecha)}
+                {item.ubicacion ? `📍 ${item.ubicacion} · ` : ''}{fechaHora(item.fecha)}
               </Text>
+              {item.propietario_nombre ? <Text style={styles.sub}>Propietario: {item.propietario_nombre}{item.propiedad ? ` (${item.propiedad})` : ''}</Text> : null}
               {item.responsable_nombre ? <Text style={styles.sub}>Responsable: {item.responsable_nombre}</Text> : null}
               <Badge estado={item.estado} />
             </View>
@@ -73,10 +74,22 @@ function FormIncidente({ onCerrar, onGuardado }) {
   const [empleados, setEmpleados] = useState([]);
   const [responsableId, setResponsableId] = useState('');
   const [abiertoResp, setAbiertoResp] = useState(false);
+  const [propietarios, setPropietarios] = useState([]);
+  const [propietarioId, setPropietarioId] = useState('');
+  const [abiertoProp, setAbiertoProp] = useState(false);
   const [foto, setFoto] = useState(null); // { uri, base64 }
   const [guardando, setGuardando] = useState(false);
 
-  useEffect(() => { api.get('/empleados').then(setEmpleados).catch(() => {}); }, []);
+  useEffect(() => {
+    api.get('/empleados').then(setEmpleados).catch(() => {});
+    api.get('/propietarios').then(setPropietarios).catch(() => {});
+  }, []);
+
+  function elegirPropietario(p) {
+    setPropietarioId(p ? p.id : '');
+    if (p && !ubicacion) setUbicacion(p.propiedad || '');
+    setAbiertoProp(false);
+  }
 
   async function tomarFoto(desdeCamara) {
     const permiso = desdeCamara
@@ -94,7 +107,7 @@ function FormIncidente({ onCerrar, onGuardado }) {
     if (!descripcion.trim()) { Alert.alert('Falta la descripción'); return; }
     setGuardando(true);
     try {
-      const payload = { tipo, gravedad, descripcion, ubicacion, estado: 'abierto', responsable_id: responsableId || null };
+      const payload = { tipo, gravedad, descripcion, ubicacion, estado: 'abierto', responsable_id: responsableId || null, propietario_id: propietarioId || null };
       if (foto?.base64) payload.foto_base64 = `data:image/jpeg;base64,${foto.base64}`;
       await api.post('/incidentes', payload);
       onGuardado();
@@ -102,6 +115,7 @@ function FormIncidente({ onCerrar, onGuardado }) {
   }
 
   const responsable = empleados.find((e) => String(e.id) === String(responsableId));
+  const propietario = propietarios.find((p) => String(p.id) === String(propietarioId));
 
   return (
     <ScrollView style={styles.form} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -116,8 +130,27 @@ function FormIncidente({ onCerrar, onGuardado }) {
       <Text style={styles.label}>Descripción</Text>
       <TextInput style={[styles.input, { height: 90 }]} multiline value={descripcion} onChangeText={setDescripcion} placeholder="¿Qué ocurrió?" placeholderTextColor="#9aa8a0" />
 
-      <Text style={styles.label}>Ubicación</Text>
-      <TextInput style={styles.input} value={ubicacion} onChangeText={setUbicacion} placeholder="Lugar" placeholderTextColor="#9aa8a0" />
+      <Text style={styles.label}>Propietario relacionado</Text>
+      <TouchableOpacity style={styles.input} onPress={() => setAbiertoProp((a) => !a)}>
+        <Text style={{ color: propietario ? colores.texto : '#9aa8a0' }}>
+          {propietario ? `${propietario.nombre}${propietario.propiedad ? ` · ${propietario.propiedad}` : ''}` : 'Ninguno'}
+        </Text>
+      </TouchableOpacity>
+      {abiertoProp && (
+        <View style={styles.lista}>
+          <TouchableOpacity style={styles.listaItem} onPress={() => elegirPropietario(null)}>
+            <Text style={{ color: colores.textoSuave }}>Ninguno</Text>
+          </TouchableOpacity>
+          {propietarios.map((p) => (
+            <TouchableOpacity key={p.id} style={styles.listaItem} onPress={() => elegirPropietario(p)}>
+              <Text style={{ color: colores.texto }}>{p.nombre}{p.propiedad ? ` · ${p.propiedad}` : ''}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      <Text style={styles.label}>Lugar</Text>
+      <TextInput style={styles.input} value={ubicacion} onChangeText={setUbicacion} placeholder="Dónde ocurrió" placeholderTextColor="#9aa8a0" />
 
       <Text style={styles.label}>Responsable</Text>
       <TouchableOpacity style={styles.input} onPress={() => setAbiertoResp((a) => !a)}>

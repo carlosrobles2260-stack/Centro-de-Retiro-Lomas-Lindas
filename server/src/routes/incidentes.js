@@ -9,10 +9,12 @@ const router = Router();
 const SELECT_INCIDENTE = `
   SELECT i.*,
          u.nombre AS reportado_por_nombre,
-         e.nombre AS responsable_nombre
+         e.nombre AS responsable_nombre,
+         p.nombre AS propietario_nombre, p.propiedad
   FROM incidentes i
-  LEFT JOIN usuarios u  ON u.id = i.reportado_por
-  LEFT JOIN empleados e ON e.id = i.responsable_id
+  LEFT JOIN usuarios u      ON u.id = i.reportado_por
+  LEFT JOIN empleados e     ON e.id = i.responsable_id
+  LEFT JOIN propietarios p  ON p.id = i.propietario_id
 `;
 
 // Avisa a la Directiva cuando un incidente es de gravedad alta o crítica.
@@ -65,17 +67,17 @@ router.get('/:id', ah(async (req, res) => {
 
 // POST /api/incidentes
 router.post('/', ah(async (req, res) => {
-  const { tipo, descripcion, ubicacion, gravedad, estado, responsable_id, foto_base64 } = req.body || {};
+  const { tipo, descripcion, ubicacion, gravedad, estado, responsable_id, propietario_id, foto_base64 } = req.body || {};
   if (!descripcion) return res.status(400).json({ error: 'La descripción es obligatoria' });
 
   const foto = foto_base64 ? guardarImagenBase64(foto_base64) : null;
   const info = await db.run(
-    `INSERT INTO incidentes (tipo, descripcion, ubicacion, gravedad, estado, reportado_por, responsable_id, foto)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO incidentes (tipo, descripcion, ubicacion, gravedad, estado, reportado_por, responsable_id, propietario_id, foto)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       tipo ?? 'otro', descripcion, ubicacion ?? null,
       gravedad ?? 'baja', estado ?? 'abierto',
-      req.usuario?.id ?? null, responsable_id || null, foto,
+      req.usuario?.id ?? null, responsable_id || null, propietario_id || null, foto,
     ]
   );
   const creado = await db.get(SELECT_INCIDENTE + ' WHERE i.id = ?', [info.lastID]);
@@ -88,16 +90,17 @@ router.put('/:id', ah(async (req, res) => {
   const actual = await db.get('SELECT * FROM incidentes WHERE id = ?', [req.params.id]);
   if (!actual) return res.status(404).json({ error: 'No encontrado' });
 
-  const { tipo, descripcion, ubicacion, gravedad, estado, responsable_id, foto_base64 } = req.body || {};
+  const { tipo, descripcion, ubicacion, gravedad, estado, responsable_id, propietario_id, foto_base64 } = req.body || {};
   const foto = foto_base64 ? guardarImagenBase64(foto_base64) : actual.foto;
 
   await db.run(
-    `UPDATE incidentes SET tipo = ?, descripcion = ?, ubicacion = ?, gravedad = ?, estado = ?, responsable_id = ?, foto = ?
+    `UPDATE incidentes SET tipo = ?, descripcion = ?, ubicacion = ?, gravedad = ?, estado = ?, responsable_id = ?, propietario_id = ?, foto = ?
      WHERE id = ?`,
     [
       tipo ?? actual.tipo, descripcion ?? actual.descripcion, ubicacion ?? actual.ubicacion,
       gravedad ?? actual.gravedad, estado ?? actual.estado,
       responsable_id === undefined ? actual.responsable_id : (responsable_id || null),
+      propietario_id === undefined ? actual.propietario_id : (propietario_id || null),
       foto, req.params.id,
     ]
   );
