@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Lomas Lindas",
+    "slug": "lomas-lindas-erp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "lomaslindas",
+    "splash": {
+      "backgroundColor": "#2f6e4f"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "La aplicación usa la cámara para escanear los códigos QR de las credenciales de los visitantes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2f6e4f",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "La aplicación usa la cámara para escanear los códigos QR de las credenciales de los visitantes."
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:4000"
+    }
+  }
+}

@@ -44,8 +44,9 @@ personal, y las finanzas del centro desde una sola plataforma web.
 
 ```
 Centro-de-Retiro-Lomas-Lindas/
-├── server/   → API REST en Node.js (Express) + base de datos SQLite
-└── client/   → Interfaz web en React (Vite)
+├── server/   → API REST en Node.js (Express) + SQLite o PostgreSQL
+├── client/   → Interfaz web en React (Vite), instalable como PWA
+└── mobile/   → App móvil nativa en React Native (Expo) para seguridad
 ```
 
 - **Backend**: Express, autenticación con JWT, contraseñas con bcrypt.
@@ -82,6 +83,17 @@ npm run dev               # inicia la interfaz en http://localhost:5173
 
 Abre `http://localhost:5173` en el navegador. Las llamadas a `/api` se
 redirigen automáticamente al backend en el puerto 4000.
+
+### 3. App móvil (opcional)
+
+```bash
+cd mobile
+npm install
+# edita src/config.js con la IP de tu PC (no localhost)
+npm start                 # escanea el QR con la app Expo Go
+```
+
+Ver `mobile/README.md` para más detalles.
 
 ## Despliegue con Docker (PostgreSQL)
 
