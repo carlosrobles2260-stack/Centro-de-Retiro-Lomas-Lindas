@@ -31,6 +31,13 @@
         {
           "cameraPermission": "La aplicación usa la cámara para escanear los códigos QR de las credenciales de los visitantes."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "La aplicación usa la cámara para tomar fotos de evidencia de los incidentes.",
+          "photosPermission": "La aplicación accede a tus fotos para adjuntar evidencia a los incidentes."
+        }
       ]
     ],
     "web": {

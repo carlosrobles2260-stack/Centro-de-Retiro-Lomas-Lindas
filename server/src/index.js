@@ -21,7 +21,11 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // permite fotos de evidencia en base64
+
+// Archivos subidos (fotos de incidentes).
+import { UPLOADS_DIR } from './fotos.js';
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, servicio: 'ERP Lomas Lindas' }));
 

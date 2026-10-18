@@ -7,6 +7,9 @@ server/.env
 
 # Base de datos SQLite (datos locales)
 server/data/
+
+# Archivos subidos (fotos de incidentes)
+server/uploads/
 *.db
 *.db-shm
 *.db-wal

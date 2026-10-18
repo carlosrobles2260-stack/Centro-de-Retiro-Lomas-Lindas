@@ -1,9 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
-  View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal,
+  View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal, Image, ScrollView,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
+import { API_URL } from '../config';
 import { colores } from '../theme';
 import { Badge, fechaHora } from '../components/ui';
 
@@ -41,10 +43,12 @@ export default function IncidentesScreen() {
                 <Text style={styles.tipo}>{item.tipo}</Text>
                 <Badge estado={item.gravedad} />
               </View>
+              {item.foto ? <Image source={{ uri: API_URL + item.foto }} style={styles.foto} /> : null}
               <Text style={styles.desc}>{item.descripcion}</Text>
               <Text style={styles.sub}>
                 {item.ubicacion ? `${item.ubicacion} · ` : ''}{fechaHora(item.fecha)}
               </Text>
+              {item.responsable_nombre ? <Text style={styles.sub}>Responsable: {item.responsable_nombre}</Text> : null}
               <Badge estado={item.estado} />
             </View>
           )}
@@ -66,19 +70,41 @@ function FormIncidente({ onCerrar, onGuardado }) {
   const [gravedad, setGravedad] = useState('baja');
   const [descripcion, setDescripcion] = useState('');
   const [ubicacion, setUbicacion] = useState('');
+  const [empleados, setEmpleados] = useState([]);
+  const [responsableId, setResponsableId] = useState('');
+  const [abiertoResp, setAbiertoResp] = useState(false);
+  const [foto, setFoto] = useState(null); // { uri, base64 }
   const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => { api.get('/empleados').then(setEmpleados).catch(() => {}); }, []);
+
+  async function tomarFoto(desdeCamara) {
+    const permiso = desdeCamara
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permiso.granted) { Alert.alert('Permiso necesario', 'Se necesita acceso para adjuntar la foto.'); return; }
+    const fn = desdeCamara ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync;
+    const r = await fn({ base64: true, quality: 0.6, allowsEditing: false });
+    if (!r.canceled && r.assets?.[0]) {
+      setFoto({ uri: r.assets[0].uri, base64: r.assets[0].base64 });
+    }
+  }
 
   async function guardar() {
     if (!descripcion.trim()) { Alert.alert('Falta la descripción'); return; }
     setGuardando(true);
     try {
-      await api.post('/incidentes', { tipo, gravedad, descripcion, ubicacion, estado: 'abierto' });
+      const payload = { tipo, gravedad, descripcion, ubicacion, estado: 'abierto', responsable_id: responsableId || null };
+      if (foto?.base64) payload.foto_base64 = `data:image/jpeg;base64,${foto.base64}`;
+      await api.post('/incidentes', payload);
       onGuardado();
     } catch (e) { Alert.alert('Error', e.message); setGuardando(false); }
   }
 
+  const responsable = empleados.find((e) => String(e.id) === String(responsableId));
+
   return (
-    <View style={styles.form}>
+    <ScrollView style={styles.form} contentContainerStyle={{ paddingBottom: 40 }}>
       <Text style={styles.formTitulo}>Reportar incidente</Text>
 
       <Text style={styles.label}>Tipo</Text>
@@ -93,6 +119,34 @@ function FormIncidente({ onCerrar, onGuardado }) {
       <Text style={styles.label}>Ubicación</Text>
       <TextInput style={styles.input} value={ubicacion} onChangeText={setUbicacion} placeholder="Lugar" placeholderTextColor="#9aa8a0" />
 
+      <Text style={styles.label}>Responsable</Text>
+      <TouchableOpacity style={styles.input} onPress={() => setAbiertoResp((a) => !a)}>
+        <Text style={{ color: responsable ? colores.texto : '#9aa8a0' }}>{responsable ? responsable.nombre : 'Sin asignar'}</Text>
+      </TouchableOpacity>
+      {abiertoResp && (
+        <View style={styles.lista}>
+          <TouchableOpacity style={styles.listaItem} onPress={() => { setResponsableId(''); setAbiertoResp(false); }}>
+            <Text style={{ color: colores.textoSuave }}>Sin asignar</Text>
+          </TouchableOpacity>
+          {empleados.map((e) => (
+            <TouchableOpacity key={e.id} style={styles.listaItem} onPress={() => { setResponsableId(e.id); setAbiertoResp(false); }}>
+              <Text style={{ color: colores.texto }}>{e.nombre}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      <Text style={styles.label}>Foto de evidencia</Text>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <TouchableOpacity style={[styles.botonFoto]} onPress={() => tomarFoto(true)}>
+          <Text style={styles.botonFotoTexto}>📷 Tomar foto</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.botonFoto]} onPress={() => tomarFoto(false)}>
+          <Text style={styles.botonFotoTexto}>🖼️ Galería</Text>
+        </TouchableOpacity>
+      </View>
+      {foto && <Image source={{ uri: foto.uri }} style={styles.preview} />}
+
       <View style={styles.formBotones}>
         <TouchableOpacity style={[styles.boton, styles.botonSec]} onPress={onCerrar}>
           <Text style={{ color: colores.texto, fontWeight: '600' }}>Cancelar</Text>
@@ -101,7 +155,7 @@ function FormIncidente({ onCerrar, onGuardado }) {
           {guardando ? <ActivityIndicator color="#fff" /> : <Text style={styles.botonTexto}>Guardar</Text>}
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -122,6 +176,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colores.borde, gap: 6 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   tipo: { fontSize: 16, fontWeight: '700', color: colores.texto, textTransform: 'capitalize' },
+  foto: { width: '100%', height: 160, borderRadius: 8, backgroundColor: '#eee' },
   desc: { color: colores.texto },
   sub: { fontSize: 12, color: colores.textoSuave },
   vacio: { textAlign: 'center', color: colores.textoSuave, marginTop: 40 },
@@ -131,11 +186,16 @@ const styles = StyleSheet.create({
   formTitulo: { fontSize: 20, fontWeight: '700', color: colores.texto, marginBottom: 10 },
   label: { fontSize: 13, fontWeight: '600', color: colores.textoSuave, marginTop: 14, marginBottom: 6 },
   input: { borderWidth: 1, borderColor: colores.borde, borderRadius: 10, padding: 12, fontSize: 15, color: colores.texto, backgroundColor: '#fff', textAlignVertical: 'top' },
+  lista: { backgroundColor: '#fff', borderWidth: 1, borderColor: colores.borde, borderRadius: 10, marginTop: 4, maxHeight: 200 },
+  listaItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: colores.borde },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: colores.borde },
   chipActivo: { backgroundColor: colores.verde, borderColor: colores.verde },
   chipTexto: { color: colores.texto, textTransform: 'capitalize', fontSize: 13 },
   chipTextoActivo: { color: '#fff', fontWeight: '600' },
+  botonFoto: { flex: 1, backgroundColor: colores.verdeMuyClaro, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  botonFotoTexto: { color: colores.verde, fontWeight: '600' },
+  preview: { width: '100%', height: 180, borderRadius: 10, marginTop: 10, backgroundColor: '#eee' },
   formBotones: { flexDirection: 'row', gap: 10, marginTop: 28 },
   boton: { flex: 1, backgroundColor: colores.verde, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   botonSec: { backgroundColor: '#fff', borderWidth: 1, borderColor: colores.borde },
