@@ -24,6 +24,7 @@ const MENU = [
     items: [
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion'] },
       { a: '/gastos', texto: 'Gastos', roles: ['administracion'] },
+      { a: '/reportes', texto: 'Reportes', roles: ['administracion'] },
     ],
   },
   {
