@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
+import InstalarApp from './InstalarApp.jsx';
 
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración' };
 
@@ -76,6 +77,7 @@ export default function Layout() {
         <div className="pie">
           <div><strong>{usuario.nombre}</strong></div>
           <div style={{ opacity: 0.8, fontSize: 12 }}>{ROLES[usuario.rol] || usuario.rol}</div>
+          <InstalarApp />
           <button onClick={logout}>Cerrar sesión</button>
         </div>
       </aside>
