@@ -3,7 +3,7 @@ import db, { generarCodigo, SQL } from '../db.js';
 import { ah } from '../async.js';
 import { crearCrud } from '../crud.js';
 import { enviarEmail } from '../notificaciones.js';
-import { generarQrBuffer, emailCredencialHTML } from '../credencial.js';
+import { generarQrBuffer, emailCredencialHTML, logoBuffer } from '../credencial.js';
 
 const router = Router();
 
@@ -33,13 +33,17 @@ router.post('/:id/enviar-credencial', ah(async (req, res) => {
 
   const urlPublica = `${process.env.PUBLIC_URL || 'http://localhost:4000'}/credencial/${v.codigo}`;
   const qr = await generarQrBuffer(v.codigo);
+  const logo = logoBuffer();
+
+  const attachments = [{ filename: 'credencial.png', content: qr, cid: 'qr' }];
+  if (logo) attachments.push({ filename: 'logo.png', content: logo, cid: 'logo' });
 
   const resultado = await enviarEmail({
     to: destino,
     subject: `Tu credencial de visitante · Centro de Retiro Lomas Lindas`,
     text: `Hola ${v.nombre}, tu código de acceso es ${v.codigo}. Preséntalo en la entrada. Credencial: ${urlPublica}`,
     html: emailCredencialHTML(v, urlPublica),
-    attachments: [{ filename: 'credencial.png', content: qr, cid: 'qr' }],
+    attachments,
   });
 
   // Registra el envío en la bandeja de notificaciones.

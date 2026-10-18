@@ -62,12 +62,13 @@ export default function Credencial({ visitante, onCerrar }) {
         .nombre { font-size:18px; font-weight:700; margin:12px 0 2px; }
         .dato { font-size:13px; color:#5d6b63; }
         .codigo { margin-top:12px; font-family:monospace; font-size:15px; letter-spacing:1px; }
-        img { margin-top:10px; }
+        .logo { width:130px; margin:0 auto 4px; display:block; }
+        .qr { margin-top:10px; }
       </style></head>
       <body><div class="carnet">
-        <h2>Centro de Retiro Lomas Lindas</h2>
+        <img class="logo" src="${window.location.origin}/logo.png" alt="Lomas Lindas" />
         <div class="sub">Credencial de visitante</div>
-        <img src="${qr}" width="200" height="200" />
+        <img class="qr" src="${qr}" width="200" height="200" />
         <div class="nombre">${visitante.nombre}</div>
         <div class="dato">${visitante.tipo || ''} ${visitante.documento ? '· ' + visitante.documento : ''}</div>
         ${visitante.propietario_nombre ? `<div class="dato">Autoriza: ${visitante.propietario_nombre}</div>` : ''}
@@ -82,8 +83,9 @@ export default function Credencial({ visitante, onCerrar }) {
   return (
     <div className="modal-fondo" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 360, textAlign: 'center' }}>
-        <h3>Credencial de visitante</h3>
-        <div style={{ fontWeight: 700, fontSize: 18 }}>{visitante.nombre}</div>
+        <img src="/logo.png" alt="Lomas Lindas" style={{ width: 120, margin: '0 auto 4px', display: 'block' }} />
+        <div className="descripcion" style={{ marginTop: 0 }}>Credencial de visitante</div>
+        <div style={{ fontWeight: 700, fontSize: 18, marginTop: 8 }}>{visitante.nombre}</div>
         <div className="descripcion" style={{ textTransform: 'capitalize' }}>
           {visitante.tipo} {visitante.documento ? `· ${visitante.documento}` : ''}
         </div>
