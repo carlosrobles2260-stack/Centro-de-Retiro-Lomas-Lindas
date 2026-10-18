@@ -18,10 +18,17 @@ personal, y las finanzas del centro desde una sola plataforma web.
 - **Rondas de vigilancia**: registro de recorridos y puntos de control del
   personal de seguridad.
 
+- **Credenciales con QR**: cada visitante tiene una credencial imprimible con
+  código QR; el guardia puede escanearla con la cámara para registrar la visita.
+- **Notificaciones al propietario**: aviso automático (email) cuando se registra
+  o ingresa una visita, con bandeja de salida y reintentos.
+
 ### 💼 Administración y finanzas
 - **Facturas y cuotas**: cuotas de mantenimiento y cobros a propietarios, con
   registro de pagos (totales o parciales) y actualización automática del estado.
 - **Gastos**: egresos operativos del centro por categoría.
+- **Reportes**: financiero, estado de cuenta, visitas e incidentes, con
+  exportación a **Excel** y **PDF**.
 - **Panel principal**: indicadores de seguridad, finanzas y actividad reciente.
 
 ### 👥 Personal
@@ -41,9 +48,11 @@ Centro-de-Retiro-Lomas-Lindas/
 └── client/   → Interfaz web en React (Vite)
 ```
 
-- **Backend**: Express, autenticación con JWT, contraseñas con bcrypt y
-  almacenamiento en SQLite (archivo local, sin servidor de base de datos aparte).
+- **Backend**: Express, autenticación con JWT, contraseñas con bcrypt.
+  La base de datos funciona con **SQLite** (por defecto, sin configuración) o
+  **PostgreSQL** (recomendado para producción); se elige por variables de entorno.
 - **Frontend**: React + React Router, consumo de la API vía `fetch`.
+  Es una **PWA** instalable en el teléfono, con soporte offline del shell.
 
 ## Requisitos
 
@@ -73,6 +82,29 @@ npm run dev               # inicia la interfaz en http://localhost:5173
 
 Abre `http://localhost:5173` en el navegador. Las llamadas a `/api` se
 redirigen automáticamente al backend en el puerto 4000.
+
+## Despliegue con Docker (PostgreSQL)
+
+La forma recomendada para producción. Incluye base de datos PostgreSQL, API y
+frontend servido por nginx.
+
+```bash
+cp .env.docker.example .env     # ajusta contraseñas y el secreto JWT
+docker compose up -d --build
+docker compose exec server npm run seed   # solo la primera vez
+```
+
+Abre `http://localhost:8080`. El frontend (nginx) sirve la PWA y redirige
+`/api` al backend; el backend crea el esquema automáticamente en PostgreSQL.
+
+### Usar PostgreSQL sin Docker
+
+```bash
+createdb lomaslindas
+cd server
+export DATABASE_URL=postgres://usuario:clave@localhost:5432/lomaslindas
+npm run seed && npm start
+```
 
 ## Usuarios de ejemplo (tras `npm run seed`)
 
@@ -112,6 +144,7 @@ Todas las rutas (excepto `POST /api/auth/login`) requieren el encabezado
 | GET    | `/api/dashboard`              | Indicadores del panel                |
 | CRUD   | `/api/propietarios`           | Propietarios                         |
 | CRUD   | `/api/visitantes`             | Visitantes                           |
+| GET    | `/api/visitantes/codigo/:codigo` | Buscar visitante por su QR        |
 | GET/POST | `/api/visitas`              | Visitas                              |
 | PATCH  | `/api/visitas/:id/estado`     | Cambiar estado de una visita         |
 | CRUD   | `/api/incidentes`             | Incidentes de seguridad              |
@@ -119,6 +152,9 @@ Todas las rutas (excepto `POST /api/auth/login`) requieren el encabezado
 | CRUD   | `/api/facturas`               | Facturas / cuotas                    |
 | POST   | `/api/facturas/:id/pagos`     | Registrar un pago                    |
 | CRUD   | `/api/gastos`                 | Gastos                               |
+| GET    | `/api/reportes/*`             | Reportes (financiero, visitas, etc.) |
+| GET    | `/api/notificaciones`         | Bandeja de notificaciones            |
+| POST   | `/api/notificaciones/:id/reenviar` | Reintentar envío                |
 | CRUD   | `/api/empleados`              | Empleados                            |
 | CRUD   | `/api/turnos`                 | Turnos                               |
 | CRUD   | `/api/auth/usuarios`          | Usuarios (solo admin)                |

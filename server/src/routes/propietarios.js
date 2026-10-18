@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { ah } from '../async.js';
 import { crearCrud } from '../crud.js';
 
 const router = Router();
@@ -11,22 +12,24 @@ crearCrud(router, {
 });
 
 // Visitantes asociados a un propietario
-router.get('/:id/visitantes', (req, res) => {
-  const visitantes = db
-    .prepare('SELECT * FROM visitantes WHERE propietario_id = ? ORDER BY nombre')
-    .all(req.params.id);
+router.get('/:id/visitantes', ah(async (req, res) => {
+  const visitantes = await db.all(
+    'SELECT * FROM visitantes WHERE propietario_id = ? ORDER BY nombre',
+    [req.params.id]
+  );
   res.json(visitantes);
-});
+}));
 
 // Estado de cuenta de un propietario (facturas y saldo)
-router.get('/:id/cuenta', (req, res) => {
-  const facturas = db
-    .prepare('SELECT * FROM facturas WHERE propietario_id = ? ORDER BY fecha_emision DESC')
-    .all(req.params.id);
+router.get('/:id/cuenta', ah(async (req, res) => {
+  const facturas = await db.all(
+    'SELECT * FROM facturas WHERE propietario_id = ? ORDER BY fecha_emision DESC',
+    [req.params.id]
+  );
   const saldo = facturas
     .filter((f) => f.estado === 'pendiente' || f.estado === 'vencida')
-    .reduce((acc, f) => acc + f.monto, 0);
+    .reduce((acc, f) => acc + Number(f.monto), 0);
   res.json({ facturas, saldo });
-});
+}));
 
 export default router;

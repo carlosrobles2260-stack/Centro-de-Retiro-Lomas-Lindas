@@ -1,23 +1,23 @@
 import { Router } from 'express';
 import db, { generarCodigo } from '../db.js';
+import { ah } from '../async.js';
 import { crearCrud } from '../crud.js';
 
 const router = Router();
 
 // Buscar un visitante por su código de credencial / QR.
 // (Debe ir antes del CRUD para no chocar con GET /:id.)
-router.get('/codigo/:codigo', (req, res) => {
-  const v = db
-    .prepare(
-      `SELECT v.*, p.nombre AS propietario_nombre, p.propiedad
-       FROM visitantes v
-       LEFT JOIN propietarios p ON p.id = v.propietario_id
-       WHERE v.codigo = ?`
-    )
-    .get(req.params.codigo);
+router.get('/codigo/:codigo', ah(async (req, res) => {
+  const v = await db.get(
+    `SELECT v.*, p.nombre AS propietario_nombre, p.propiedad
+     FROM visitantes v
+     LEFT JOIN propietarios p ON p.id = v.propietario_id
+     WHERE v.codigo = ?`,
+    [req.params.codigo]
+  );
   if (!v) return res.status(404).json({ error: 'Credencial no encontrada' });
   res.json(v);
-});
+}));
 
 crearCrud(router, {
   tabla: 'visitantes',

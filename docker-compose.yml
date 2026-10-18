@@ -1,0 +1,50 @@
+# Orquestación del ERP Lomas Lindas: base de datos PostgreSQL + API + frontend.
+# Uso:
+#   1) Copia .env.docker.example a .env y ajusta los valores.
+#   2) docker compose up -d --build
+#   3) (primera vez) docker compose exec server npm run seed
+#   4) Abre http://localhost:8080
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lomas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lomas}
+      POSTGRES_DB: ${POSTGRES_DB:-lomaslindas}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lomas}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      DB_CLIENT: postgres
+      DATABASE_URL: postgres://${POSTGRES_USER:-lomas}:${POSTGRES_PASSWORD:-lomas}@db:5432/${POSTGRES_DB:-lomaslindas}
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  client:
+    build: ./client
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - server
+
+volumes:
+  db_data:

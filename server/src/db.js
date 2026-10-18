@@ -1,188 +1,190 @@
-import Database from 'better-sqlite3';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Inicializa el esquema de la base de datos para el motor activo
+// (SQLite o PostgreSQL) y expone el acceso a datos.
+import db, { client, SQL } from './database.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export { client, SQL };
 
-const dbPath = process.env.DB_PATH
-  ? path.resolve(process.cwd(), process.env.DB_PATH)
-  : path.join(__dirname, '..', 'data', 'lomas-lindas.db');
+// ----- Tipos según el dialecto -----
+// Nota: los DEFAULT con funciones van entre paréntesis (obligatorio en SQLite).
+const T = client === 'postgres'
+  ? { id: 'SERIAL PRIMARY KEY', ts: 'TIMESTAMPTZ', date: 'DATE', num: 'NUMERIC', ahora: '(now())', hoy: '(CURRENT_DATE)' }
+  : { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', ts: 'TEXT', date: 'TEXT', num: 'REAL', ahora: "(datetime('now'))", hoy: "(date('now'))" };
 
-// Asegura que la carpeta de datos exista.
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Esquema de la base de datos. Se crea solo si no existe.
-db.exec(`
+const ESQUEMA = `
 CREATE TABLE IF NOT EXISTS usuarios (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          ${T.id},
   nombre      TEXT NOT NULL,
   email       TEXT NOT NULL UNIQUE,
   password    TEXT NOT NULL,
-  rol         TEXT NOT NULL DEFAULT 'administracion', -- admin | seguridad | administracion
+  rol         TEXT NOT NULL DEFAULT 'administracion',
   activo      INTEGER NOT NULL DEFAULT 1,
-  creado_en   TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en   ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
--- ===== Personal y empleados =====
 CREATE TABLE IF NOT EXISTS empleados (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            ${T.id},
   nombre        TEXT NOT NULL,
   documento     TEXT,
   puesto        TEXT,
-  departamento  TEXT,            -- seguridad | administracion | mantenimiento | cocina | otro
+  departamento  TEXT,
   telefono      TEXT,
   email         TEXT,
-  fecha_ingreso TEXT,
-  salario       REAL DEFAULT 0,
+  fecha_ingreso ${T.date},
+  salario       ${T.num} DEFAULT 0,
   activo        INTEGER NOT NULL DEFAULT 1,
   usuario_id    INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-  creado_en     TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en     ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS turnos (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          ${T.id},
   empleado_id INTEGER NOT NULL REFERENCES empleados(id) ON DELETE CASCADE,
-  fecha       TEXT NOT NULL,
+  fecha       ${T.date} NOT NULL,
   hora_inicio TEXT NOT NULL,
   hora_fin    TEXT NOT NULL,
-  tipo        TEXT DEFAULT 'diurno', -- diurno | nocturno | mixto
+  tipo        TEXT DEFAULT 'diurno',
   notas       TEXT,
-  creado_en   TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en   ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
--- ===== Propietarios y gestión de visitas =====
 CREATE TABLE IF NOT EXISTS propietarios (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id         ${T.id},
   nombre     TEXT NOT NULL,
-  propiedad  TEXT,            -- lote / casa / unidad
+  propiedad  TEXT,
   documento  TEXT,
   telefono   TEXT,
   email      TEXT,
   direccion  TEXT,
   activo     INTEGER NOT NULL DEFAULT 1,
-  creado_en  TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS visitantes (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  id             ${T.id},
   nombre         TEXT NOT NULL,
   documento      TEXT,
   telefono       TEXT,
-  tipo           TEXT DEFAULT 'invitado', -- familiar | invitado | proveedor
+  tipo           TEXT DEFAULT 'invitado',
   propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
   placa_vehiculo TEXT,
   notas          TEXT,
-  creado_en      TEXT NOT NULL DEFAULT (datetime('now'))
+  codigo         TEXT,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS visitas (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              ${T.id},
   visitante_id    INTEGER NOT NULL REFERENCES visitantes(id) ON DELETE CASCADE,
   propietario_id  INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
   motivo          TEXT,
-  estado          TEXT NOT NULL DEFAULT 'pendiente', -- pendiente | autorizada | dentro | finalizada | rechazada
-  autorizado_por  TEXT,          -- nombre de quien autoriza (propietario)
-  fecha_entrada   TEXT,
-  fecha_salida    TEXT,
+  estado          TEXT NOT NULL DEFAULT 'pendiente',
+  autorizado_por  TEXT,
+  fecha_entrada   ${T.ts},
+  fecha_salida    ${T.ts},
   registrado_por  INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   notas           TEXT,
-  creado_en       TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en       ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
--- ===== Seguridad: incidentes y rondas =====
 CREATE TABLE IF NOT EXISTS incidentes (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  fecha          TEXT NOT NULL DEFAULT (datetime('now')),
-  tipo           TEXT,           -- acceso | robo | emergencia | daño | otro
+  id             ${T.id},
+  fecha          ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  tipo           TEXT,
   descripcion    TEXT NOT NULL,
   ubicacion      TEXT,
-  gravedad       TEXT DEFAULT 'baja', -- baja | media | alta | critica
-  estado         TEXT DEFAULT 'abierto', -- abierto | en_proceso | cerrado
+  gravedad       TEXT DEFAULT 'baja',
+  estado         TEXT DEFAULT 'abierto',
   reportado_por  INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-  creado_en      TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS rondas (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            ${T.id},
   empleado_id   INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
-  fecha_hora    TEXT NOT NULL DEFAULT (datetime('now')),
+  fecha_hora    ${T.ts} NOT NULL DEFAULT ${T.ahora},
   punto_control TEXT NOT NULL,
-  estado        TEXT DEFAULT 'normal', -- normal | novedad
+  estado        TEXT DEFAULT 'normal',
   observaciones TEXT,
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-  creado_en     TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en     ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
--- ===== Administración y finanzas =====
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id             ${T.id},
+  propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
+  visita_id      INTEGER REFERENCES visitas(id) ON DELETE SET NULL,
+  canal          TEXT DEFAULT 'email',
+  destino        TEXT,
+  asunto         TEXT,
+  mensaje        TEXT NOT NULL,
+  estado         TEXT NOT NULL DEFAULT 'pendiente',
+  detalle        TEXT,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  enviado_en     ${T.ts}
+);
+
 CREATE TABLE IF NOT EXISTS facturas (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  id             ${T.id},
   propietario_id INTEGER NOT NULL REFERENCES propietarios(id) ON DELETE CASCADE,
-  concepto       TEXT NOT NULL,     -- cuota de mantenimiento, servicios, etc.
-  monto          REAL NOT NULL DEFAULT 0,
-  fecha_emision  TEXT NOT NULL DEFAULT (date('now')),
-  fecha_vencimiento TEXT,
-  estado         TEXT NOT NULL DEFAULT 'pendiente', -- pendiente | pagada | vencida | anulada
+  concepto       TEXT NOT NULL,
+  monto          ${T.num} NOT NULL DEFAULT 0,
+  fecha_emision  ${T.date} NOT NULL DEFAULT ${T.hoy},
+  fecha_vencimiento ${T.date},
+  estado         TEXT NOT NULL DEFAULT 'pendiente',
   notas          TEXT,
-  creado_en      TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS pagos (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id         ${T.id},
   factura_id INTEGER NOT NULL REFERENCES facturas(id) ON DELETE CASCADE,
-  monto      REAL NOT NULL DEFAULT 0,
-  fecha      TEXT NOT NULL DEFAULT (date('now')),
-  metodo     TEXT DEFAULT 'efectivo', -- efectivo | transferencia | tarjeta | cheque
+  monto      ${T.num} NOT NULL DEFAULT 0,
+  fecha      ${T.date} NOT NULL DEFAULT ${T.hoy},
+  metodo     TEXT DEFAULT 'efectivo',
   referencia TEXT,
-  creado_en  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- ===== Notificaciones (bandeja de salida hacia propietarios) =====
-CREATE TABLE IF NOT EXISTS notificaciones (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
-  visita_id      INTEGER REFERENCES visitas(id) ON DELETE SET NULL,
-  canal          TEXT DEFAULT 'email',   -- email | sms | whatsapp
-  destino        TEXT,                    -- correo o teléfono del propietario
-  asunto         TEXT,
-  mensaje        TEXT NOT NULL,
-  estado         TEXT NOT NULL DEFAULT 'pendiente', -- pendiente | enviada | simulada | error
-  detalle        TEXT,                    -- info de error o del proveedor
-  creado_en      TEXT NOT NULL DEFAULT (datetime('now')),
-  enviado_en     TEXT
+  creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
 CREATE TABLE IF NOT EXISTS gastos (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            ${T.id},
   concepto      TEXT NOT NULL,
-  categoria     TEXT DEFAULT 'operativo', -- operativo | nomina | mantenimiento | servicios | otro
-  monto         REAL NOT NULL DEFAULT 0,
-  fecha         TEXT NOT NULL DEFAULT (date('now')),
+  categoria     TEXT DEFAULT 'operativo',
+  monto         ${T.num} NOT NULL DEFAULT 0,
+  fecha         ${T.date} NOT NULL DEFAULT ${T.hoy},
   proveedor     TEXT,
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-  creado_en     TEXT NOT NULL DEFAULT (datetime('now'))
+  creado_en     ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
-`);
+`;
 
-// ===== Migraciones ligeras (para bases ya existentes) =====
-function tieneColumna(tabla, columna) {
-  return db.prepare(`PRAGMA table_info(${tabla})`).all().some((c) => c.name === columna);
+// Crea el esquema (idempotente).
+for (const sentencia of ESQUEMA.split(';')) {
+  const s = sentencia.trim();
+  if (s) await db.exec(s);
 }
 
-// Código único por visitante para la credencial / QR.
-if (!tieneColumna('visitantes', 'codigo')) {
-  db.exec('ALTER TABLE visitantes ADD COLUMN codigo TEXT');
-  const sinCodigo = db.prepare('SELECT id FROM visitantes WHERE codigo IS NULL').all();
-  const set = db.prepare('UPDATE visitantes SET codigo = ? WHERE id = ?');
-  for (const v of sinCodigo) set.run(generarCodigo(), v.id);
+// ----- Migración ligera: columna 'codigo' en visitantes (bases antiguas) -----
+async function tieneColumna(tabla, columna) {
+  if (client === 'postgres') {
+    const r = await db.get(
+      'SELECT 1 FROM information_schema.columns WHERE table_name = ? AND column_name = ?',
+      [tabla, columna]
+    );
+    return !!r;
+  }
+  const cols = await db.all(`PRAGMA table_info(${tabla})`);
+  return cols.some((c) => c.name === columna);
+}
+
+if (!(await tieneColumna('visitantes', 'codigo'))) {
+  await db.exec('ALTER TABLE visitantes ADD COLUMN codigo TEXT');
+}
+const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
+for (const v of sinCodigo) {
+  await db.run('UPDATE visitantes SET codigo = ? WHERE id = ?', [generarCodigo(), v.id]);
 }
 
 export function generarCodigo() {
-  // Ej: LL-3F9A2C7E
   const hex = Math.random().toString(16).slice(2, 10).toUpperCase().padEnd(8, '0');
   return `LL-${hex}`;
 }

@@ -1,4 +1,4 @@
-import db from './db.js';
+import db, { SQL } from './db.js';
 
 let transporterPromesa = null;
 
@@ -26,36 +26,34 @@ async function obtenerTransporter() {
  */
 export async function notificarPropietario({ propietario_id, visita_id, asunto, mensaje }) {
   const propietario = propietario_id
-    ? db.prepare('SELECT * FROM propietarios WHERE id = ?').get(propietario_id)
+    ? await db.get('SELECT * FROM propietarios WHERE id = ?', [propietario_id])
     : null;
   const destino = propietario?.email || null;
 
-  const info = db
-    .prepare(
-      `INSERT INTO notificaciones (propietario_id, visita_id, canal, destino, asunto, mensaje, estado)
-       VALUES (?, ?, 'email', ?, ?, ?, 'pendiente')`
-    )
-    .run(propietario_id ?? null, visita_id ?? null, destino, asunto, mensaje);
+  const info = await db.run(
+    `INSERT INTO notificaciones (propietario_id, visita_id, canal, destino, asunto, mensaje, estado)
+     VALUES (?, ?, 'email', ?, ?, ?, 'pendiente')`,
+    [propietario_id ?? null, visita_id ?? null, destino, asunto, mensaje]
+  );
 
-  await enviar(info.lastInsertRowid);
-  return info.lastInsertRowid;
+  await enviar(info.lastID);
+  return info.lastID;
 }
 
 // Intenta enviar una notificación por su id y actualiza su estado.
 export async function enviar(id) {
-  const n = db.prepare('SELECT * FROM notificaciones WHERE id = ?').get(id);
+  const n = await db.get('SELECT * FROM notificaciones WHERE id = ?', [id]);
   if (!n) return;
 
   if (!n.destino) {
-    marcar(id, 'error', 'El propietario no tiene correo registrado');
+    await marcar(id, 'error', 'El propietario no tiene correo registrado');
     return;
   }
 
   try {
     const transporter = await obtenerTransporter();
     if (!transporter) {
-      // Sin SMTP: se simula el envío (útil en desarrollo).
-      marcar(id, 'simulada', 'SMTP no configurado; notificación registrada sin enviar');
+      await marcar(id, 'simulada', 'SMTP no configurado; notificación registrada sin enviar');
       console.log(`📨 [simulada] Para ${n.destino}: ${n.asunto}`);
       return;
     }
@@ -65,14 +63,15 @@ export async function enviar(id) {
       subject: n.asunto || 'Notificación · Lomas Lindas',
       text: n.mensaje,
     });
-    marcar(id, 'enviada', null);
+    await marcar(id, 'enviada', null);
   } catch (e) {
-    marcar(id, 'error', String(e.message || e));
+    await marcar(id, 'error', String(e.message || e));
   }
 }
 
-function marcar(id, estado, detalle) {
-  db.prepare(
-    `UPDATE notificaciones SET estado = ?, detalle = ?, enviado_en = datetime('now') WHERE id = ?`
-  ).run(estado, detalle, id);
+async function marcar(id, estado, detalle) {
+  await db.run(
+    `UPDATE notificaciones SET estado = ?, detalle = ?, enviado_en = ${SQL.AHORA} WHERE id = ?`,
+    [estado, detalle, id]
+  );
 }

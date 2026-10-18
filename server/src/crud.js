@@ -1,4 +1,5 @@
 import db from './db.js';
+import { ah } from './async.js';
 
 /**
  * Genera un conjunto de rutas CRUD estándar para una tabla.
@@ -8,44 +9,44 @@ import db from './db.js';
  * @param {string[]} opts.campos     Columnas que el cliente puede escribir.
  * @param {string} [opts.orden]      Cláusula ORDER BY (sin la palabra ORDER BY).
  * @param {Function} [opts.listSql]  Función opcional que devuelve { sql, params } para el listado.
+ * @param {Function} [opts.alCrear]  Hook para agregar campos generados antes de insertar.
  */
 export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql, alCrear }) {
   // Listar
-  router.get('/', (req, res) => {
+  router.get('/', ah(async (req, res) => {
     if (listSql) {
       const { sql, params } = listSql(req);
-      return res.json(db.prepare(sql).all(...params));
+      return res.json(await db.all(sql, params));
     }
-    const filas = db.prepare(`SELECT * FROM ${tabla} ORDER BY ${orden}`).all();
-    res.json(filas);
-  });
+    res.json(await db.all(`SELECT * FROM ${tabla} ORDER BY ${orden}`));
+  }));
 
   // Obtener uno
-  router.get('/:id', (req, res) => {
-    const fila = db.prepare(`SELECT * FROM ${tabla} WHERE id = ?`).get(req.params.id);
+  router.get('/:id', ah(async (req, res) => {
+    const fila = await db.get(`SELECT * FROM ${tabla} WHERE id = ?`, [req.params.id]);
     if (!fila) return res.status(404).json({ error: 'No encontrado' });
     res.json(fila);
-  });
+  }));
 
   // Crear
-  router.post('/', (req, res) => {
+  router.post('/', ah(async (req, res) => {
     const datos = filtrarCampos(req.body, campos);
-    if (alCrear) alCrear(datos, req); // permite agregar campos generados (p.ej. un código)
+    if (alCrear) alCrear(datos, req);
     const columnas = Object.keys(datos);
     if (columnas.length === 0) {
       return res.status(400).json({ error: 'No se enviaron datos válidos' });
     }
     const marcadores = columnas.map(() => '?').join(', ');
-    const info = db
-      .prepare(`INSERT INTO ${tabla} (${columnas.join(', ')}) VALUES (${marcadores})`)
-      .run(...columnas.map((c) => datos[c]));
-    const creado = db.prepare(`SELECT * FROM ${tabla} WHERE id = ?`).get(info.lastInsertRowid);
-    res.status(201).json(creado);
-  });
+    const info = await db.run(
+      `INSERT INTO ${tabla} (${columnas.join(', ')}) VALUES (${marcadores})`,
+      columnas.map((c) => datos[c])
+    );
+    res.status(201).json(await db.get(`SELECT * FROM ${tabla} WHERE id = ?`, [info.lastID]));
+  }));
 
   // Actualizar
-  router.put('/:id', (req, res) => {
-    const existe = db.prepare(`SELECT id FROM ${tabla} WHERE id = ?`).get(req.params.id);
+  router.put('/:id', ah(async (req, res) => {
+    const existe = await db.get(`SELECT id FROM ${tabla} WHERE id = ?`, [req.params.id]);
     if (!existe) return res.status(404).json({ error: 'No encontrado' });
 
     const datos = filtrarCampos(req.body, campos);
@@ -54,20 +55,19 @@ export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql, a
       return res.status(400).json({ error: 'No se enviaron datos válidos' });
     }
     const asignaciones = columnas.map((c) => `${c} = ?`).join(', ');
-    db.prepare(`UPDATE ${tabla} SET ${asignaciones} WHERE id = ?`).run(
+    await db.run(`UPDATE ${tabla} SET ${asignaciones} WHERE id = ?`, [
       ...columnas.map((c) => datos[c]),
-      req.params.id
-    );
-    const actualizado = db.prepare(`SELECT * FROM ${tabla} WHERE id = ?`).get(req.params.id);
-    res.json(actualizado);
-  });
+      req.params.id,
+    ]);
+    res.json(await db.get(`SELECT * FROM ${tabla} WHERE id = ?`, [req.params.id]));
+  }));
 
   // Eliminar
-  router.delete('/:id', (req, res) => {
-    const info = db.prepare(`DELETE FROM ${tabla} WHERE id = ?`).run(req.params.id);
+  router.delete('/:id', ah(async (req, res) => {
+    const info = await db.run(`DELETE FROM ${tabla} WHERE id = ?`, [req.params.id]);
     if (info.changes === 0) return res.status(404).json({ error: 'No encontrado' });
     res.json({ ok: true });
-  });
+  }));
 
   return router;
 }

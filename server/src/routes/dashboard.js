@@ -1,66 +1,66 @@
 import { Router } from 'express';
-import db from '../db.js';
+import db, { SQL } from '../db.js';
+import { ah } from '../async.js';
 
 const router = Router();
 
 // GET /api/dashboard  (métricas generales para la pantalla principal)
-router.get('/', (req, res) => {
+router.get('/', ah(async (req, res) => {
   const hoy = new Date().toISOString().slice(0, 10);
   const mes = hoy.slice(0, 7); // YYYY-MM
 
-  const unico = (sql, ...p) => db.prepare(sql).get(...p);
+  const unico = async (sql, params = []) => (await db.get(sql, params)) || {};
 
-  const visitasHoy = unico(
-    "SELECT COUNT(*) AS n FROM visitas WHERE date(creado_en) = ?",
-    hoy
-  ).n;
-  const visitasDentro = unico("SELECT COUNT(*) AS n FROM visitas WHERE estado = 'dentro'").n;
-  const visitasPendientes = unico("SELECT COUNT(*) AS n FROM visitas WHERE estado = 'pendiente'").n;
+  const visitasHoy = (await unico(`SELECT COUNT(*) AS n FROM visitas WHERE ${SQL.dia('creado_en')} = ?`, [hoy])).n;
+  const visitasDentro = (await unico("SELECT COUNT(*) AS n FROM visitas WHERE estado = 'dentro'")).n;
+  const visitasPendientes = (await unico("SELECT COUNT(*) AS n FROM visitas WHERE estado = 'pendiente'")).n;
 
-  const incidentesAbiertos = unico(
-    "SELECT COUNT(*) AS n FROM incidentes WHERE estado != 'cerrado'"
-  ).n;
-  const rondasHoy = unico("SELECT COUNT(*) AS n FROM rondas WHERE date(fecha_hora) = ?", hoy).n;
+  const incidentesAbiertos = (await unico("SELECT COUNT(*) AS n FROM incidentes WHERE estado != 'cerrado'")).n;
+  const rondasHoy = (await unico(`SELECT COUNT(*) AS n FROM rondas WHERE ${SQL.dia('fecha_hora')} = ?`, [hoy])).n;
 
-  const propietarios = unico('SELECT COUNT(*) AS n FROM propietarios WHERE activo = 1').n;
-  const empleados = unico('SELECT COUNT(*) AS n FROM empleados WHERE activo = 1').n;
+  const propietarios = (await unico('SELECT COUNT(*) AS n FROM propietarios WHERE activo = 1')).n;
+  const empleados = (await unico('SELECT COUNT(*) AS n FROM empleados WHERE activo = 1')).n;
 
-  const porCobrar = unico(
+  const porCobrar = (await unico(
     "SELECT COALESCE(SUM(monto), 0) AS total FROM facturas WHERE estado IN ('pendiente','vencida')"
-  ).total;
-  const ingresosMes = unico(
-    "SELECT COALESCE(SUM(monto), 0) AS total FROM pagos WHERE strftime('%Y-%m', fecha) = ?",
-    mes
-  ).total;
-  const gastosMes = unico(
-    "SELECT COALESCE(SUM(monto), 0) AS total FROM gastos WHERE strftime('%Y-%m', fecha) = ?",
-    mes
-  ).total;
+  )).total;
+  const ingresosMes = (await unico(
+    `SELECT COALESCE(SUM(monto), 0) AS total FROM pagos WHERE ${SQL.anioMes('fecha')} = ?`, [mes]
+  )).total;
+  const gastosMes = (await unico(
+    `SELECT COALESCE(SUM(monto), 0) AS total FROM gastos WHERE ${SQL.anioMes('fecha')} = ?`, [mes]
+  )).total;
 
-  const visitasRecientes = db
-    .prepare(
-      `SELECT vi.id, vi.estado, vi.creado_en, v.nombre AS visitante_nombre, p.nombre AS propietario_nombre
-       FROM visitas vi
-       LEFT JOIN visitantes v ON v.id = vi.visitante_id
-       LEFT JOIN propietarios p ON p.id = vi.propietario_id
-       ORDER BY vi.creado_en DESC LIMIT 8`
-    )
-    .all();
+  const visitasRecientes = await db.all(
+    `SELECT vi.id, vi.estado, vi.creado_en, v.nombre AS visitante_nombre, p.nombre AS propietario_nombre
+     FROM visitas vi
+     LEFT JOIN visitantes v ON v.id = vi.visitante_id
+     LEFT JOIN propietarios p ON p.id = vi.propietario_id
+     ORDER BY vi.creado_en DESC LIMIT 8`
+  );
 
-  const incidentesRecientes = db
-    .prepare(
-      `SELECT id, tipo, descripcion, gravedad, estado, fecha
-       FROM incidentes ORDER BY fecha DESC LIMIT 5`
-    )
-    .all();
+  const incidentesRecientes = await db.all(
+    `SELECT id, tipo, descripcion, gravedad, estado, fecha
+     FROM incidentes ORDER BY fecha DESC LIMIT 5`
+  );
+
+  // Normaliza números (Postgres puede devolver NUMERIC como texto).
+  const num = (x) => Number(x) || 0;
 
   res.json({
-    seguridad: { visitasHoy, visitasDentro, visitasPendientes, incidentesAbiertos, rondasHoy },
-    general: { propietarios, empleados },
-    finanzas: { porCobrar, ingresosMes, gastosMes, balanceMes: ingresosMes - gastosMes },
+    seguridad: {
+      visitasHoy: num(visitasHoy), visitasDentro: num(visitasDentro),
+      visitasPendientes: num(visitasPendientes), incidentesAbiertos: num(incidentesAbiertos),
+      rondasHoy: num(rondasHoy),
+    },
+    general: { propietarios: num(propietarios), empleados: num(empleados) },
+    finanzas: {
+      porCobrar: num(porCobrar), ingresosMes: num(ingresosMes),
+      gastosMes: num(gastosMes), balanceMes: num(ingresosMes) - num(gastosMes),
+    },
     visitasRecientes,
     incidentesRecientes,
   });
-});
+}));
 
 export default router;
