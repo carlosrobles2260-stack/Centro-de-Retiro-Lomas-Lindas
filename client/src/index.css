@@ -234,6 +234,14 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .mc-monto.verde { color: var(--verde); }
 .mc-nota { color: var(--texto-suave); font-size: 13px; }
 .mc-pie { color: var(--texto-suave); font-size: 13px; margin-top: 24px; text-align: center; }
+.mc-docs { display: grid; gap: 12px; }
+.mc-doc { padding: 14px 16px; }
+.mc-doc-tit { font-weight: 600; margin-top: 6px; }
+.mc-doc-desc { color: var(--texto-suave); font-size: 13px; margin-top: 2px; }
+.mc-doc-acc { margin-top: 8px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.mc-doc-link { color: var(--verde); font-weight: 600; text-decoration: none; }
+.mc-doc details summary { color: var(--verde); font-weight: 600; cursor: pointer; }
+.mc-doc-texto { white-space: pre-wrap; margin-top: 8px; font-size: 14px; }
 
 /* ===== Cuentas por cobrar: barra de antigüedad ===== */
 .aging-barra { display: flex; height: 22px; border-radius: 8px; overflow: hidden; background: var(--arena); margin: 10px 0 14px; }

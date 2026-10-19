@@ -304,6 +304,21 @@ CREATE TABLE IF NOT EXISTS posiciones_gps (
   fecha_hora  ${T.ts} NOT NULL DEFAULT ${T.ahora},
   creado_en   ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
+
+-- ===== Normas y reglamentos de la asociación (visibles para el propietario) =====
+CREATE TABLE IF NOT EXISTS documentos (
+  id             ${T.id},
+  titulo         TEXT NOT NULL,
+  categoria      TEXT NOT NULL DEFAULT 'reglamento_interno', -- reglamento_interno | convivencia | medio_ambiente | otra
+  descripcion    TEXT,            -- resumen corto para el propietario
+  contenido      TEXT,            -- texto de la norma (opcional, si no es un archivo)
+  archivo        TEXT,            -- ruta del documento subido (PDF/imagen)
+  enlace         TEXT,            -- enlace externo (opcional)
+  publicado      INTEGER NOT NULL DEFAULT 1, -- 1 = visible para el propietario
+  orden          INTEGER NOT NULL DEFAULT 0, -- orden de presentación
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  actualizado_en ${T.ts}
+);
 `;
 
 // Crea el esquema (idempotente).

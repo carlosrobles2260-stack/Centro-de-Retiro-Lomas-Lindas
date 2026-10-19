@@ -168,6 +168,14 @@ function FormModal({ titulo, campos, valores, fuentes, onGuardar, onCerrar }) {
     setDatos((d) => ({ ...d, [name]: valor }));
   }
 
+  // Lee un archivo seleccionado y lo guarda como data URL (base64) en el campo indicado.
+  function leerArchivo(campo, file) {
+    if (!file) return;
+    const lector = new FileReader();
+    lector.onload = () => set(campo, lector.result);
+    lector.readAsDataURL(file);
+  }
+
   async function enviar(e) {
     e.preventDefault();
     setGuardando(true);
@@ -199,6 +207,19 @@ function FormModal({ titulo, campos, valores, fuentes, onGuardar, onCerrar }) {
                 required={c.requerido}
                 onChange={(e) => set(c.name, e.target.value)}
               />
+            ) : c.type === 'file' ? (
+              <div>
+                <input
+                  type="file"
+                  accept={c.accept || undefined}
+                  onChange={(e) => leerArchivo(c.base64Campo || `${c.name}_base64`, e.target.files?.[0])}
+                />
+                {valores[c.name] && !datos[c.base64Campo || `${c.name}_base64`] && (
+                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                    Actual: <a href={valores[c.name]} target="_blank" rel="noreferrer">ver archivo</a>
+                  </div>
+                )}
+              </div>
             ) : c.type === 'select' ? (
               <select
                 value={datos[c.name] ?? ''}

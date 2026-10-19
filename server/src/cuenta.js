@@ -19,7 +19,12 @@ export async function datosCuenta(propietarioId) {
   const abiertas = facturas.filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
   const saldo = abiertas.reduce((acc, f) => acc + Math.max(0, efectivo(f) - Number(f.pagado)), 0);
   const pagado = facturas.reduce((acc, f) => acc + Number(f.pagado), 0);
-  return { facturas, saldo, pagado, pendientes: abiertas.length };
+  // Normas y reglamentos publicados (reglamento interno, convivencia, medio ambiente).
+  const documentos = await db.all(
+    `SELECT id, titulo, categoria, descripcion, contenido, archivo, enlace
+     FROM documentos WHERE publicado = 1 ORDER BY orden ASC, titulo ASC`
+  );
+  return { facturas, saldo, pagado, pendientes: abiertas.length, documentos };
 }
 
 function logoDataUrl() {
@@ -29,17 +34,37 @@ function logoDataUrl() {
 
 const ETIQUETA_ESTADO = { pendiente: 'Pendiente', vencida: 'Vencida', pagada: 'Pagada', anulada: 'Anulada' };
 const COLOR_ESTADO = { pendiente: '#d98e04', vencida: '#c0392b', pagada: '#2f6e4f', anulada: '#5d6b63' };
+const ETIQUETA_CATEGORIA = {
+  reglamento_interno: 'Reglamento interno',
+  convivencia: 'Normas de convivencia',
+  medio_ambiente: 'Medio ambiente',
+  otra: 'Otras normas',
+};
 
 // Página web pública del estado de cuenta (enlace privado por propietario).
 export function paginaCuentaHTML(propietario, datos) {
   const logo = logoDataUrl();
-  const { facturas, saldo, pagado } = datos;
+  const { facturas, saldo, pagado, documentos = [] } = datos;
   const filas = facturas.map((f) => `
       <tr>
         <td>${escape(f.concepto)}<div class="sub">${f.fecha_emision || ''}${f.fecha_vencimiento ? ' · vence ' + f.fecha_vencimiento : ''}</div></td>
         <td class="monto">${money(f.monto)}</td>
         <td><span class="badge" style="background:${COLOR_ESTADO[f.estado] || '#5d6b63'}">${ETIQUETA_ESTADO[f.estado] || f.estado}</span></td>
       </tr>`).join('');
+
+  // Bloque de normas y reglamentos (si hay documentos publicados).
+  const normas = documentos.map((d) => {
+    const destino = d.archivo || d.enlace;
+    const enlace = destino ? `<a class="doc-link" href="${escape(destino)}" target="_blank" rel="noreferrer">Ver documento</a>` : '';
+    const texto = d.contenido ? `<details><summary>Leer</summary><div class="doc-texto">${escape(d.contenido)}</div></details>` : '';
+    return `
+      <div class="doc">
+        <span class="etq">${ETIQUETA_CATEGORIA[d.categoria] || 'Normas'}</span>
+        <div class="doc-tit">${escape(d.titulo)}</div>
+        ${d.descripcion ? `<div class="sub">${escape(d.descripcion)}</div>` : ''}
+        <div class="doc-acc">${enlace}${texto}</div>
+      </div>`;
+  }).join('');
 
   return `<!doctype html>
 <html lang="es"><head>
@@ -66,6 +91,14 @@ export function paginaCuentaHTML(propietario, datos) {
   .badge { color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
   .vacio { color: #5d6b63; text-align: center; padding: 20px; }
   .pie { text-align: center; color: #5d6b63; font-size: 12px; margin: 16px 0; }
+  .doc { border-bottom: 1px solid #eef1ee; padding: 12px 0; }
+  .doc .etq { display: inline-block; background: #e8efe9; color: #2f6e4f; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 4px; }
+  .doc-tit { font-weight: 600; font-size: 14px; }
+  .doc-acc { margin-top: 6px; display: flex; gap: 14px; align-items: center; }
+  .doc-link { color: #2f6e4f; font-weight: 600; font-size: 13px; text-decoration: none; }
+  .doc details { font-size: 13px; }
+  .doc summary { color: #2f6e4f; font-weight: 600; cursor: pointer; }
+  .doc-texto { white-space: pre-wrap; color: #1f2a24; margin-top: 6px; }
 </style></head>
 <body><div class="hoja">
   <div class="cab">
@@ -81,6 +114,7 @@ export function paginaCuentaHTML(propietario, datos) {
   <div class="cuerpo">
     <h2>Detalle de cuotas</h2>
     ${facturas.length ? `<table><tbody>${filas}</tbody></table>` : '<div class="vacio">Aún no hay cuotas registradas.</div>'}
+    ${documentos.length ? `<h2>Normas y reglamentos</h2>${normas}` : ''}
     <div class="pie">Centro de Retiro Lomas Lindas · Estado de cuenta en línea</div>
   </div>
 </div></body></html>`;

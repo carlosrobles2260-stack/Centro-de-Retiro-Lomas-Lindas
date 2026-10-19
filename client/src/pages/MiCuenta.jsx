@@ -4,6 +4,12 @@ import { useAuth } from '../lib/auth.jsx';
 import { dinero, fecha, Badge } from '../lib/format.jsx';
 
 const PUESTO = { domestica: 'Empleada doméstica', jardinero: 'Jardinero', cuidador: 'Cuidador', motorista: 'Motorista', otro: 'Otro' };
+const CATEGORIA_DOC = {
+  reglamento_interno: 'Reglamento interno',
+  convivencia: 'Normas de convivencia',
+  medio_ambiente: 'Medio ambiente',
+  otra: 'Otras normas',
+};
 
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
@@ -90,6 +96,34 @@ export default function MiCuenta() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </>
+            )}
+
+            {datos.documentos?.length > 0 && (
+              <>
+                <h2>Normas y reglamentos</h2>
+                <p className="descripcion">Reglamento interno y normas de convivencia y de medio ambiente de la asociación y del proyecto.</p>
+                <div className="mc-docs">
+                  {datos.documentos.map((d) => {
+                    const destino = d.archivo || d.enlace;
+                    return (
+                      <div key={d.id} className="mc-doc card">
+                        <span className="badge azul">{CATEGORIA_DOC[d.categoria] || 'Normas'}</span>
+                        <div className="mc-doc-tit">{d.titulo}</div>
+                        {d.descripcion && <div className="mc-doc-desc">{d.descripcion}</div>}
+                        <div className="mc-doc-acc">
+                          {destino && <a className="mc-doc-link" href={destino} target="_blank" rel="noreferrer">Ver documento</a>}
+                          {d.contenido && (
+                            <details>
+                              <summary>Leer</summary>
+                              <div className="mc-doc-texto">{d.contenido}</div>
+                            </details>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}

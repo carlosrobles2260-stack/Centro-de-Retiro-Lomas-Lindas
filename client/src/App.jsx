@@ -26,6 +26,7 @@ import Activos from './pages/Activos.jsx';
 import AccionesPersonal from './pages/AccionesPersonal.jsx';
 import Nomina from './pages/Nomina.jsx';
 import PanelFinanciero from './pages/PanelFinanciero.jsx';
+import Documentos from './pages/Documentos.jsx';
 import Turnos from './pages/Turnos.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/acciones-personal" element={<AccionesPersonal />} />
         <Route path="/nomina" element={<Nomina />} />
         <Route path="/panel-financiero" element={<PanelFinanciero />} />
+        <Route path="/documentos" element={<Documentos />} />
         <Route path="/turnos" element={<Turnos />} />
         {usuario.rol === 'admin' && <Route path="/usuarios" element={<Usuarios />} />}
         <Route path="*" element={<Navigate to="/" replace />} />

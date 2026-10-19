@@ -27,3 +27,26 @@ export function guardarImagenBase64(dataUrl, subcarpeta = 'incidentes') {
   fs.writeFileSync(path.join(dir, nombre), datos);
   return `/uploads/${subcarpeta}/${nombre}`;
 }
+
+// Tipos permitidos para documentos (normas y reglamentos): PDF e imágenes.
+const TIPOS_DOC = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+
+/**
+ * Guarda un documento (PDF o imagen) enviado como data URL (base64) en
+ * /uploads/<subcarpeta>. Devuelve la ruta pública o null si no es válido.
+ */
+export function guardarArchivoBase64(dataUrl, subcarpeta = 'documentos') {
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
+  const m = dataUrl.match(/^data:([a-zA-Z0-9/+.-]+);base64,(.+)$/);
+  if (!m) return null;
+  const ext = TIPOS_DOC[m[1]];
+  if (!ext) return null;
+  const datos = Buffer.from(m[2], 'base64');
+  if (datos.length > 15 * 1024 * 1024) return null; // límite 15 MB
+
+  const dir = path.join(UPLOADS_DIR, subcarpeta);
+  fs.mkdirSync(dir, { recursive: true });
+  const nombre = `doc-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
+  fs.writeFileSync(path.join(dir, nombre), datos);
+  return `/uploads/${subcarpeta}/${nombre}`;
+}

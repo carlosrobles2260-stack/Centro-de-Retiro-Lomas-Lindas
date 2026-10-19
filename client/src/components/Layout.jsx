@@ -44,6 +44,12 @@ const MENU = [
     ],
   },
   {
+    grupo: 'Normativa',
+    items: [
+      { a: '/documentos', texto: 'Normas y reglamentos', roles: ['administracion', 'presidente'] },
+    ],
+  },
+  {
     grupo: 'Personal',
     items: [
       { a: '/empleados', texto: 'Empleados', roles: ['administracion'] },

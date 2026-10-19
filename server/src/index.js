@@ -29,12 +29,13 @@ import prestamosEmpleadoRoutes from './routes/prestamosEmpleado.js';
 import activosRoutes from './routes/activos.js';
 import accionesPersonalRoutes from './routes/accionesPersonal.js';
 import nominaRoutes from './routes/nomina.js';
+import documentosRoutes from './routes/documentos.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }));
-app.use(express.json({ limit: '10mb' })); // permite fotos de evidencia en base64
+app.use(express.json({ limit: '20mb' })); // permite fotos en base64 y documentos PDF
 
 // Archivos subidos (fotos de incidentes).
 import { UPLOADS_DIR } from './fotos.js';
@@ -93,6 +94,7 @@ app.use('/api/prestamos-empleado', requiereAuth, requiereRol('administracion'), 
 app.use('/api/activos', requiereAuth, requiereRol('administracion'), activosRoutes);
 app.use('/api/acciones-personal', requiereAuth, requiereRol('administracion'), accionesPersonalRoutes);
 app.use('/api/nomina', requiereAuth, requiereRol('administracion'), nominaRoutes);
+app.use('/api/documentos', requiereAuth, requiereRol('administracion', 'presidente'), documentosRoutes);
 app.use('/api/turnos', requiereAuth, turnosRoutes);
 app.use('/api/propietarios', requiereAuth, propietariosRoutes);
 app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);
