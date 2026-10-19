@@ -58,7 +58,7 @@ Cada persona entra con su propio usuario y ve solo lo que le corresponde.
 | --- | --- | --- |
 | Administración | Personal de oficina | Propietarios, cuotas y pagos, gastos, nómina, activos, normas y reportes |
 | Seguridad | Guardias del portón | Registro de visitas, escaneo de credenciales, rondas e incidencias |
-| Presidencia | Presidente/a de la Directiva | Autoriza descuentos de cuotas (máx. 20%) y consulta el panel financiero |
+| Presidencia | Presidente/a de la Directiva | Consulta el panel financiero y la cobranza de la asociación |
 | Propietario | Cada propietario | Ve su estado de cuenta, sus empleados y las normas del proyecto |
 
 No hace falta personal técnico dedicado: la operación diaria la llevan la oficina y la seguridad.

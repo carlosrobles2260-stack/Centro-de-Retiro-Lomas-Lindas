@@ -48,8 +48,7 @@ Art. 5. El propietario debe mantener su solar o su edificación en buen estado d
 
 CAPÍTULO III. DE LA CUOTA DE MANTENIMIENTO
 Art. 6. La cuota se paga por período según el tipo de propiedad (solar o edificado) y su monto puede ser actualizado por la Directiva conforme a la inflación y los costos de operación.
-Art. 7. Los pagos se aplican siempre a la deuda más antigua. No se condonan deudas pendientes.
-Art. 8. Cualquier descuento sobre una cuota debe ser autorizado por la Presidencia y no podrá exceder el 20%.
+Art. 7. Los pagos se aplican siempre a la deuda más antigua. No se condonan ni se descuentan las deudas pendientes.
 
 CAPÍTULO IV. DE LA SEGURIDAD Y EL ACCESO
 Art. 9. El acceso al proyecto se controla en el portón. Todo visitante debe identificarse y portar la credencial que le sea asignada.

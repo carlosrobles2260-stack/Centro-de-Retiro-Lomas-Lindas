@@ -5,11 +5,11 @@ import { logoBuffer } from './credencial.js';
 
 const money = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(Number(n) || 0);
 
-// Monto adeudado tras el descuento autorizado (máx. 20%).
-const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+// Monto adeudado de la cuota (no se aplican descuentos a la deuda).
+const efectivo = (f) => Number(f.monto);
 
 // Reúne las facturas (cuotas) del propietario y calcula el saldo pendiente
-// (considera pagos parciales y descuentos autorizados).
+// (considera pagos parciales).
 export async function datosCuenta(propietarioId) {
   const facturas = await db.all(
     `SELECT f.*, COALESCE((SELECT SUM(monto) FROM pagos WHERE factura_id = f.id), 0) AS pagado

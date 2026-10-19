@@ -1,21 +1,18 @@
 import { Router } from 'express';
 import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
-import { requiereRol } from '../auth.js';
 
 const router = Router();
 
 const SELECT_FACTURA = `
   SELECT f.*, p.nombre AS propietario_nombre, p.propiedad,
-         ud.nombre AS descuento_por_nombre,
          COALESCE((SELECT SUM(pg.monto) FROM pagos pg WHERE pg.factura_id = f.id), 0) AS pagado
   FROM facturas f
   LEFT JOIN propietarios p ON p.id = f.propietario_id
-  LEFT JOIN usuarios ud ON ud.id = f.descuento_por
 `;
 
-// Monto realmente adeudado tras aplicar el descuento autorizado (máx. 20%).
-const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+// Monto adeudado de la cuota (no se aplican descuentos a la deuda).
+const efectivo = (f) => Number(f.monto);
 
 // Cuotas abiertas de un propietario, con saldo, ordenadas de la más antigua a la más nueva.
 async function abiertasOrdenadas(propietarioId) {
@@ -179,32 +176,6 @@ router.post('/:id/pagos', ah(async (req, res) => {
   });
 
   res.status(201).json(await db.get(SELECT_FACTURA + ' WHERE f.id = ?', [req.params.id]));
-}));
-
-// POST /api/facturas/:id/descuento  -> aplica un descuento (máx. 20%) a una cuota.
-// Solo la presidencia (rol 'presidente'; 'admin' también por regla general).
-router.post('/:id/descuento', requiereRol('presidente'), ah(async (req, res) => {
-  const factura = await db.get(SELECT_FACTURA + ' WHERE f.id = ?', [req.params.id]);
-  if (!factura) return res.status(404).json({ error: 'Factura no encontrada' });
-
-  const pct = Number(req.body?.porcentaje);
-  if (!Number.isFinite(pct) || pct < 0 || pct > 20) {
-    return res.status(400).json({ error: 'El descuento debe estar entre 0% y 20%.' });
-  }
-  const motivo = req.body?.motivo || null;
-
-  // Recalcula el estado según el nuevo monto efectivo (no condona: el saldo restante sigue debiéndose).
-  const efectivoNuevo = Number(factura.monto) * (1 - pct / 100);
-  const pagado = Number(factura.pagado);
-  const nuevoEstado = pagado >= efectivoNuevo - 0.001
-    ? 'pagada'
-    : (factura.estado === 'pagada' ? 'pendiente' : factura.estado);
-
-  await db.run(
-    `UPDATE facturas SET descuento_pct = ?, descuento_motivo = ?, descuento_por = ?, descuento_en = ${SQL.AHORA}, estado = ? WHERE id = ?`,
-    [pct, motivo, req.usuario?.id ?? null, nuevoEstado, req.params.id]
-  );
-  res.json(await db.get(SELECT_FACTURA + ' WHERE f.id = ?', [req.params.id]));
 }));
 
 export default router;

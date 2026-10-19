@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
-import { useAuth } from '../lib/auth.jsx';
 import { dinero, fecha } from '../lib/format.jsx';
 import { exportarExcel, exportarPDF } from '../lib/exportar.js';
 
-const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+const efectivo = (f) => Number(f.monto);
 
 const BUCKETS = [
   { key: 'vigente', label: 'Por vencer', color: 'var(--verde)' },
@@ -256,10 +255,7 @@ function ModalMontos({ onCerrar, onGuardado }) {
 const METODOS = ['efectivo', 'transferencia', 'tarjeta', 'cheque'];
 
 // Registrar un abono al propietario: se aplica a la cuota más antigua primero.
-// La presidencia puede además aplicar un descuento (máx. 20%) por cuota.
 function ModalPago({ propietario, onCerrar, onPagado }) {
-  const { usuario } = useAuth();
-  const esPresidencia = usuario.rol === 'presidente' || usuario.rol === 'admin';
   const [facturas, setFacturas] = useState(null);
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState(null);
@@ -296,22 +292,6 @@ function ModalPago({ propietario, onCerrar, onPagado }) {
     finally { setGuardando(false); }
   }
 
-  async function descuento(factura) {
-    const txt = prompt(`Descuento para "${factura.concepto}" (máximo 20%). Indique el porcentaje:`, '10');
-    if (txt === null) return;
-    const pct = Number(txt);
-    if (!(pct >= 0 && pct <= 20)) { alert('El descuento debe estar entre 0% y 20%.'); return; }
-    const motivo = prompt('Motivo del descuento (opcional):', '') || null;
-    setError(null); setMensaje(null);
-    try {
-      await api.post(`/facturas/${factura.id}/descuento`, { porcentaje: pct, motivo });
-      setMensaje(`Descuento de ${pct}% aplicado a "${factura.concepto}".`);
-      const ab = await cargar();
-      setMonto(ab.reduce((a, f) => a + (efectivo(f) - Number(f.pagado)), 0).toFixed(2));
-      onPagado();
-    } catch (e) { setError(e.message); }
-  }
-
   return (
     <div className="modal-fondo" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -340,23 +320,10 @@ function ModalPago({ propietario, onCerrar, onPagado }) {
             const saldo = efectivo(f) - Number(f.pagado);
             return (
               <div key={f.id} className="card" style={{ padding: 10, marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                  <div>
-                    <strong>{f.concepto}</strong>
-                    <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
-                      {f.fecha_vencimiento ? `Vence ${fecha(f.fecha_vencimiento)} · ` : ''}
-                      Saldo {dinero(saldo)}
-                    </div>
-                    {Number(f.descuento_pct) > 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--verde)', marginTop: 2 }}>
-                        Descuento {f.descuento_pct}%{f.descuento_por_nombre ? ` · autorizó ${f.descuento_por_nombre}` : ''}
-                        {f.descuento_motivo && <span style={{ fontStyle: 'italic' }}> · «{f.descuento_motivo}»</span>}
-                      </div>
-                    )}
-                  </div>
-                  {esPresidencia && (
-                    <button className="secundario" onClick={() => descuento(f)} title="Aplicar descuento (presidencia)">Descuento</button>
-                  )}
+                <strong>{f.concepto}</strong>
+                <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
+                  {f.fecha_vencimiento ? `Vence ${fecha(f.fecha_vencimiento)} · ` : ''}
+                  Saldo {dinero(saldo)}
                 </div>
               </div>
             );

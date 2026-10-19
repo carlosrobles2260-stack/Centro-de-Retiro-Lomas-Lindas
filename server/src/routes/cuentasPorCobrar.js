@@ -17,13 +17,13 @@ function diasVencido(fechaVenc) {
   return d > 0 ? d : 0;
 }
 
-// Monto adeudado tras el descuento autorizado (máx. 20%).
-const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+// Monto adeudado de la cuota (no se aplican descuentos a la deuda).
+const efectivo = (f) => Number(f.monto);
 
 // Trae las facturas abiertas (pendientes o vencidas) con su saldo.
 async function facturasAbiertas() {
   const filas = await db.all(`
-    SELECT f.id, f.propietario_id, f.concepto, f.monto, f.descuento_pct, f.estado, f.fecha_emision, f.fecha_vencimiento,
+    SELECT f.id, f.propietario_id, f.concepto, f.monto, f.estado, f.fecha_emision, f.fecha_vencimiento,
            p.nombre AS propietario_nombre, p.propiedad, p.telefono, p.email,
            COALESCE((SELECT SUM(pg.monto) FROM pagos pg WHERE pg.factura_id = f.id), 0) AS pagado
     FROM facturas f
