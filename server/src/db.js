@@ -335,6 +335,9 @@ if (!(await tieneColumna('facturas', 'descuento_motivo'))) {
 if (!(await tieneColumna('facturas', 'descuento_por'))) {
   await db.exec('ALTER TABLE facturas ADD COLUMN descuento_por INTEGER REFERENCES usuarios(id)');
 }
+if (!(await tieneColumna('facturas', 'descuento_en'))) {
+  await db.exec(`ALTER TABLE facturas ADD COLUMN descuento_en ${client === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT'}`);
+}
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
 for (const p of sinToken) {

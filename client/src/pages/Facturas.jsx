@@ -73,7 +73,16 @@ export default function Facturas() {
                   <td>{f.concepto}</td>
                   <td>{fecha(f.fecha_emision)}</td>
                   <td>{fecha(f.fecha_vencimiento)}</td>
-                  <td>{dinero(f.monto)}{Number(f.descuento_pct) > 0 && <div style={{ fontSize: 12, color: 'var(--verde)' }}>−{f.descuento_pct}% desc.</div>}</td>
+                  <td>
+                    {dinero(f.monto)}
+                    {Number(f.descuento_pct) > 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--verde)', marginTop: 2 }}>
+                        −{f.descuento_pct}% descuento
+                        {f.descuento_por_nombre && <div style={{ color: 'var(--texto-suave)' }}>Autorizó: {f.descuento_por_nombre}{f.descuento_en ? ` · ${fecha(f.descuento_en)}` : ''}</div>}
+                        {f.descuento_motivo && <div style={{ color: 'var(--texto-suave)', fontStyle: 'italic' }}>«{f.descuento_motivo}»</div>}
+                      </div>
+                    )}
+                  </td>
                   <td>{dinero(f.pagado)}</td>
                   <td><Badge estado={f.estado} /></td>
                   <td>

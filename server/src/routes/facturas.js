@@ -7,9 +7,11 @@ const router = Router();
 
 const SELECT_FACTURA = `
   SELECT f.*, p.nombre AS propietario_nombre, p.propiedad,
+         ud.nombre AS descuento_por_nombre,
          COALESCE((SELECT SUM(pg.monto) FROM pagos pg WHERE pg.factura_id = f.id), 0) AS pagado
   FROM facturas f
   LEFT JOIN propietarios p ON p.id = f.propietario_id
+  LEFT JOIN usuarios ud ON ud.id = f.descuento_por
 `;
 
 // Monto realmente adeudado tras aplicar el descuento autorizado (máx. 20%).
@@ -193,7 +195,7 @@ router.post('/:id/descuento', requiereRol('presidente'), ah(async (req, res) => 
     : (factura.estado === 'pagada' ? 'pendiente' : factura.estado);
 
   await db.run(
-    'UPDATE facturas SET descuento_pct = ?, descuento_motivo = ?, descuento_por = ?, estado = ? WHERE id = ?',
+    `UPDATE facturas SET descuento_pct = ?, descuento_motivo = ?, descuento_por = ?, descuento_en = ${SQL.AHORA}, estado = ? WHERE id = ?`,
     [pct, motivo, req.usuario?.id ?? null, nuevoEstado, req.params.id]
   );
   res.json(await db.get(SELECT_FACTURA + ' WHERE f.id = ?', [req.params.id]));

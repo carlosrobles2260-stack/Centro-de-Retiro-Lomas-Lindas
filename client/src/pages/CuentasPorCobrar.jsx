@@ -298,9 +298,14 @@ function ModalPago({ propietario, onCerrar, onPagado }) {
                     <strong>{f.concepto}</strong>
                     <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
                       {f.fecha_vencimiento ? `Vence ${fecha(f.fecha_vencimiento)} · ` : ''}
-                      {Number(f.descuento_pct) > 0 ? `Descuento ${f.descuento_pct}% · ` : ''}
                       Saldo {dinero(saldo)}
                     </div>
+                    {Number(f.descuento_pct) > 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--verde)', marginTop: 2 }}>
+                        Descuento {f.descuento_pct}%{f.descuento_por_nombre ? ` · autorizó ${f.descuento_por_nombre}` : ''}
+                        {f.descuento_motivo && <span style={{ fontStyle: 'italic' }}> · «{f.descuento_motivo}»</span>}
+                      </div>
+                    )}
                   </div>
                   {esPresidencia && (
                     <button className="secundario" onClick={() => descuento(f)} title="Aplicar descuento (presidencia)">Descuento</button>
