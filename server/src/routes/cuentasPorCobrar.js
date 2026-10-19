@@ -17,10 +17,13 @@ function diasVencido(fechaVenc) {
   return d > 0 ? d : 0;
 }
 
+// Monto adeudado tras el descuento autorizado (máx. 20%).
+const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+
 // Trae las facturas abiertas (pendientes o vencidas) con su saldo.
 async function facturasAbiertas() {
   const filas = await db.all(`
-    SELECT f.id, f.propietario_id, f.concepto, f.monto, f.estado, f.fecha_emision, f.fecha_vencimiento,
+    SELECT f.id, f.propietario_id, f.concepto, f.monto, f.descuento_pct, f.estado, f.fecha_emision, f.fecha_vencimiento,
            p.nombre AS propietario_nombre, p.propiedad, p.telefono, p.email,
            COALESCE((SELECT SUM(pg.monto) FROM pagos pg WHERE pg.factura_id = f.id), 0) AS pagado
     FROM facturas f
@@ -29,7 +32,7 @@ async function facturasAbiertas() {
     ORDER BY f.fecha_vencimiento
   `);
   return filas
-    .map((f) => ({ ...f, saldo: Number(f.monto) - Number(f.pagado), dias: diasVencido(f.fecha_vencimiento) }))
+    .map((f) => ({ ...f, saldo: efectivo(f) - Number(f.pagado), dias: diasVencido(f.fecha_vencimiento) }))
     .filter((f) => f.saldo > 0.001);
 }
 
@@ -73,6 +76,41 @@ router.get('/', ah(async (req, res) => {
     },
     propietarios,
   });
+}));
+
+// POST /api/cuentas-por-cobrar/abono  body: { propietario_id, monto, metodo, referencia }
+// Aplica el abono a las cuotas del propietario de la más antigua a la más nueva.
+router.post('/abono', ah(async (req, res) => {
+  const { propietario_id, metodo, referencia } = req.body || {};
+  let restante = Number(req.body?.monto) || 0;
+  if (!propietario_id) return res.status(400).json({ error: 'Falta el propietario' });
+  if (restante <= 0) return res.status(400).json({ error: 'El monto debe ser mayor a cero' });
+
+  // Cuotas abiertas ordenadas de la más antigua a la más nueva.
+  const abiertas = (await facturasAbiertas())
+    .filter((f) => f.propietario_id === Number(propietario_id))
+    .sort((a, b) => String(a.fecha_vencimiento || a.fecha_emision || '').localeCompare(String(b.fecha_vencimiento || b.fecha_emision || '')) || a.id - b.id);
+
+  if (abiertas.length === 0) return res.status(400).json({ error: 'El propietario no tiene cuotas pendientes' });
+
+  const aplicados = [];
+  await db.tx(async (q) => {
+    for (const f of abiertas) {
+      if (restante <= 0.001) break;
+      const abono = Math.min(restante, f.saldo);
+      await q.run(
+        `INSERT INTO pagos (factura_id, monto, fecha, metodo, referencia) VALUES (?, ?, ${SQL.HOY}, ?, ?)`,
+        [f.id, abono, metodo || 'efectivo', referencia || null]
+      );
+      const pagadoTotal = Number(f.pagado) + abono;
+      const nuevoEstado = pagadoTotal >= efectivo(f) - 0.001 ? 'pagada' : f.estado;
+      await q.run('UPDATE facturas SET estado = ? WHERE id = ?', [nuevoEstado, f.id]);
+      aplicados.push({ factura_id: f.id, concepto: f.concepto, abono, saldado: nuevoEstado === 'pagada' });
+      restante -= abono;
+    }
+  });
+
+  res.status(201).json({ ok: true, aplicado: aplicados.reduce((a, x) => a + x.abono, 0), sobrante: Math.max(0, restante), detalle: aplicados });
 }));
 
 // POST /api/cuentas-por-cobrar/marcar-vencidas  -> marca como vencidas las pendientes ya vencidas

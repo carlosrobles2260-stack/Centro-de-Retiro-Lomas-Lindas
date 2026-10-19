@@ -101,7 +101,7 @@ app.use('/api/geocercas', requiereAuth, geocercasRoutes);
 app.use('/api/gps', gpsRoutes);
 app.use('/api/rondas', requiereAuth, rondasRoutes);
 app.use('/api/facturas', requiereAuth, facturasRoutes);
-app.use('/api/cuentas-por-cobrar', requiereAuth, requiereRol('administracion'), cuentasPorCobrarRoutes);
+app.use('/api/cuentas-por-cobrar', requiereAuth, requiereRol('administracion', 'presidente'), cuentasPorCobrarRoutes);
 app.use('/api/gastos', requiereAuth, gastosRoutes);
 app.use('/api/reportes', requiereAuth, reportesRoutes);
 app.use('/api/notificaciones', requiereAuth, notificacionesRoutes);

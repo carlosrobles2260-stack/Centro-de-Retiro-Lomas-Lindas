@@ -325,6 +325,16 @@ if (!(await tieneColumna('usuarios', 'propietario_id'))) {
 if (!(await tieneColumna('empleados_propietario', 'carnet'))) {
   await db.exec('ALTER TABLE empleados_propietario ADD COLUMN carnet TEXT');
 }
+// Descuento autorizado por la presidencia sobre una cuota (máx. 20%).
+if (!(await tieneColumna('facturas', 'descuento_pct'))) {
+  await db.exec(`ALTER TABLE facturas ADD COLUMN descuento_pct ${client === 'postgres' ? 'NUMERIC' : 'REAL'} DEFAULT 0`);
+}
+if (!(await tieneColumna('facturas', 'descuento_motivo'))) {
+  await db.exec('ALTER TABLE facturas ADD COLUMN descuento_motivo TEXT');
+}
+if (!(await tieneColumna('facturas', 'descuento_por'))) {
+  await db.exec('ALTER TABLE facturas ADD COLUMN descuento_por INTEGER REFERENCES usuarios(id)');
+}
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
 for (const p of sinToken) {

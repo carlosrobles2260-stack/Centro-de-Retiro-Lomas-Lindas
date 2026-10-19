@@ -5,6 +5,7 @@ const ROLES = [
   { valor: 'admin', label: 'Administrador' },
   { valor: 'seguridad', label: 'Seguridad' },
   { valor: 'administracion', label: 'Administración' },
+  { valor: 'presidente', label: 'Presidencia (directiva)' },
 ];
 
 export default function Usuarios() {

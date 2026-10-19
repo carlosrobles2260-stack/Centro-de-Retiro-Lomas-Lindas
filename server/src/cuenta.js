@@ -5,16 +5,21 @@ import { logoBuffer } from './credencial.js';
 
 const money = (n) => new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' }).format(Number(n) || 0);
 
-// Reúne las facturas (cuotas) del propietario y calcula el saldo pendiente.
+// Monto adeudado tras el descuento autorizado (máx. 20%).
+const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
+
+// Reúne las facturas (cuotas) del propietario y calcula el saldo pendiente
+// (considera pagos parciales y descuentos autorizados).
 export async function datosCuenta(propietarioId) {
   const facturas = await db.all(
-    'SELECT * FROM facturas WHERE propietario_id = ? ORDER BY fecha_emision DESC, id DESC',
+    `SELECT f.*, COALESCE((SELECT SUM(monto) FROM pagos WHERE factura_id = f.id), 0) AS pagado
+     FROM facturas f WHERE f.propietario_id = ? ORDER BY f.fecha_emision DESC, f.id DESC`,
     [propietarioId]
   );
-  const pendientes = facturas.filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
-  const saldo = pendientes.reduce((acc, f) => acc + Number(f.monto), 0);
-  const pagado = facturas.filter((f) => f.estado === 'pagada').reduce((acc, f) => acc + Number(f.monto), 0);
-  return { facturas, saldo, pagado, pendientes: pendientes.length };
+  const abiertas = facturas.filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
+  const saldo = abiertas.reduce((acc, f) => acc + Math.max(0, efectivo(f) - Number(f.pagado)), 0);
+  const pagado = facturas.reduce((acc, f) => acc + Number(f.pagado), 0);
+  return { facturas, saldo, pagado, pendientes: abiertas.length };
 }
 
 function logoDataUrl() {

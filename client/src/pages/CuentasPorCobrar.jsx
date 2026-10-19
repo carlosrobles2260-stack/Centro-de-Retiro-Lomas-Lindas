@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
+import { useAuth } from '../lib/auth.jsx';
 import { dinero, fecha } from '../lib/format.jsx';
 import { exportarExcel, exportarPDF } from '../lib/exportar.js';
+
+const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);
 
 const BUCKETS = [
   { key: 'vigente', label: 'Por vencer', color: 'var(--verde)' },
@@ -205,25 +208,59 @@ function ModalEmitir({ onCerrar, onHecho }) {
 
 const METODOS = ['efectivo', 'transferencia', 'tarjeta', 'cheque'];
 
-// Registrar abonos a las cuotas abiertas de un propietario.
+// Registrar un abono al propietario: se aplica a la cuota más antigua primero.
+// La presidencia puede además aplicar un descuento (máx. 20%) por cuota.
 function ModalPago({ propietario, onCerrar, onPagado }) {
+  const { usuario } = useAuth();
+  const esPresidencia = usuario.rol === 'presidente' || usuario.rol === 'admin';
   const [facturas, setFacturas] = useState(null);
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState(null);
+  const [monto, setMonto] = useState('');
+  const [metodo, setMetodo] = useState('efectivo');
+  const [guardando, setGuardando] = useState(false);
 
   const cargar = useCallback(async () => {
     const lista = await api.get(`/facturas?propietario_id=${propietario.propietario_id}`);
-    setFacturas(lista.filter((f) => (f.estado === 'pendiente' || f.estado === 'vencida') && Number(f.monto) - Number(f.pagado) > 0.001));
+    const abiertas = lista
+      .filter((f) => (f.estado === 'pendiente' || f.estado === 'vencida') && efectivo(f) - Number(f.pagado) > 0.001)
+      .sort((a, b) => String(a.fecha_vencimiento || a.fecha_emision || '').localeCompare(String(b.fecha_vencimiento || b.fecha_emision || '')) || a.id - b.id);
+    setFacturas(abiertas);
+    return abiertas;
   }, [propietario.propietario_id]);
 
-  useEffect(() => { cargar().catch((e) => setError(e.message)); }, [cargar]);
+  useEffect(() => {
+    cargar().then((ab) => setMonto(ab.reduce((a, f) => a + (efectivo(f) - Number(f.pagado)), 0).toFixed(2))).catch((e) => setError(e.message));
+  }, [cargar]);
 
-  async function abonar(factura, monto, metodo) {
+  const saldoTotal = (facturas || []).reduce((a, f) => a + (efectivo(f) - Number(f.pagado)), 0);
+
+  async function abonar(e) {
+    e.preventDefault();
+    setError(null); setMensaje(null); setGuardando(true);
+    try {
+      const r = await api.post('/cuentas-por-cobrar/abono', { propietario_id: propietario.propietario_id, monto: Number(monto), metodo });
+      const saldadas = r.detalle.filter((d) => d.saldado).length;
+      setMensaje(`Abono de ${dinero(r.aplicado)} aplicado a ${r.detalle.length} cuota(s)${saldadas ? `, ${saldadas} saldada(s)` : ''}.${r.sobrante > 0 ? ` Sobró ${dinero(r.sobrante)} (no había más saldo).` : ''}`);
+      const ab = await cargar();
+      setMonto(ab.reduce((a, f) => a + (efectivo(f) - Number(f.pagado)), 0).toFixed(2));
+      onPagado();
+    } catch (e) { setError(e.message); }
+    finally { setGuardando(false); }
+  }
+
+  async function descuento(factura) {
+    const txt = prompt(`Descuento para "${factura.concepto}" (máximo 20%). Indique el porcentaje:`, '10');
+    if (txt === null) return;
+    const pct = Number(txt);
+    if (!(pct >= 0 && pct <= 20)) { alert('El descuento debe estar entre 0% y 20%.'); return; }
+    const motivo = prompt('Motivo del descuento (opcional):', '') || null;
     setError(null); setMensaje(null);
     try {
-      await api.post(`/facturas/${factura.id}/pagos`, { monto: Number(monto), metodo });
-      setMensaje('Pago registrado.');
-      await cargar();
+      await api.post(`/facturas/${factura.id}/descuento`, { porcentaje: pct, motivo });
+      setMensaje(`Descuento de ${pct}% aplicado a "${factura.concepto}".`);
+      const ab = await cargar();
+      setMonto(ab.reduce((a, f) => a + (efectivo(f) - Number(f.pagado)), 0).toFixed(2));
       onPagado();
     } catch (e) { setError(e.message); }
   }
@@ -232,52 +269,48 @@ function ModalPago({ propietario, onCerrar, onPagado }) {
     <div className="modal-fondo" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Registrar pago · {propietario.nombre}</h3>
-        <p className="descripcion">Abona a las cuotas pendientes. El saldo se actualiza al guardar.</p>
+        <p className="descripcion">El abono se aplica automáticamente a la cuota <strong>más antigua</strong> primero. Saldo total: <strong>{dinero(saldoTotal)}</strong>.</p>
         {error && <p className="error">{error}</p>}
         {mensaje && <p className="ok-msg">{mensaje}</p>}
+
+        <form className="fila" style={{ alignItems: 'flex-end' }} onSubmit={abonar}>
+          <div className="campo" style={{ margin: 0 }}><label>Monto a abonar</label><input type="number" step="any" min="0" value={monto} onChange={(e) => setMonto(e.target.value)} required /></div>
+          <div className="campo" style={{ margin: 0 }}><label>Método</label>
+            <select value={metodo} onChange={(e) => setMetodo(e.target.value)}>
+              {METODOS.map((m) => <option key={m} value={m} style={{ textTransform: 'capitalize' }}>{m}</option>)}
+            </select>
+          </div>
+          <button type="submit" disabled={guardando || Number(monto) <= 0}>{guardando ? '...' : 'Abonar'}</button>
+        </form>
+
+        <h4 style={{ margin: '18px 0 8px' }}>Cuotas pendientes (de la más antigua)</h4>
         {!facturas ? (
-          <div className="cargando">Cargando cuotas...</div>
+          <div className="cargando">Cargando...</div>
         ) : facturas.length === 0 ? (
           <div className="vacio">Este propietario no tiene cuotas pendientes.</div>
         ) : (
-          facturas.map((f) => <FilaAbono key={f.id} factura={f} onAbonar={abonar} />)
+          facturas.map((f) => {
+            const saldo = efectivo(f) - Number(f.pagado);
+            return (
+              <div key={f.id} className="card" style={{ padding: 10, marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                  <div>
+                    <strong>{f.concepto}</strong>
+                    <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
+                      {f.fecha_vencimiento ? `Vence ${fecha(f.fecha_vencimiento)} · ` : ''}
+                      {Number(f.descuento_pct) > 0 ? `Descuento ${f.descuento_pct}% · ` : ''}
+                      Saldo {dinero(saldo)}
+                    </div>
+                  </div>
+                  {esPresidencia && (
+                    <button className="secundario" onClick={() => descuento(f)} title="Aplicar descuento (presidencia)">Descuento</button>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
         <div className="pie-modal"><button className="secundario" onClick={onCerrar}>Cerrar</button></div>
-      </div>
-    </div>
-  );
-}
-
-function FilaAbono({ factura, onAbonar }) {
-  const saldo = Number(factura.monto) - Number(factura.pagado);
-  const [monto, setMonto] = useState(saldo.toFixed(2));
-  const [metodo, setMetodo] = useState('efectivo');
-  const [guardando, setGuardando] = useState(false);
-
-  async function registrar() {
-    setGuardando(true);
-    await onAbonar(factura, monto, metodo);
-    setGuardando(false);
-  }
-
-  return (
-    <div className="card" style={{ padding: 12, marginBottom: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <div>
-          <strong>{factura.concepto}</strong>
-          <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
-            {factura.fecha_vencimiento ? `Vence ${fecha(factura.fecha_vencimiento)} · ` : ''}Saldo {dinero(saldo)}
-          </div>
-        </div>
-      </div>
-      <div className="fila" style={{ marginTop: 8, alignItems: 'flex-end' }}>
-        <div className="campo" style={{ margin: 0 }}><label>Monto</label><input type="number" step="any" min="0" max={saldo} value={monto} onChange={(e) => setMonto(e.target.value)} /></div>
-        <div className="campo" style={{ margin: 0 }}><label>Método</label>
-          <select value={metodo} onChange={(e) => setMetodo(e.target.value)}>
-            {METODOS.map((m) => <option key={m} value={m} style={{ textTransform: 'capitalize' }}>{m}</option>)}
-          </select>
-        </div>
-        <button onClick={registrar} disabled={guardando || Number(monto) <= 0}>{guardando ? '...' : 'Abonar'}</button>
       </div>
     </div>
   );
