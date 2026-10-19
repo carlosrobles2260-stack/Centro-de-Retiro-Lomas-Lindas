@@ -5,7 +5,7 @@ import { archivoAImagenBase64 } from '../lib/imagen.js';
 
 const TIPOS = [
   { valor: 'solar', label: 'Solar' },
-  { valor: 'residencia', label: 'Residencia' },
+  { valor: 'edificado', label: 'Edificado' },
 ];
 const etiquetaTipo = (v) => TIPOS.find((t) => t.valor === v)?.label || v;
 
@@ -54,7 +54,7 @@ export default function Propietarios() {
       <div className="barra">
         <div>
           <h2>Propietarios</h2>
-          <p className="descripcion">Registro de propietarios, su número de carnet y el solar o residencia asociada con fotos del frente.</p>
+          <p className="descripcion">Registro de propietarios, su número de carnet y el solar o edificado asociado con fotos del frente.</p>
         </div>
         <button onClick={() => setModal({})}>+ Nuevo propietario</button>
       </div>
@@ -210,12 +210,12 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
           <div className="campo">
             <label>Tipo de propiedad *</label>
             <select value={datos.tipo_propiedad} required onChange={(e) => set('tipo_propiedad', e.target.value)}>
-              <option value="" disabled>Selecciona: solar o residencia</option>
+              <option value="" disabled>Selecciona: solar o edificado</option>
               {TIPOS.map((t) => <option key={t.valor} value={t.valor}>{t.label}</option>)}
             </select>
           </div>
           <div className="campo">
-            <label>Solar / residencia (lote, casa o unidad)</label>
+            <label>Solar / edificado (lote, casa o unidad)</label>
             <input value={datos.propiedad} onChange={(e) => set('propiedad', e.target.value)} placeholder="Ej: Solar 12, Residencia B-4" />
           </div>
         </div>

@@ -252,3 +252,5 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .ficha-k { font-size: 12px; color: var(--texto-suave); }
 .ficha-v { font-size: 14px; color: var(--texto); word-break: break-word; }
 @media (max-width: 620px) { .ficha-grid { grid-template-columns: 1fr; } }
+.ficha-lista { margin: 4px 0 0; padding-left: 18px; }
+.ficha-lista li { font-size: 14px; margin-bottom: 4px; color: var(--texto); }

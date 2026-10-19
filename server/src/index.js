@@ -26,6 +26,8 @@ import miCuentaRoutes from './routes/miCuenta.js';
 import empleadosPropietarioRoutes from './routes/empleadosPropietario.js';
 import cuentasPorCobrarRoutes from './routes/cuentasPorCobrar.js';
 import prestamosEmpleadoRoutes from './routes/prestamosEmpleado.js';
+import activosRoutes from './routes/activos.js';
+import accionesPersonalRoutes from './routes/accionesPersonal.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -87,6 +89,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', requiereAuth, dashboardRoutes);
 app.use('/api/empleados', requiereAuth, empleadosRoutes);
 app.use('/api/prestamos-empleado', requiereAuth, requiereRol('administracion'), prestamosEmpleadoRoutes);
+app.use('/api/activos', requiereAuth, requiereRol('administracion'), activosRoutes);
+app.use('/api/acciones-personal', requiereAuth, requiereRol('administracion'), accionesPersonalRoutes);
 app.use('/api/turnos', requiereAuth, turnosRoutes);
 app.use('/api/propietarios', requiereAuth, propietariosRoutes);
 app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);

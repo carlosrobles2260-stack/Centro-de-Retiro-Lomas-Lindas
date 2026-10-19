@@ -211,6 +211,36 @@ CREATE TABLE IF NOT EXISTS accesos_empleado (
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+-- ===== Activos de la asociación (inventario y valoración) =====
+CREATE TABLE IF NOT EXISTS activos (
+  id                 ${T.id},
+  nombre             TEXT NOT NULL,
+  codigo             TEXT,       -- código de inventario
+  categoria          TEXT DEFAULT 'equipo', -- equipo | mobiliario | vehiculo | herramienta | tecnologia | inmueble | otro
+  descripcion        TEXT,
+  fecha_adquisicion  ${T.date},
+  valor_adquisicion  ${T.num} DEFAULT 0,
+  valor_actual       ${T.num} DEFAULT 0,   -- valoración actual
+  estado             TEXT DEFAULT 'activo', -- activo | mantenimiento | baja
+  ubicacion          TEXT,
+  responsable_id     INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
+  notas              TEXT,
+  creado_en          ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- ===== Acciones de personal (vacaciones, permisos, licencias, etc.) =====
+CREATE TABLE IF NOT EXISTS acciones_personal (
+  id             ${T.id},
+  empleado_id    INTEGER NOT NULL REFERENCES empleados(id) ON DELETE CASCADE,
+  tipo           TEXT NOT NULL DEFAULT 'vacaciones', -- vacaciones | permiso | licencia | amonestacion | reconocimiento
+  fecha_inicio   ${T.date},
+  fecha_fin      ${T.date},
+  dias           ${T.num},
+  descripcion    TEXT,
+  registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
 -- ===== Préstamos a empleados (con descuento por nómina) =====
 CREATE TABLE IF NOT EXISTS prestamos_empleado (
   id             ${T.id},
@@ -377,6 +407,8 @@ for (const [col, tipo] of COLUMNAS_RH) {
     await db.exec(`ALTER TABLE empleados ADD COLUMN ${col} ${tipo}`);
   }
 }
+// El tipo de propiedad 'residencia' pasa a llamarse 'edificado'.
+await db.run("UPDATE propietarios SET tipo_propiedad = 'edificado' WHERE tipo_propiedad = 'residencia'");
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
 for (const p of sinToken) {

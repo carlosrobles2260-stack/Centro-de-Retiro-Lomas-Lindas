@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/api.js';
 import { dinero, fecha, Badge } from '../lib/format.jsx';
 import CrudModule from '../components/CrudModule.jsx';
+import { etqAccion } from './AccionesPersonal.jsx';
 
 const DEPARTAMENTOS = [
   { valor: 'seguridad', label: 'Seguridad' },
@@ -83,6 +84,13 @@ function FichaEmpleado({ empleado: e, onCerrar }) {
   const [calc, setCalc] = useState(null);
   const [error, setError] = useState(null);
   const [calculando, setCalculando] = useState(false);
+  const [activos, setActivos] = useState([]);
+  const [acciones, setAcciones] = useState([]);
+
+  useEffect(() => {
+    api.get(`/activos?responsable_id=${e.id}`).then(setActivos).catch(() => {});
+    api.get(`/acciones-personal?empleado_id=${e.id}`).then(setAcciones).catch(() => {});
+  }, [e.id]);
 
   async function calcular() {
     setCalculando(true); setError(null);
@@ -124,6 +132,31 @@ function FichaEmpleado({ empleado: e, onCerrar }) {
           <Dato k="Tel. de emergencia" v={e.telefono_emergencia} />
           {e.notas && <Dato k="Notas" v={e.notas} ancho />}
         </div>
+
+        <h4 style={{ margin: '18px 0 6px' }}>Activos asignados</h4>
+        {activos.length === 0 ? (
+          <p className="descripcion">Sin activos asignados.</p>
+        ) : (
+          <ul className="ficha-lista">
+            {activos.map((a) => (
+              <li key={a.id}><strong>{a.nombre}</strong>{a.codigo ? ` (${a.codigo})` : ''}{a.ubicacion ? ` · ${a.ubicacion}` : ''} — {dinero(a.valor_actual)}</li>
+            ))}
+          </ul>
+        )}
+
+        <h4 style={{ margin: '18px 0 6px' }}>Acciones de personal</h4>
+        {acciones.length === 0 ? (
+          <p className="descripcion">Sin registros.</p>
+        ) : (
+          <ul className="ficha-lista">
+            {acciones.map((ac) => (
+              <li key={ac.id}>
+                <strong>{etqAccion(ac.tipo)}</strong> · {fecha(ac.fecha_inicio)}{ac.fecha_fin ? ` a ${fecha(ac.fecha_fin)}` : ''}{ac.dias ? ` · ${ac.dias} día(s)` : ''}
+                {ac.descripcion ? ` — ${ac.descripcion}` : ''}
+              </li>
+            ))}
+          </ul>
+        )}
 
         <h4 style={{ margin: '18px 0 6px' }}>Prestaciones laborales</h4>
         <p className="descripcion">Cálculo estimado según el Código de Trabajo de la República Dominicana. Verifique el cálculo oficial con el Ministerio de Trabajo.</p>

@@ -38,6 +38,7 @@ const MENU = [
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion', 'presidente'] },
       { a: '/cuentas-por-cobrar', texto: 'Cuentas por cobrar', roles: ['administracion', 'presidente'] },
       { a: '/gastos', texto: 'Gastos', roles: ['administracion'] },
+      { a: '/activos', texto: 'Activos', roles: ['administracion'] },
       { a: '/reportes', texto: 'Reportes', roles: ['administracion'] },
     ],
   },
@@ -46,6 +47,7 @@ const MENU = [
     items: [
       { a: '/empleados', texto: 'Empleados', roles: ['administracion'] },
       { a: '/prestamos', texto: 'Préstamos a empleados', roles: ['administracion'] },
+      { a: '/acciones-personal', texto: 'Acciones de personal', roles: ['administracion'] },
       { a: '/turnos', texto: 'Turnos', roles: ['seguridad', 'administracion'] },
     ],
   },

@@ -55,8 +55,8 @@ router.get('/:id', ah(async (req, res) => {
 router.post('/', ah(async (req, res) => {
   const datos = soloCampos(req.body);
   if (!datos.nombre) return res.status(400).json({ error: 'El nombre es obligatorio' });
-  if (!['solar', 'residencia'].includes(datos.tipo_propiedad)) {
-    return res.status(400).json({ error: 'Debes indicar si la propiedad es solar o residencia' });
+  if (!['solar', 'edificado'].includes(datos.tipo_propiedad)) {
+    return res.status(400).json({ error: 'Debes indicar si la propiedad es solar o edificado' });
   }
   datos.fotos_propiedad = JSON.stringify(resolverFotos(req.body, []));
   datos.token_cuenta = nuevoToken(); // enlace privado del estado de cuenta
