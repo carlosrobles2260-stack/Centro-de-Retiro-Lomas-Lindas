@@ -5,9 +5,11 @@ import { dinero, fecha, Badge } from '../lib/format.jsx';
 
 const PUESTO = { domestica: 'Empleada doméstica', jardinero: 'Jardinero', cuidador: 'Cuidador', motorista: 'Motorista', otro: 'Otro' };
 const CATEGORIA_DOC = {
+  estatutos: 'Estatutos',
   reglamento_interno: 'Reglamento interno',
   convivencia: 'Normas de convivencia',
   medio_ambiente: 'Medio ambiente',
+  resoluciones: 'Resoluciones de la Directiva',
   otra: 'Otras normas',
 };
 
@@ -103,7 +105,7 @@ export default function MiCuenta() {
             {datos.documentos?.length > 0 && (
               <>
                 <h2>Normas y reglamentos</h2>
-                <p className="descripcion">Reglamento interno y normas de convivencia y de medio ambiente de la asociación y del proyecto.</p>
+                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva de la asociación y del proyecto.</p>
                 <div className="mc-docs">
                   {datos.documentos.map((d) => {
                     const destino = d.archivo || d.enlace;

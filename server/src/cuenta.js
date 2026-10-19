@@ -35,9 +35,11 @@ function logoDataUrl() {
 const ETIQUETA_ESTADO = { pendiente: 'Pendiente', vencida: 'Vencida', pagada: 'Pagada', anulada: 'Anulada' };
 const COLOR_ESTADO = { pendiente: '#d98e04', vencida: '#c0392b', pagada: '#2f6e4f', anulada: '#5d6b63' };
 const ETIQUETA_CATEGORIA = {
+  estatutos: 'Estatutos',
   reglamento_interno: 'Reglamento interno',
   convivencia: 'Normas de convivencia',
   medio_ambiente: 'Medio ambiente',
+  resoluciones: 'Resoluciones de la Directiva',
   otra: 'Otras normas',
 };
 
