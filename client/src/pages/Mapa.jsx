@@ -145,6 +145,7 @@ export default function Mapa() {
       </div>
 
       {puedeSimular && <PanelSimular vehiculos={datos.vehiculos} geocercas={datos.geocercas} onEnviado={cargar} />}
+      {esAdmin && <PanelSync onSincronizado={cargar} />}
       {esAdmin && <PanelWebhook />}
     </div>
   );
@@ -213,6 +214,76 @@ function PanelSimular({ vehiculos, geocercas, onEnviado }) {
   );
 }
 
+// Sincronización por consulta (pull) con la plataforma del proveedor (Systrack+).
+function PanelSync({ onSincronizado }) {
+  const [cfg, setCfg] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
+
+  useEffect(() => { api.get('/gps/sync').then(setCfg).catch(() => setCfg({ activo: false, url: '', token: '', intervalo: 60 })); }, []);
+  if (!cfg) return null;
+  const set = (k, v) => setCfg((c) => ({ ...c, [k]: v }));
+
+  async function guardar(e) {
+    e.preventDefault();
+    setGuardando(true); setMsg(null);
+    try { await api.put('/gps/sync', cfg); setMsg('✓ Configuración guardada'); }
+    catch (err) { setMsg('Error: ' + err.message); }
+    finally { setGuardando(false); }
+  }
+
+  async function sincronizarAhora() {
+    setSincronizando(true); setMsg(null);
+    try {
+      const r = await api.post('/gps/sync/ahora');
+      if (r.ok) {
+        const ev = r.eventos?.length ? ` · ${r.eventos.length} evento(s)` : '';
+        setMsg(`✓ ${r.registradas} de ${r.consultadas} unidad(es) registrada(s)${ev}`);
+        onSincronizado();
+      } else {
+        setMsg('Error: ' + (r.error || 'no se pudo sincronizar'));
+      }
+    } catch (err) { setMsg('Error: ' + err.message); }
+    finally { setSincronizando(false); }
+  }
+
+  return (
+    <form className="card simular" onSubmit={guardar}>
+      <h3>Sincronización con el proveedor de GPS (Systrack+)</h3>
+      <p className="descripcion">
+        Si tu plataforma de rastreo entrega los datos por su propia API, el ERP la consulta cada cierto tiempo
+        y actualiza el mapa, los viajes al vertedero y las rondas. Pide a tu proveedor la URL de la API y el token de acceso.
+      </p>
+      <label className="sync-check">
+        <input type="checkbox" checked={!!cfg.activo} onChange={(e) => set('activo', e.target.checked)} />
+        Activar sincronización automática
+      </label>
+      <div className="campo">
+        <label>URL de la API del proveedor</label>
+        <input type="url" placeholder="https://plataforma.systrack.../api/posiciones" value={cfg.url} onChange={(e) => set('url', e.target.value)} />
+      </div>
+      <div className="sync-fila">
+        <div className="campo" style={{ flex: 2 }}>
+          <label>Token de acceso (opcional)</label>
+          <input type="text" placeholder="Token / API key del proveedor" value={cfg.token} onChange={(e) => set('token', e.target.value)} />
+        </div>
+        <div className="campo" style={{ flex: 1 }}>
+          <label>Intervalo (segundos)</label>
+          <input type="number" min="15" value={cfg.intervalo} onChange={(e) => set('intervalo', Number(e.target.value))} />
+        </div>
+      </div>
+      <div className="sync-botones">
+        <button type="submit" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar'}</button>
+        <button type="button" className="secundario" onClick={sincronizarAhora} disabled={sincronizando || !cfg.url}>
+          {sincronizando ? 'Sincronizando...' : 'Sincronizar ahora'}
+        </button>
+      </div>
+      {msg && <p className={msg.startsWith('Error') ? 'error' : 'ok-msg'}>{msg}</p>}
+    </form>
+  );
+}
+
 // Datos para conectar el proveedor de GPS (webhook + token).
 function PanelWebhook() {
   const [info, setInfo] = useState(null);
@@ -221,10 +292,10 @@ function PanelWebhook() {
   const url = window.location.origin + info.ejemplo;
   return (
     <div className="card">
-      <h3>Conectar el proveedor de GPS</h3>
+      <h3>Alternativa: que el proveedor nos envíe los datos (webhook)</h3>
       <p className="descripcion">
-        Configura en la plataforma de tu rastreador un envío (webhook) por <b>POST</b> a esta dirección.
-        El identificador del dispositivo debe coincidir con el «GPS (IMEI)» del vehículo.
+        Si tu plataforma permite enviar los datos (en vez de que los consultemos), configura un envío (webhook)
+        por <b>POST</b> a esta dirección. El identificador del dispositivo debe coincidir con el «GPS (IMEI)» del vehículo.
       </p>
       <pre className="webhook-url">{url}</pre>
       <p className="descripcion">Cuerpo de ejemplo (JSON): <code>{JSON.stringify(info.cuerpo)}</code></p>

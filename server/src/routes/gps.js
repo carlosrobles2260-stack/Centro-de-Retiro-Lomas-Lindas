@@ -3,8 +3,17 @@ import db from '../db.js';
 import { ah } from '../async.js';
 import { requiereAuth, requiereRol } from '../auth.js';
 import { procesarPosicion } from '../gps.js';
+import { sincronizar, iniciarSincronizacionAutomatica } from '../gpsSync.js';
 
 const router = Router();
+
+const CLAVES_SYNC = ['gps_sync_activo', 'gps_sync_url', 'gps_sync_token', 'gps_sync_intervalo'];
+
+async function upsertConfig(clave, valor) {
+  const existe = await db.get('SELECT clave FROM configuracion WHERE clave = ?', [clave]);
+  if (existe) await db.run('UPDATE configuracion SET valor = ? WHERE clave = ?', [String(valor), clave]);
+  else await db.run('INSERT INTO configuracion (clave, valor) VALUES (?, ?)', [clave, String(valor)]);
+}
 
 // Lee la clave de ingesta configurada (env GPS_TOKEN tiene prioridad).
 async function tokenConfigurado() {
@@ -88,6 +97,40 @@ router.get('/instrucciones', requiereAuth, requiereRol('administracion'), ah(asy
     ejemplo: '/api/gps/ingesta?token=' + token,
     cuerpo: { gps_id: 'IMEI-del-dispositivo', lat: 13.7, lng: -89.2, velocidad: 24 },
   });
+}));
+
+// ===== Sincronización por consulta con el proveedor (solo administración) =====
+
+// Configuración actual del sincronizador.
+router.get('/sync', requiereAuth, requiereRol('administracion'), ah(async (req, res) => {
+  const filas = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'gps_sync_%'");
+  const c = {};
+  for (const f of filas) c[f.clave] = f.valor;
+  res.json({
+    activo: c.gps_sync_activo === '1',
+    url: c.gps_sync_url || '',
+    token: c.gps_sync_token || '',
+    intervalo: Number(c.gps_sync_intervalo) || 60,
+  });
+}));
+
+// Guardar configuración del sincronizador y reprogramar el bucle automático.
+router.put('/sync', requiereAuth, requiereRol('administracion'), ah(async (req, res) => {
+  const b = req.body || {};
+  const mapa = {
+    gps_sync_activo: b.activo ? '1' : '0',
+    gps_sync_url: b.url ?? '',
+    gps_sync_token: b.token ?? '',
+    gps_sync_intervalo: String(Math.max(15, Number(b.intervalo) || 60)),
+  };
+  for (const clave of CLAVES_SYNC) await upsertConfig(clave, mapa[clave]);
+  iniciarSincronizacionAutomatica(); // aplica los cambios en caliente
+  res.json({ ok: true });
+}));
+
+// Ejecutar una sincronización ahora mismo (prueba manual).
+router.post('/sync/ahora', requiereAuth, requiereRol('administracion'), ah(async (req, res) => {
+  res.json(await sincronizar());
 }));
 
 // Simular una posición (para pruebas/demostración; admin o seguridad).

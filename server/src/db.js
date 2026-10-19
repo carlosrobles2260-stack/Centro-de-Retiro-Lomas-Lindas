@@ -307,6 +307,11 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
 const CONFIG_DEFECTO = {
   meta_rondas_turno: '6',
   gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
+  // Sincronización por consulta (pull) con la plataforma del proveedor (p. ej. Systrack+).
+  gps_sync_activo: '0',
+  gps_sync_url: '',
+  gps_sync_token: '',
+  gps_sync_intervalo: '60', // segundos entre consultas
 };
 for (const [clave, valor] of Object.entries(CONFIG_DEFECTO)) {
   await db.run(

@@ -85,4 +85,8 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ API del ERP Lomas Lindas escuchando en http://localhost:${PORT}`);
+  // Inicia la sincronización periódica con el proveedor de GPS (si está activada).
+  import('./gpsSync.js')
+    .then((m) => m.iniciarSincronizacionAutomatica())
+    .catch((e) => console.warn('No se pudo iniciar la sincronización de GPS:', e.message));
 });

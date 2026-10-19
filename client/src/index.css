@@ -207,3 +207,7 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
   .mapa-layout { grid-template-columns: 1fr; }
   .mapa-panel { max-height: none; }
 }
+.sync-check { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0 10px; cursor: pointer; }
+.sync-check input { width: auto; }
+.sync-fila { display: flex; gap: 12px; flex-wrap: wrap; }
+.sync-botones { display: flex; gap: 10px; margin-top: 12px; }
