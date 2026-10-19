@@ -21,7 +21,7 @@ export default function PanelFinanciero() {
           propConSaldo: cxc?.resumen?.propietarios_con_saldo || 0,
           ingresosMes: dash?.finanzas?.ingresosMes || 0,
           gastosMes: dash?.finanzas?.gastosMes || 0,
-          nominaMes: nom?.totales?.bruto || 0,
+          nominaMes: nom?.totales?.costo_total || nom?.totales?.bruto || 0,
           activos: act?.valor_libros || 0,
         });
       } catch (e) { setError(e.message); }
@@ -55,7 +55,7 @@ export default function PanelFinanciero() {
       <div className="grid grid-4" style={{ marginBottom: 14 }}>
         <Stat etiqueta="Ingresos (cuotas cobradas)" valor={dinero(d.ingresosMes)} clase="verde" />
         <Stat etiqueta="Gastos" valor={dinero(d.gastosMes)} />
-        <Stat etiqueta="Nómina (mensual)" valor={dinero(d.nominaMes)} />
+        <Stat etiqueta="Nómina (costo total mensual)" valor={dinero(d.nominaMes)} />
         <Stat etiqueta="Resultado" valor={dinero(resultado)} clase={resultado >= 0 ? 'verde' : 'rojo'} />
       </div>
 

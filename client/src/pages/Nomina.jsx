@@ -14,6 +14,8 @@ const COLUMNAS_NOMINA = [
   { key: 'prestamo', label: 'Préstamo (RD$)', fmt: num2 },
   { key: 'deducciones', label: 'Deducciones (RD$)', fmt: num2 },
   { key: 'neto', label: 'Neto (RD$)', fmt: num2 },
+  { key: 'aporte_patronal', label: 'Aporte patronal (RD$)', fmt: num2 },
+  { key: 'costo_total', label: 'Costo total (RD$)', fmt: num2 },
 ];
 
 const PERIODICIDAD = [
@@ -53,7 +55,7 @@ export default function Nomina() {
     const t = data.totales;
     return [
       ...data.empleados,
-      { nombre: 'TOTALES', puesto: '', bruto: t.bruto, afp: t.afp, sfs: t.sfs, isr: t.isr, prestamo: t.prestamo, deducciones: t.deducciones, neto: t.neto },
+      { nombre: 'TOTALES', puesto: '', bruto: t.bruto, afp: t.afp, sfs: t.sfs, isr: t.isr, prestamo: t.prestamo, deducciones: t.deducciones, neto: t.neto, aporte_patronal: t.aporte_patronal, costo_total: t.costo_total },
     ];
   }
 
@@ -95,6 +97,10 @@ export default function Nomina() {
     doc.text('Total deducciones', L, y); doc.text(dinero(fila.deducciones), 192, y, { align: 'right' }); y += 9;
     doc.setFontSize(13); doc.setTextColor(47, 110, 79);
     doc.text('NETO A PAGAR', L, y); doc.text(dinero(fila.neto), 192, y, { align: 'right' }); y += 14;
+    if (fila.aporte_patronal > 0) {
+      doc.setFontSize(8); doc.setTextColor(150);
+      doc.text(`Aporte patronal TSS a cargo de la asociación (no descontado al empleado): ${dinero(fila.aporte_patronal)}`, L, y); y += 6;
+    }
     doc.setFontSize(8); doc.setTextColor(150);
     doc.text('Documento informativo. Deducciones estimadas de ley (TSS: AFP y SFS; ISR según escala DGII).', L, y);
     doc.text(`Generado el ${new Date().toLocaleString('es-ES')}`, L, 285);
@@ -170,6 +176,18 @@ export default function Nomina() {
               </tbody>
             </table>
           </div>
+
+          <h3 style={{ marginTop: 22 }}>Aportes patronales (TSS) y costo de nómina</h3>
+          <p className="descripcion">Aportes a cargo de la asociación (no se descuentan al empleado): AFP {(data.tasas.afp_patronal * 100).toFixed(2)}% · SFS {(data.tasas.sfs_patronal * 100).toFixed(2)}% · Riesgos laborales {(data.tasas.srl * 100).toFixed(2)}% · INFOTEP {(data.tasas.infotep * 100).toFixed(2)}%.</p>
+          <div className="grid grid-3" style={{ marginBottom: 10 }}>
+            <Stat etiqueta="AFP patronal (pensión)" valor={dinero(data.totales.afp_patronal)} />
+            <Stat etiqueta="SFS patronal (salud)" valor={dinero(data.totales.sfs_patronal)} />
+            <Stat etiqueta="Riesgos laborales (SRL)" valor={dinero(data.totales.srl)} />
+            <Stat etiqueta="INFOTEP" valor={dinero(data.totales.infotep)} />
+            <Stat etiqueta="Total aportes patronales" valor={dinero(data.totales.aporte_patronal)} clase="rojo" />
+            <Stat etiqueta="Costo total de nómina" valor={dinero(data.totales.costo_total)} clase="verde" />
+          </div>
+          <p className="descripcion">Costo total = salario bruto del período ({dinero(data.totales.bruto)}) + aportes patronales ({dinero(data.totales.aporte_patronal)}).</p>
         </>
       )}
 
@@ -178,10 +196,18 @@ export default function Nomina() {
   );
 }
 
+function Stat({ etiqueta, valor, clase }) {
+  return <div className="card stat"><div className="etiqueta">{etiqueta}</div><div className={`valor ${clase || ''}`}>{valor}</div></div>;
+}
+
 // Editor de las tasas de ley (AFP, SFS y escala del ISR).
 const CAMPOS_TASAS = [
-  { k: 'nomina_afp', l: 'AFP — pensión (%)' },
-  { k: 'nomina_sfs', l: 'SFS — salud (%)' },
+  { k: 'nomina_afp', l: 'AFP — pensión, empleado (%)' },
+  { k: 'nomina_sfs', l: 'SFS — salud, empleado (%)' },
+  { k: 'nomina_afp_patronal', l: 'AFP — pensión, patronal (%)' },
+  { k: 'nomina_sfs_patronal', l: 'SFS — salud, patronal (%)' },
+  { k: 'nomina_srl', l: 'Riesgos laborales — patronal (%)' },
+  { k: 'nomina_infotep', l: 'INFOTEP — patronal (%)' },
   { k: 'isr_exento', l: 'ISR: exento hasta (RD$/año)' },
   { k: 'isr_tramo2', l: 'ISR: tope tramo 2 (RD$/año)' },
   { k: 'isr_tasa2', l: 'ISR: tasa tramo 2 (%)' },

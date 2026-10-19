@@ -463,6 +463,16 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
   );
 }
 
+// Contenido inicial de normas y reglamentos (se crean solo si no existen).
+const { DOCUMENTOS_BASE } = await import('./documentosBase.js');
+for (const d of DOCUMENTOS_BASE) {
+  await db.run(
+    `INSERT INTO documentos (titulo, categoria, descripcion, contenido, publicado, orden)
+     SELECT ?, ?, ?, ?, 1, ? WHERE NOT EXISTS (SELECT 1 FROM documentos WHERE titulo = ?)`,
+    [d.titulo, d.categoria, d.descripcion, d.contenido, d.orden, d.titulo]
+  );
+}
+
 // Valores de configuración por defecto.
 // - meta_rondas_turno: meta de rondas por turno.
 // - gps_token: clave que el proveedor de GPS usa para enviarnos las posiciones.
@@ -474,6 +484,11 @@ const CONFIG_DEFECTO = {
   // Tasas de nómina (editables). AFP/SFS en %, escala del ISR en monto anual y %.
   nomina_afp: '2.87',
   nomina_sfs: '3.04',
+  // Aportes patronales a la TSS (a cargo de la asociación, % del salario).
+  nomina_afp_patronal: '7.10',   // AFP (pensión) patronal
+  nomina_sfs_patronal: '7.09',   // SFS (salud) patronal
+  nomina_srl: '1.20',            // Seguro de Riesgos Laborales (patronal)
+  nomina_infotep: '1.00',        // INFOTEP (patronal)
   isr_exento: '416220',
   isr_tramo2: '624329',
   isr_tasa2: '15',

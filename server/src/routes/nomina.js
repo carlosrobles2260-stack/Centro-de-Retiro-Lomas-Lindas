@@ -11,6 +11,7 @@ const PERIODOS_ANIO = { mensual: 12, quincenal: 24, semanal: 52 };
 // Valores por defecto de las tasas (se usan si falta la configuración).
 const TASAS_DEFECTO = {
   nomina_afp: 2.87, nomina_sfs: 3.04,
+  nomina_afp_patronal: 7.10, nomina_sfs_patronal: 7.09, nomina_srl: 1.20, nomina_infotep: 1.00,
   isr_exento: 416220, isr_tramo2: 624329, isr_tasa2: 15,
   isr_tramo3: 867123, isr_tasa3: 20, isr_tasa4: 25,
 };
@@ -22,6 +23,11 @@ async function leerTasas() {
   for (const f of filas) if (Number.isFinite(Number(f.valor))) c[f.clave] = Number(f.valor);
   return {
     afp: c.nomina_afp / 100, sfs: c.nomina_sfs / 100,
+    // Aportes patronales (TSS) a cargo de la asociación.
+    patronal: {
+      afp: c.nomina_afp_patronal / 100, sfs: c.nomina_sfs_patronal / 100,
+      srl: c.nomina_srl / 100, infotep: c.nomina_infotep / 100,
+    },
     isr: { exento: c.isr_exento, tramo2: c.isr_tramo2, tasa2: c.isr_tasa2 / 100, tramo3: c.isr_tramo3, tasa3: c.isr_tasa3 / 100, tasa4: c.isr_tasa4 / 100 },
   };
 }
@@ -53,7 +59,7 @@ async function prestamosDelPeriodo(periodicidad) {
 async function calcularNomina(periodicidad) {
   const per = FACTOR[periodicidad] ? periodicidad : 'mensual';
   const factor = FACTOR[per];
-  const { afp: AFP, sfs: SFS, isr: ISR } = await leerTasas();
+  const { afp: AFP, sfs: SFS, isr: ISR, patronal: PAT } = await leerTasas();
   const empleados = await db.all("SELECT id, nombre, puesto, departamento, salario FROM empleados WHERE activo = 1 ORDER BY nombre");
   const prestamos = await prestamosDelPeriodo(per);
   const porEmpleado = new Map();
@@ -72,18 +78,32 @@ async function calcularNomina(periodicidad) {
     const isr = isrAnual(rentaAnual, ISR) / periodosAnio;
     const prestamo = porEmpleado.get(e.id) || 0;
     const deducciones = afp + sfs + isr + prestamo;
+    // Aportes patronales (TSS), a cargo de la asociación: no se descuentan al empleado.
+    const afpPatronal = bruto * PAT.afp;
+    const sfsPatronal = bruto * PAT.sfs;
+    const srl = bruto * PAT.srl;
+    const infotep = bruto * PAT.infotep;
+    const aportePatronal = afpPatronal + sfsPatronal + srl + infotep;
     return {
       empleado_id: e.id, nombre: e.nombre, puesto: e.puesto, departamento: e.departamento,
       salario_mensual: r2(salarioMensual), bruto: r2(bruto), afp: r2(afp), sfs: r2(sfs), isr: r2(isr),
       prestamo: r2(prestamo), deducciones: r2(deducciones), neto: r2(bruto - deducciones),
+      afp_patronal: r2(afpPatronal), sfs_patronal: r2(sfsPatronal), srl: r2(srl), infotep: r2(infotep),
+      aporte_patronal: r2(aportePatronal), costo_total: r2(bruto + aportePatronal),
     };
   });
 
   const sum = (k) => r2(filas.reduce((a, f) => a + f[k], 0));
   return {
-    periodicidad: per, tasas: { afp: AFP, sfs: SFS, isr_exento: ISR.exento },
+    periodicidad: per,
+    tasas: { afp: AFP, sfs: SFS, isr_exento: ISR.exento, afp_patronal: PAT.afp, sfs_patronal: PAT.sfs, srl: PAT.srl, infotep: PAT.infotep },
     empleados: filas,
-    totales: { bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), isr: sum('isr'), prestamo: sum('prestamo'), deducciones: sum('deducciones'), neto: sum('neto') },
+    totales: {
+      bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), isr: sum('isr'), prestamo: sum('prestamo'),
+      deducciones: sum('deducciones'), neto: sum('neto'),
+      afp_patronal: sum('afp_patronal'), sfs_patronal: sum('sfs_patronal'), srl: sum('srl'), infotep: sum('infotep'),
+      aporte_patronal: sum('aporte_patronal'), costo_total: sum('costo_total'),
+    },
   };
 }
 
