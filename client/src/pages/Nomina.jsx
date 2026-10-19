@@ -179,6 +179,9 @@ export default function Nomina() {
 
           <h3 style={{ marginTop: 22 }}>Aportes patronales (TSS) y costo de nómina</h3>
           <p className="descripcion">Aportes a cargo de la asociación (no se descuentan al empleado): AFP {(data.tasas.afp_patronal * 100).toFixed(2)}% · SFS {(data.tasas.sfs_patronal * 100).toFixed(2)}% · Riesgos laborales {(data.tasas.srl * 100).toFixed(2)}% · INFOTEP {(data.tasas.infotep * 100).toFixed(2)}%.</p>
+          {data.tasas.topes && (data.tasas.topes.sfs || data.tasas.topes.afp || data.tasas.topes.srl) && (
+            <p className="descripcion">Topes de cotización (por salario mensual): SFS hasta {dinero(data.tasas.topes.sfs)} · AFP hasta {dinero(data.tasas.topes.afp)} · Riesgos laborales hasta {dinero(data.tasas.topes.srl)}. INFOTEP sin tope.</p>
+          )}
           <div className="grid grid-3" style={{ marginBottom: 10 }}>
             <Stat etiqueta="AFP patronal (pensión)" valor={dinero(data.totales.afp_patronal)} />
             <Stat etiqueta="SFS patronal (salud)" valor={dinero(data.totales.sfs_patronal)} />
@@ -208,6 +211,10 @@ const CAMPOS_TASAS = [
   { k: 'nomina_sfs_patronal', l: 'SFS — salud, patronal (%)' },
   { k: 'nomina_srl', l: 'Riesgos laborales — patronal (%)' },
   { k: 'nomina_infotep', l: 'INFOTEP — patronal (%)' },
+  { k: 'tss_salario_min_cotizable', l: 'Salario mínimo cotizable (RD$) — 0 = sin topes' },
+  { k: 'tss_tope_sfs', l: 'Tope SFS (× salario mín.)' },
+  { k: 'tss_tope_afp', l: 'Tope AFP (× salario mín.)' },
+  { k: 'tss_tope_srl', l: 'Tope riesgos laborales (× salario mín.)' },
   { k: 'isr_exento', l: 'ISR: exento hasta (RD$/año)' },
   { k: 'isr_tramo2', l: 'ISR: tope tramo 2 (RD$/año)' },
   { k: 'isr_tasa2', l: 'ISR: tasa tramo 2 (%)' },

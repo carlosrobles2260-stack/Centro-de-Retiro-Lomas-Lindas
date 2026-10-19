@@ -12,15 +12,20 @@ const PERIODOS_ANIO = { mensual: 12, quincenal: 24, semanal: 52 };
 const TASAS_DEFECTO = {
   nomina_afp: 2.87, nomina_sfs: 3.04,
   nomina_afp_patronal: 7.10, nomina_sfs_patronal: 7.09, nomina_srl: 1.20, nomina_infotep: 1.00,
+  tss_salario_min_cotizable: 10000, tss_tope_sfs: 10, tss_tope_afp: 20, tss_tope_srl: 4,
   isr_exento: 416220, isr_tramo2: 624329, isr_tasa2: 15,
   isr_tramo3: 867123, isr_tasa3: 20, isr_tasa4: 25,
 };
 
 // Lee las tasas de nómina desde la configuración.
 async function leerTasas() {
-  const filas = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'nomina_%' OR clave LIKE 'isr_%'");
+  const filas = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'nomina_%' OR clave LIKE 'isr_%' OR clave LIKE 'tss_%'");
   const c = { ...TASAS_DEFECTO };
   for (const f of filas) if (Number.isFinite(Number(f.valor))) c[f.clave] = Number(f.valor);
+  // Topes de cotización (por salario mensual) = múltiplo del salario mínimo
+  // cotizable. Sin salario mínimo o sin múltiplo => sin tope (Infinity).
+  const smc = c.tss_salario_min_cotizable;
+  const tope = (mult) => (smc > 0 && mult > 0 ? smc * mult : Infinity);
   return {
     afp: c.nomina_afp / 100, sfs: c.nomina_sfs / 100,
     // Aportes patronales (TSS) a cargo de la asociación.
@@ -28,6 +33,8 @@ async function leerTasas() {
       afp: c.nomina_afp_patronal / 100, sfs: c.nomina_sfs_patronal / 100,
       srl: c.nomina_srl / 100, infotep: c.nomina_infotep / 100,
     },
+    // Topes mensuales de cotización por rama (Infinity = sin tope).
+    topes: { smc, sfs: tope(c.tss_tope_sfs), afp: tope(c.tss_tope_afp), srl: tope(c.tss_tope_srl) },
     isr: { exento: c.isr_exento, tramo2: c.isr_tramo2, tasa2: c.isr_tasa2 / 100, tramo3: c.isr_tramo3, tasa3: c.isr_tasa3 / 100, tasa4: c.isr_tasa4 / 100 },
   };
 }
@@ -59,7 +66,7 @@ async function prestamosDelPeriodo(periodicidad) {
 async function calcularNomina(periodicidad) {
   const per = FACTOR[periodicidad] ? periodicidad : 'mensual';
   const factor = FACTOR[per];
-  const { afp: AFP, sfs: SFS, isr: ISR, patronal: PAT } = await leerTasas();
+  const { afp: AFP, sfs: SFS, isr: ISR, patronal: PAT, topes: TOPE } = await leerTasas();
   const empleados = await db.all("SELECT id, nombre, puesto, departamento, salario FROM empleados WHERE activo = 1 ORDER BY nombre");
   const prestamos = await prestamosDelPeriodo(per);
   const porEmpleado = new Map();
@@ -71,18 +78,24 @@ async function calcularNomina(periodicidad) {
   const filas = empleados.map((e) => {
     const salarioMensual = Number(e.salario) || 0;
     const bruto = salarioMensual * factor;
-    const afp = bruto * AFP;
-    const sfs = bruto * SFS;
-    // ISR: se anualiza la renta neta de TSS, se aplica la escala y se prorratea al período.
-    const rentaAnual = salarioMensual * 12 * (1 - AFP - SFS);
+    // Base cotizable del período, topada por rama (los topes son mensuales).
+    const baseAfp = Math.min(salarioMensual, TOPE.afp) * factor;
+    const baseSfs = Math.min(salarioMensual, TOPE.sfs) * factor;
+    const baseSrl = Math.min(salarioMensual, TOPE.srl) * factor;
+    const afp = baseAfp * AFP;
+    const sfs = baseSfs * SFS;
+    // ISR: renta anual neta de TSS (con topes aplicados), escala DGII, prorrateada.
+    const afpMensual = Math.min(salarioMensual, TOPE.afp) * AFP;
+    const sfsMensual = Math.min(salarioMensual, TOPE.sfs) * SFS;
+    const rentaAnual = (salarioMensual - afpMensual - sfsMensual) * 12;
     const isr = isrAnual(rentaAnual, ISR) / periodosAnio;
     const prestamo = porEmpleado.get(e.id) || 0;
     const deducciones = afp + sfs + isr + prestamo;
     // Aportes patronales (TSS), a cargo de la asociación: no se descuentan al empleado.
-    const afpPatronal = bruto * PAT.afp;
-    const sfsPatronal = bruto * PAT.sfs;
-    const srl = bruto * PAT.srl;
-    const infotep = bruto * PAT.infotep;
+    const afpPatronal = baseAfp * PAT.afp;
+    const sfsPatronal = baseSfs * PAT.sfs;
+    const srl = baseSrl * PAT.srl;
+    const infotep = bruto * PAT.infotep; // INFOTEP: 1% de la nómina, sin tope.
     const aportePatronal = afpPatronal + sfsPatronal + srl + infotep;
     return {
       empleado_id: e.id, nombre: e.nombre, puesto: e.puesto, departamento: e.departamento,
@@ -96,7 +109,16 @@ async function calcularNomina(periodicidad) {
   const sum = (k) => r2(filas.reduce((a, f) => a + f[k], 0));
   return {
     periodicidad: per,
-    tasas: { afp: AFP, sfs: SFS, isr_exento: ISR.exento, afp_patronal: PAT.afp, sfs_patronal: PAT.sfs, srl: PAT.srl, infotep: PAT.infotep },
+    tasas: {
+      afp: AFP, sfs: SFS, isr_exento: ISR.exento,
+      afp_patronal: PAT.afp, sfs_patronal: PAT.sfs, srl: PAT.srl, infotep: PAT.infotep,
+      topes: {
+        smc: TOPE.smc,
+        sfs: Number.isFinite(TOPE.sfs) ? TOPE.sfs : null,
+        afp: Number.isFinite(TOPE.afp) ? TOPE.afp : null,
+        srl: Number.isFinite(TOPE.srl) ? TOPE.srl : null,
+      },
+    },
     empleados: filas,
     totales: {
       bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), isr: sum('isr'), prestamo: sum('prestamo'),

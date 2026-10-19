@@ -489,6 +489,13 @@ const CONFIG_DEFECTO = {
   nomina_sfs_patronal: '7.09',   // SFS (salud) patronal
   nomina_srl: '1.20',            // Seguro de Riesgos Laborales (patronal)
   nomina_infotep: '1.00',        // INFOTEP (patronal)
+  // Topes de cotización de la TSS (por salario mensual). El tope es un múltiplo
+  // del salario mínimo cotizable. 0 en el salario mínimo = sin tope.
+  // Actualizar el salario mínimo cotizable según la resolución vigente de la TSS.
+  tss_salario_min_cotizable: '10000',
+  tss_tope_sfs: '10',            // SFS: hasta 10 salarios mínimos cotizables
+  tss_tope_afp: '20',            // AFP: hasta 20 salarios mínimos cotizables
+  tss_tope_srl: '4',             // Riesgos laborales: hasta 4 salarios mínimos cotizables
   isr_exento: '416220',
   isr_tramo2: '624329',
   isr_tasa2: '15',
