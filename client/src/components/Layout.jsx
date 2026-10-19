@@ -36,6 +36,7 @@ const MENU = [
     grupo: 'Administración y finanzas',
     items: [
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion'] },
+      { a: '/cuentas-por-cobrar', texto: 'Cuentas por cobrar', roles: ['administracion'] },
       { a: '/gastos', texto: 'Gastos', roles: ['administracion'] },
       { a: '/reportes', texto: 'Reportes', roles: ['administracion'] },
     ],

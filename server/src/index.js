@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
-import { requiereAuth } from './auth.js';
+import { requiereAuth, requiereRol } from './auth.js';
 import authRoutes from './routes/auth.js';
 import empleadosRoutes from './routes/empleados.js';
 import turnosRoutes from './routes/turnos.js';
@@ -24,6 +24,7 @@ import geocercasRoutes from './routes/geocercas.js';
 import gpsRoutes from './routes/gps.js';
 import miCuentaRoutes from './routes/miCuenta.js';
 import empleadosPropietarioRoutes from './routes/empleadosPropietario.js';
+import cuentasPorCobrarRoutes from './routes/cuentasPorCobrar.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -100,6 +101,7 @@ app.use('/api/geocercas', requiereAuth, geocercasRoutes);
 app.use('/api/gps', gpsRoutes);
 app.use('/api/rondas', requiereAuth, rondasRoutes);
 app.use('/api/facturas', requiereAuth, facturasRoutes);
+app.use('/api/cuentas-por-cobrar', requiereAuth, requiereRol('administracion'), cuentasPorCobrarRoutes);
 app.use('/api/gastos', requiereAuth, gastosRoutes);
 app.use('/api/reportes', requiereAuth, reportesRoutes);
 app.use('/api/notificaciones', requiereAuth, notificacionesRoutes);

@@ -16,6 +16,7 @@ import Geocercas from './pages/Geocercas.jsx';
 import MiCuenta from './pages/MiCuenta.jsx';
 import EmpleadosPropietario from './pages/EmpleadosPropietario.jsx';
 import Facturas from './pages/Facturas.jsx';
+import CuentasPorCobrar from './pages/CuentasPorCobrar.jsx';
 import Gastos from './pages/Gastos.jsx';
 import Reportes from './pages/Reportes.jsx';
 import Notificaciones from './pages/Notificaciones.jsx';
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/vehiculos" element={<Vehiculos />} />
         <Route path="/geocercas" element={<Geocercas />} />
         <Route path="/facturas" element={<Facturas />} />
+        <Route path="/cuentas-por-cobrar" element={<CuentasPorCobrar />} />
         <Route path="/gastos" element={<Gastos />} />
         <Route path="/reportes" element={<Reportes />} />
         <Route path="/notificaciones" element={<Notificaciones />} />
