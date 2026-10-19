@@ -17,6 +17,7 @@ export default function EmpleadosPropietario() {
       endpoint="/empleados-propietario"
       columnas={[
         { key: 'nombre', label: 'Nombre' },
+        { key: 'carnet', label: 'Carné' },
         { key: 'puesto', label: 'Puesto', render: (f) => etiquetaPuesto(f.puesto) },
         { key: 'propietario_nombre', label: 'Propietario' },
         { key: 'telefono', label: 'Teléfono' },
@@ -31,6 +32,7 @@ export default function EmpleadosPropietario() {
         { name: 'propietario_id', label: 'Propietario', type: 'select', fuente: '/propietarios', labelKey: 'nombre', requerido: true },
         { name: 'nombre', label: 'Nombre completo', requerido: true },
         { name: 'puesto', label: 'Puesto', type: 'select', opciones: PUESTOS },
+        { name: 'carnet', label: 'Número de carné' },
         { name: 'documento', label: 'Documento de identidad' },
         { name: 'telefono', label: 'Teléfono' },
       ]}

@@ -208,9 +208,9 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
 
         <div className="fila">
           <div className="campo">
-            <label>Tipo de propiedad</label>
-            <select value={datos.tipo_propiedad} onChange={(e) => set('tipo_propiedad', e.target.value)}>
-              <option value="">Sin especificar</option>
+            <label>Tipo de propiedad *</label>
+            <select value={datos.tipo_propiedad} required onChange={(e) => set('tipo_propiedad', e.target.value)}>
+              <option value="" disabled>Selecciona: solar o residencia</option>
               {TIPOS.map((t) => <option key={t.valor} value={t.valor}>{t.label}</option>)}
             </select>
           </div>

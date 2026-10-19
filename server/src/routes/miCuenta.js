@@ -16,7 +16,7 @@ router.get('/', requiereRol('propietario'), ah(async (req, res) => {
 
   const datos = await datosCuenta(propId);
   const empleados = await db.all(
-    'SELECT id, nombre, puesto, telefono, codigo, activo FROM empleados_propietario WHERE propietario_id = ? ORDER BY nombre',
+    'SELECT id, nombre, puesto, carnet, telefono, codigo, activo FROM empleados_propietario WHERE propietario_id = ? ORDER BY nombre',
     [propId]
   );
   res.json({ propietario, ...datos, empleados });

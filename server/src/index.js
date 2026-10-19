@@ -54,7 +54,7 @@ app.get('/credencial/:codigo', async (req, res) => {
          LEFT JOIN propietarios p ON p.id = e.propietario_id WHERE e.codigo = ?`,
         [req.params.codigo]
       );
-      if (e) v = { ...e, tipo: e.puesto || 'empleado' };
+      if (e) v = { ...e, tipo: e.puesto || 'empleado', carne: e.carnet };
     }
     if (!v) return res.status(404).send('<h1>Credencial no encontrada</h1>');
     const qr = await generarQrDataUrl(v.codigo);

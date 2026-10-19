@@ -52,6 +52,7 @@ export function paginaCredencialHTML(v, qrDataUrl) {
   <img class="qr" src="${qrDataUrl}" alt="Código QR" />
   <div class="nombre">${escape(v.nombre)}</div>
   <div class="dato" style="text-transform:capitalize">${escape(v.tipo || '')}${v.documento ? ' · ' + escape(v.documento) : ''}</div>
+  ${v.carne ? `<div class="dato">Carné: ${escape(v.carne)}</div>` : ''}
   ${v.propietario_nombre ? `<div class="dato">Autoriza: ${escape(v.propietario_nombre)}</div>` : ''}
   <div class="codigo">${escape(v.codigo || '')}</div>
   <p class="dato" style="margin-top:18px;font-size:12px">Presenta este código en la entrada del centro.</p>

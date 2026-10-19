@@ -76,12 +76,13 @@ export default function MiCuenta() {
                 <div className="tabla-wrap">
                   <table>
                     <thead>
-                      <tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Credencial</th></tr>
+                      <tr><th>Nombre</th><th>Carné</th><th>Puesto</th><th>Teléfono</th><th>Credencial</th></tr>
                     </thead>
                     <tbody>
                       {datos.empleados.map((e) => (
                         <tr key={e.id}>
                           <td>{e.nombre}</td>
+                          <td>{e.carnet || '—'}</td>
                           <td>{PUESTO[e.puesto] || e.puesto || '—'}</td>
                           <td>{e.telefono || '—'}</td>
                           <td>{e.codigo ? <a href={`/credencial/${e.codigo}`} target="_blank" rel="noreferrer">Ver credencial</a> : '—'}</td>

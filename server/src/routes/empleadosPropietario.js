@@ -6,7 +6,7 @@ const router = Router();
 
 crearCrud(router, {
   tabla: 'empleados_propietario',
-  campos: ['propietario_id', 'nombre', 'puesto', 'documento', 'telefono', 'activo'],
+  campos: ['propietario_id', 'nombre', 'puesto', 'carnet', 'documento', 'telefono', 'activo'],
   orden: 'nombre',
   // Al crear, genera el código de la credencial de acceso.
   alCrear: (datos) => { datos.codigo = generarCodigo(); },

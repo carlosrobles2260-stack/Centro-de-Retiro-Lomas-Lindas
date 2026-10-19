@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS empleados_propietario (
   propietario_id INTEGER NOT NULL REFERENCES propietarios(id) ON DELETE CASCADE,
   nombre         TEXT NOT NULL,
   puesto         TEXT,       -- empleada doméstica | jardinero | cuidador | motorista | otro
+  carnet         TEXT,       -- número de carné del empleado
   documento      TEXT,
   telefono       TEXT,
   codigo         TEXT,       -- código de la credencial de acceso
@@ -309,6 +310,10 @@ if (!(await tieneColumna('propietarios', 'token_cuenta'))) {
 // Enlace de un usuario con su propietario (acceso del propietario con contraseña).
 if (!(await tieneColumna('usuarios', 'propietario_id'))) {
   await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
+}
+// Carné del empleado del propietario.
+if (!(await tieneColumna('empleados_propietario', 'carnet'))) {
+  await db.exec('ALTER TABLE empleados_propietario ADD COLUMN carnet TEXT');
 }
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
