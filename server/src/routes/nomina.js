@@ -9,6 +9,16 @@ const AFP = 0.0287; // pensión
 const SFS = 0.0304; // salud
 // Proporción del salario mensual según la periodicidad del pago.
 const FACTOR = { mensual: 1, quincenal: 0.5, semanal: 12 / 52 };
+const PERIODOS_ANIO = { mensual: 12, quincenal: 24, semanal: 52 };
+
+// Impuesto sobre la Renta anual (escala DGII, República Dominicana).
+// La mayoría del personal queda exento (ingreso anual bajo el primer tramo).
+function isrAnual(rentaAnual) {
+  if (rentaAnual <= 416220) return 0;
+  if (rentaAnual <= 624329) return (rentaAnual - 416220) * 0.15;
+  if (rentaAnual <= 867123) return 31216 + (rentaAnual - 624329) * 0.20;
+  return 79776 + (rentaAnual - 867123) * 0.25;
+}
 
 const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
@@ -33,15 +43,20 @@ async function calcularNomina(periodicidad) {
     porEmpleado.set(pr.empleado_id, (porEmpleado.get(pr.empleado_id) || 0) + pr.cuotaAplicable);
   }
 
+  const periodosAnio = PERIODOS_ANIO[per];
   const filas = empleados.map((e) => {
-    const bruto = (Number(e.salario) || 0) * factor;
+    const salarioMensual = Number(e.salario) || 0;
+    const bruto = salarioMensual * factor;
     const afp = bruto * AFP;
     const sfs = bruto * SFS;
+    // ISR: se anualiza la renta neta de TSS, se aplica la escala y se prorratea al período.
+    const rentaAnual = salarioMensual * 12 * (1 - AFP - SFS);
+    const isr = isrAnual(rentaAnual) / periodosAnio;
     const prestamo = porEmpleado.get(e.id) || 0;
-    const deducciones = afp + sfs + prestamo;
+    const deducciones = afp + sfs + isr + prestamo;
     return {
       empleado_id: e.id, nombre: e.nombre, puesto: e.puesto, departamento: e.departamento,
-      salario_mensual: r2(e.salario), bruto: r2(bruto), afp: r2(afp), sfs: r2(sfs),
+      salario_mensual: r2(salarioMensual), bruto: r2(bruto), afp: r2(afp), sfs: r2(sfs), isr: r2(isr),
       prestamo: r2(prestamo), deducciones: r2(deducciones), neto: r2(bruto - deducciones),
     };
   });
@@ -50,7 +65,7 @@ async function calcularNomina(periodicidad) {
   return {
     periodicidad: per, tasas: { afp: AFP, sfs: SFS },
     empleados: filas,
-    totales: { bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), prestamo: sum('prestamo'), deducciones: sum('deducciones'), neto: sum('neto') },
+    totales: { bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), isr: sum('isr'), prestamo: sum('prestamo'), deducciones: sum('deducciones'), neto: sum('neto') },
   };
 }
 

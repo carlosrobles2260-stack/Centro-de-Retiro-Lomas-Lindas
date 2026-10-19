@@ -5,7 +5,7 @@ import { notificarPropietario } from '../notificaciones.js';
 
 const router = Router();
 
-const money = (n) => new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' }).format(Number(n) || 0);
+const money = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(Number(n) || 0);
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
 // Días de atraso de una fecha de vencimiento respecto a hoy (0 si no ha vencido).

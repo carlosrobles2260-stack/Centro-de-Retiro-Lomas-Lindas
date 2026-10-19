@@ -54,6 +54,7 @@ export default function Nomina() {
     linea('Salario bruto del período', fila.bruto, false);
     linea(`AFP (pensión ${(data.tasas.afp * 100).toFixed(2)}%)`, fila.afp, true);
     linea(`SFS (salud ${(data.tasas.sfs * 100).toFixed(2)}%)`, fila.sfs, true);
+    if (fila.isr > 0) linea('ISR (impuesto sobre la renta)', fila.isr, true);
     if (fila.prestamo > 0) linea('Descuento de préstamo', fila.prestamo, true);
     doc.setDrawColor(220); doc.line(L, y - 3, 192, y - 3); y += 2;
     doc.setTextColor(40); doc.setFontSize(10);
@@ -61,7 +62,7 @@ export default function Nomina() {
     doc.setFontSize(13); doc.setTextColor(47, 110, 79);
     doc.text('NETO A PAGAR', L, y); doc.text(dinero(fila.neto), 192, y, { align: 'right' }); y += 14;
     doc.setFontSize(8); doc.setTextColor(150);
-    doc.text('Documento informativo. Deducciones estimadas (TSS: AFP y SFS). El ISR no está incluido.', L, y);
+    doc.text('Documento informativo. Deducciones estimadas de ley (TSS: AFP y SFS; ISR según escala DGII).', L, y);
     doc.text(`Generado el ${new Date().toLocaleString('es-ES')}`, L, 285);
     doc.save(`volante-${fila.nombre.replace(/\s+/g, '-')}.pdf`);
   }
@@ -71,7 +72,7 @@ export default function Nomina() {
       <div className="barra">
         <div>
           <h2>Nómina por período</h2>
-          <p className="descripcion">Cálculo de nómina con deducciones de ley (AFP y SFS) y descuento de préstamos. Genera el volante de pago de cada empleado.</p>
+          <p className="descripcion">Cálculo de nómina con deducciones de ley (AFP, SFS e ISR) y descuento de préstamos. Genera el volante de pago de cada empleado.</p>
         </div>
       </div>
 
@@ -94,13 +95,13 @@ export default function Nomina() {
       {data && (
         <>
           <div className="barra">
-            <div className="descripcion">Deducciones de ley: AFP {(data.tasas.afp * 100).toFixed(2)}% · SFS {(data.tasas.sfs * 100).toFixed(2)}%.</div>
+            <div className="descripcion">Deducciones de ley: AFP {(data.tasas.afp * 100).toFixed(2)}% · SFS {(data.tasas.sfs * 100).toFixed(2)}% · ISR según escala DGII (exento hasta RD$416,220/año).</div>
             <button className="secundario" onClick={descontarPrestamos} disabled={data.totales.prestamo <= 0}>Descontar préstamos del período</button>
           </div>
           <div className="tabla-wrap">
             <table>
               <thead>
-                <tr><th>Empleado</th><th>Bruto</th><th>AFP</th><th>SFS</th><th>Préstamo</th><th>Deducciones</th><th>Neto</th><th></th></tr>
+                <tr><th>Empleado</th><th>Bruto</th><th>AFP</th><th>SFS</th><th>ISR</th><th>Préstamo</th><th>Deducciones</th><th>Neto</th><th></th></tr>
               </thead>
               <tbody>
                 {data.empleados.map((f) => (
@@ -109,6 +110,7 @@ export default function Nomina() {
                     <td>{dinero(f.bruto)}</td>
                     <td>{dinero(f.afp)}</td>
                     <td>{dinero(f.sfs)}</td>
+                    <td>{f.isr > 0 ? dinero(f.isr) : '—'}</td>
                     <td>{f.prestamo > 0 ? dinero(f.prestamo) : '—'}</td>
                     <td>{dinero(f.deducciones)}</td>
                     <td style={{ fontWeight: 700 }}>{dinero(f.neto)}</td>
@@ -120,6 +122,7 @@ export default function Nomina() {
                   <td>{dinero(data.totales.bruto)}</td>
                   <td>{dinero(data.totales.afp)}</td>
                   <td>{dinero(data.totales.sfs)}</td>
+                  <td>{dinero(data.totales.isr)}</td>
                   <td>{dinero(data.totales.prestamo)}</td>
                   <td>{dinero(data.totales.deducciones)}</td>
                   <td>{dinero(data.totales.neto)}</td>

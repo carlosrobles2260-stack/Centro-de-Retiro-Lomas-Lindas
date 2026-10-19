@@ -3,7 +3,7 @@
 import db from './db.js';
 import { logoBuffer } from './credencial.js';
 
-const money = (n) => new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' }).format(Number(n) || 0);
+const money = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(Number(n) || 0);
 
 // Monto adeudado tras el descuento autorizado (máx. 20%).
 const efectivo = (f) => Number(f.monto) * (1 - (Number(f.descuento_pct) || 0) / 100);

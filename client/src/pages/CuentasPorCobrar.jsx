@@ -29,6 +29,7 @@ export default function CuentasPorCobrar() {
   const [mensaje, setMensaje] = useState(null);
   const [ocupado, setOcupado] = useState(false);
   const [emitir, setEmitir] = useState(false);
+  const [montos, setMontos] = useState(false); // editor de montos de cuota
   const [pago, setPago] = useState(null); // propietario para registrar pago
 
   const cargar = useCallback(async () => {
@@ -83,6 +84,7 @@ export default function CuentasPorCobrar() {
         </div>
         <div className="filtros">
           <button onClick={() => setEmitir(true)}>Emitir cuotas del mes</button>
+          <button className="secundario" onClick={() => setMontos(true)}>Montos de cuota</button>
           <button className="secundario" onClick={marcarVencidas} disabled={ocupado}>{ocupado ? 'Actualizando...' : 'Marcar vencidas'}</button>
           <button className="secundario" onClick={() => exportar('excel')} disabled={!propietarios.length}>Excel</button>
           <button className="secundario" onClick={() => exportar('pdf')} disabled={!propietarios.length}>PDF</button>
@@ -153,6 +155,7 @@ export default function CuentasPorCobrar() {
       </div>
 
       {emitir && <ModalEmitir onCerrar={() => setEmitir(false)} onHecho={(msg) => { setEmitir(false); setMensaje(msg); cargar(); }} />}
+      {montos && <ModalMontos onCerrar={() => setMontos(false)} onGuardado={(msg) => { setMontos(false); setMensaje(msg); }} />}
       {pago && <ModalPago propietario={pago} onCerrar={() => setPago(null)} onPagado={() => { cargar(); }} />}
     </div>
   );
@@ -167,20 +170,24 @@ function Stat({ etiqueta, valor, clase }) {
   );
 }
 
-// Emisión masiva de la cuota del mes a todos los propietarios activos.
+// Emisión masiva de la cuota del mes. El monto se toma según el tipo de
+// propiedad de cada propietario (solar o edificado), definido en «Montos de cuota».
 function ModalEmitir({ onCerrar, onHecho }) {
   const mes = new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-  const [datos, setDatos] = useState({ concepto: `Cuota de mantenimiento ${mes}`, monto: '', fecha_vencimiento: '' });
+  const [datos, setDatos] = useState({ concepto: `Cuota de mantenimiento ${mes}`, fecha_vencimiento: '' });
+  const [cfg, setCfg] = useState(null);
   const [error, setError] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const set = (k, v) => setDatos((d) => ({ ...d, [k]: v }));
+
+  useEffect(() => { api.get('/configuracion').then(setCfg).catch(() => setCfg({})); }, []);
 
   async function enviar(e) {
     e.preventDefault();
     setGuardando(true); setError(null);
     try {
       const r = await api.post('/facturas/generar-mensuales', {
-        concepto: datos.concepto, monto: Number(datos.monto) || 0, fecha_vencimiento: datos.fecha_vencimiento || null,
+        concepto: datos.concepto, fecha_vencimiento: datos.fecha_vencimiento || null,
       });
       onHecho(`Se generaron ${r.creadas} cuota(s)${r.omitidas ? `; ${r.omitidas} ya existían este mes` : ''}.`);
     } catch (err) { setError(err.message); setGuardando(false); }
@@ -190,16 +197,56 @@ function ModalEmitir({ onCerrar, onHecho }) {
     <div className="modal-fondo" onClick={onCerrar}>
       <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={enviar}>
         <h3>Emitir cuotas del mes</h3>
-        <p className="descripcion">Se crea una cuota para cada propietario activo. No se duplica si ya existe una con el mismo concepto este mes.</p>
+        <p className="descripcion">Se crea una cuota para cada propietario activo, con el monto según su tipo de propiedad. No se duplica si ya existe una con el mismo concepto este mes.</p>
+        {cfg && (
+          <div className="card" style={{ background: 'var(--verde-muy-claro)', borderColor: 'var(--verde-claro)', padding: 12, marginBottom: 12 }}>
+            Solar: <strong>{dinero(cfg.cuota_solar)}</strong> · Edificado: <strong>{dinero(cfg.cuota_edificado)}</strong>
+            <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>Se puede cambiar en «Montos de cuota».</div>
+          </div>
+        )}
         <div className="campo"><label>Concepto *</label><input value={datos.concepto} required onChange={(e) => set('concepto', e.target.value)} /></div>
-        <div className="fila">
-          <div className="campo"><label>Monto por propietario *</label><input type="number" step="any" min="0" value={datos.monto} required onChange={(e) => set('monto', e.target.value)} /></div>
-          <div className="campo"><label>Fecha de vencimiento</label><input type="date" value={datos.fecha_vencimiento} onChange={(e) => set('fecha_vencimiento', e.target.value)} /></div>
-        </div>
+        <div className="campo"><label>Fecha de vencimiento</label><input type="date" value={datos.fecha_vencimiento} onChange={(e) => set('fecha_vencimiento', e.target.value)} /></div>
         {error && <p className="error">{error}</p>}
         <div className="pie-modal">
           <button type="button" className="secundario" onClick={onCerrar}>Cancelar</button>
           <button type="submit" disabled={guardando}>{guardando ? 'Generando...' : 'Emitir cuotas'}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// Editor de los montos de cuota por tipo de propiedad (se actualizan con la inflación/costos).
+function ModalMontos({ onCerrar, onGuardado }) {
+  const [cfg, setCfg] = useState(null);
+  const [error, setError] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => { api.get('/configuracion').then((c) => setCfg({ cuota_solar: c.cuota_solar || '0', cuota_edificado: c.cuota_edificado || '0' })).catch(() => setCfg({ cuota_solar: '0', cuota_edificado: '0' })); }, []);
+
+  async function guardar(e) {
+    e.preventDefault();
+    setGuardando(true); setError(null);
+    try {
+      await api.put('/configuracion', { cuota_solar: String(cfg.cuota_solar), cuota_edificado: String(cfg.cuota_edificado) });
+      onGuardado('Montos de cuota actualizados.');
+    } catch (err) { setError(err.message); setGuardando(false); }
+  }
+
+  if (!cfg) return null;
+  return (
+    <div className="modal-fondo" onClick={onCerrar}>
+      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={guardar}>
+        <h3>Montos de cuota de mantenimiento</h3>
+        <p className="descripcion">Define cuánto paga cada propietario según su tipo de propiedad. Actualízalo cuando cambien la inflación o los costos de la asociación.</p>
+        <div className="fila">
+          <div className="campo"><label>Cuota para SOLAR</label><input type="number" step="any" min="0" value={cfg.cuota_solar} onChange={(e) => setCfg((c) => ({ ...c, cuota_solar: e.target.value }))} /></div>
+          <div className="campo"><label>Cuota para EDIFICADO</label><input type="number" step="any" min="0" value={cfg.cuota_edificado} onChange={(e) => setCfg((c) => ({ ...c, cuota_edificado: e.target.value }))} /></div>
+        </div>
+        {error && <p className="error">{error}</p>}
+        <div className="pie-modal">
+          <button type="button" className="secundario" onClick={onCerrar}>Cancelar</button>
+          <button type="submit" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar montos'}</button>
         </div>
       </form>
     </div>

@@ -453,6 +453,9 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
 // - gps_token: clave que el proveedor de GPS usa para enviarnos las posiciones.
 const CONFIG_DEFECTO = {
   meta_rondas_turno: '6',
+  // Montos de la cuota de mantenimiento según el tipo de propiedad (editables).
+  cuota_solar: '500',
+  cuota_edificado: '1000',
   gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
   // Sincronización por consulta (pull) con la plataforma del proveedor (p. ej. Systrack+).
   gps_sync_activo: '0',

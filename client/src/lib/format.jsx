@@ -1,5 +1,5 @@
 export function dinero(n) {
-  return new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' }).format(Number(n) || 0);
+  return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(Number(n) || 0);
 }
 
 export function fecha(iso) {

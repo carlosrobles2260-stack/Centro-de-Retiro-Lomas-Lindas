@@ -71,12 +71,17 @@ router.post('/', ah(async (req, res) => {
 // POST /api/facturas/generar-mensuales  -> emite una cuota a cada propietario activo
 // Body: { concepto, monto, fecha_vencimiento? }. Evita duplicar la misma cuota en el mes.
 router.post('/generar-mensuales', ah(async (req, res) => {
-  const { concepto, monto, fecha_vencimiento } = req.body || {};
+  const { concepto, fecha_vencimiento } = req.body || {};
   if (!concepto) return res.status(400).json({ error: 'El concepto es obligatorio' });
-  const m = Number(monto) || 0;
   const mesActual = new Date().toISOString().slice(0, 7);
 
-  const props = await db.all('SELECT id FROM propietarios WHERE activo = 1');
+  // El monto de la cuota depende del tipo de propiedad (solar vs edificado).
+  const cfg = {};
+  for (const f of await db.all("SELECT clave, valor FROM configuracion WHERE clave IN ('cuota_solar','cuota_edificado')")) cfg[f.clave] = f.valor;
+  const montoSolar = Number(cfg.cuota_solar) || 0;
+  const montoEdificado = Number(cfg.cuota_edificado) || 0;
+
+  const props = await db.all('SELECT id, tipo_propiedad FROM propietarios WHERE activo = 1');
   let creadas = 0, omitidas = 0;
   for (const p of props) {
     const existe = await db.get(
@@ -84,10 +89,11 @@ router.post('/generar-mensuales', ah(async (req, res) => {
       [p.id, concepto, mesActual]
     );
     if (existe) { omitidas += 1; continue; }
+    const monto = p.tipo_propiedad === 'solar' ? montoSolar : montoEdificado;
     await db.run(
       `INSERT INTO facturas (propietario_id, concepto, monto, fecha_emision, fecha_vencimiento)
        VALUES (?, ?, ?, ${SQL.HOY}, ?)`,
-      [p.id, concepto, m, fecha_vencimiento || null]
+      [p.id, concepto, monto, fecha_vencimiento || null]
     );
     creadas += 1;
   }
