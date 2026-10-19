@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
-import { dinero, fecha } from '../lib/format.jsx';
+import { dinero } from '../lib/format.jsx';
 import CrudModule from '../components/CrudModule.jsx';
 
 const CATEGORIAS = [
@@ -9,7 +9,7 @@ const CATEGORIAS = [
   { valor: 'vehiculo', label: 'Vehículo' },
   { valor: 'herramienta', label: 'Herramienta' },
   { valor: 'tecnologia', label: 'Tecnología' },
-  { valor: 'inmueble', label: 'Inmueble' },
+  { valor: 'inmueble', label: 'Inmueble / terreno' },
   { valor: 'otro', label: 'Otro' },
 ];
 const ESTADOS = [
@@ -17,7 +17,11 @@ const ESTADOS = [
   { valor: 'mantenimiento', label: 'En mantenimiento' },
   { valor: 'baja', label: 'Dado de baja' },
 ];
-const etq = (lista, v) => lista.find((x) => x.valor === v)?.label || v || '—';
+const DEPRECIA = [
+  { valor: 0, label: 'Activo fijo (no se deprecia)' },
+  { valor: 1, label: 'Se deprecia' },
+];
+const etq = (lista, v) => lista.find((x) => String(x.valor) === String(v))?.label || v || '—';
 
 export default function Activos() {
   const [resumen, setResumen] = useState(null);
@@ -29,23 +33,24 @@ export default function Activos() {
   return (
     <div>
       <div className="grid grid-4" style={{ marginBottom: 18 }}>
-        <Stat etiqueta="Activos registrados" valor={resumen?.total ?? '…'} />
-        <Stat etiqueta="En inventario" valor={resumen?.activos ?? '…'} />
+        <Stat etiqueta="Activos en inventario" valor={resumen?.activos ?? '…'} />
+        <Stat etiqueta="Depreciables" valor={resumen?.depreciables ?? '…'} />
         <Stat etiqueta="Valor de adquisición" valor={dinero(resumen?.valor_adquisicion)} />
-        <Stat etiqueta="Valoración actual" valor={dinero(resumen?.valor_actual)} clase="verde" />
+        <Stat etiqueta="Valor en libros" valor={dinero(resumen?.valor_libros)} clase="verde" />
       </div>
 
       <CrudModule
         titulo="Activos de la asociación"
-        descripcion="Inventario y valoración de los bienes de la asociación, con el responsable asignado a cada uno."
+        descripcion="Inventario y valoración de los bienes de la asociación. Los activos fijos (p. ej. terrenos) conservan su valor; los depreciables bajan su valor en libros con el tiempo (depreciación lineal)."
         endpoint="/activos"
         onCambio={cargarResumen}
         columnas={[
           { key: 'nombre', label: 'Activo', render: (f) => <><strong>{f.nombre}</strong>{f.codigo && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.codigo}</div>}</> },
           { key: 'categoria', label: 'Categoría', render: (f) => etq(CATEGORIAS, f.categoria) },
-          { key: 'valor_actual', label: 'Valor actual', render: (f) => dinero(f.valor_actual) },
+          { key: 'depreciable', label: 'Tipo', render: (f) => Number(f.depreciable) ? <span className="badge amarillo">Depreciable</span> : <span className="badge gris">Fijo</span> },
+          { key: 'valor_adquisicion', label: 'Adquisición', render: (f) => dinero(f.valor_adquisicion) },
+          { key: 'valor_libros', label: 'Valor en libros', render: (f) => <><strong>{dinero(f.valor_libros)}</strong>{Number(f.depreciable) && f.depreciacion_anual ? <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>−{dinero(f.depreciacion_anual)}/año</div> : null}</> },
           { key: 'estado', label: 'Estado', render: (f) => etq(ESTADOS, f.estado) },
-          { key: 'ubicacion', label: 'Ubicación' },
           { key: 'responsable_nombre', label: 'Responsable' },
         ]}
         campos={[
@@ -54,7 +59,10 @@ export default function Activos() {
           { name: 'categoria', label: 'Categoría', type: 'select', defecto: 'equipo', opciones: CATEGORIAS },
           { name: 'fecha_adquisicion', label: 'Fecha de adquisición', type: 'date' },
           { name: 'valor_adquisicion', label: 'Valor de adquisición', type: 'number' },
-          { name: 'valor_actual', label: 'Valoración actual', type: 'number' },
+          { name: 'depreciable', label: '¿Se deprecia?', type: 'select', defecto: 0, opciones: DEPRECIA },
+          { name: 'vida_util_anios', label: 'Vida útil (años) — si se deprecia', type: 'number' },
+          { name: 'valor_residual', label: 'Valor residual — si se deprecia', type: 'number' },
+          { name: 'valor_actual', label: 'Valoración actual — si NO se deprecia', type: 'number' },
           { name: 'estado', label: 'Estado', type: 'select', defecto: 'activo', opciones: ESTADOS },
           { name: 'ubicacion', label: 'Ubicación' },
           { name: 'responsable_id', label: 'Responsable (empleado)', type: 'select', fuente: '/empleados', labelKey: 'nombre' },

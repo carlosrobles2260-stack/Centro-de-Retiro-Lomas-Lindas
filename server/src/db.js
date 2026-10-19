@@ -409,6 +409,17 @@ for (const [col, tipo] of COLUMNAS_RH) {
 }
 // El tipo de propiedad 'residencia' pasa a llamarse 'edificado'.
 await db.run("UPDATE propietarios SET tipo_propiedad = 'edificado' WHERE tipo_propiedad = 'residencia'");
+
+// Depreciación de activos: distingue activos fijos de los que se deprecian.
+if (!(await tieneColumna('activos', 'depreciable'))) {
+  await db.exec('ALTER TABLE activos ADD COLUMN depreciable INTEGER DEFAULT 0');
+}
+if (!(await tieneColumna('activos', 'vida_util_anios'))) {
+  await db.exec(`ALTER TABLE activos ADD COLUMN vida_util_anios ${client === 'postgres' ? 'NUMERIC' : 'REAL'}`);
+}
+if (!(await tieneColumna('activos', 'valor_residual'))) {
+  await db.exec(`ALTER TABLE activos ADD COLUMN valor_residual ${client === 'postgres' ? 'NUMERIC' : 'REAL'} DEFAULT 0`);
+}
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
 for (const p of sinToken) {

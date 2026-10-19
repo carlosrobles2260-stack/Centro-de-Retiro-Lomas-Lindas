@@ -24,6 +24,7 @@ import Empleados from './pages/Empleados.jsx';
 import Prestamos from './pages/Prestamos.jsx';
 import Activos from './pages/Activos.jsx';
 import AccionesPersonal from './pages/AccionesPersonal.jsx';
+import Nomina from './pages/Nomina.jsx';
 import Turnos from './pages/Turnos.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/prestamos" element={<Prestamos />} />
         <Route path="/activos" element={<Activos />} />
         <Route path="/acciones-personal" element={<AccionesPersonal />} />
+        <Route path="/nomina" element={<Nomina />} />
         <Route path="/turnos" element={<Turnos />} />
         {usuario.rol === 'admin' && <Route path="/usuarios" element={<Usuarios />} />}
         <Route path="*" element={<Navigate to="/" replace />} />

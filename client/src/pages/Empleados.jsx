@@ -139,7 +139,7 @@ function FichaEmpleado({ empleado: e, onCerrar }) {
         ) : (
           <ul className="ficha-lista">
             {activos.map((a) => (
-              <li key={a.id}><strong>{a.nombre}</strong>{a.codigo ? ` (${a.codigo})` : ''}{a.ubicacion ? ` · ${a.ubicacion}` : ''} — {dinero(a.valor_actual)}</li>
+              <li key={a.id}><strong>{a.nombre}</strong>{a.codigo ? ` (${a.codigo})` : ''}{a.ubicacion ? ` · ${a.ubicacion}` : ''} — {dinero(a.valor_libros)}</li>
             ))}
           </ul>
         )}
