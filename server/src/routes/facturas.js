@@ -49,6 +49,32 @@ router.post('/', ah(async (req, res) => {
   res.status(201).json(await db.get(SELECT_FACTURA + ' WHERE f.id = ?', [info.lastID]));
 }));
 
+// POST /api/facturas/generar-mensuales  -> emite una cuota a cada propietario activo
+// Body: { concepto, monto, fecha_vencimiento? }. Evita duplicar la misma cuota en el mes.
+router.post('/generar-mensuales', ah(async (req, res) => {
+  const { concepto, monto, fecha_vencimiento } = req.body || {};
+  if (!concepto) return res.status(400).json({ error: 'El concepto es obligatorio' });
+  const m = Number(monto) || 0;
+  const mesActual = new Date().toISOString().slice(0, 7);
+
+  const props = await db.all('SELECT id FROM propietarios WHERE activo = 1');
+  let creadas = 0, omitidas = 0;
+  for (const p of props) {
+    const existe = await db.get(
+      `SELECT id FROM facturas WHERE propietario_id = ? AND concepto = ? AND ${SQL.anioMes('fecha_emision')} = ?`,
+      [p.id, concepto, mesActual]
+    );
+    if (existe) { omitidas += 1; continue; }
+    await db.run(
+      `INSERT INTO facturas (propietario_id, concepto, monto, fecha_emision, fecha_vencimiento)
+       VALUES (?, ?, ?, ${SQL.HOY}, ?)`,
+      [p.id, concepto, m, fecha_vencimiento || null]
+    );
+    creadas += 1;
+  }
+  res.status(201).json({ creadas, omitidas, total: props.length });
+}));
+
 // PUT /api/facturas/:id
 router.put('/:id', ah(async (req, res) => {
   const factura = await db.get('SELECT * FROM facturas WHERE id = ?', [req.params.id]);
