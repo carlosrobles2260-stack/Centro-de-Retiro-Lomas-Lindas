@@ -28,9 +28,15 @@ function agruparDocumentos(docs) {
   return [...mapa.entries()].sort((a, b) => pos(a[0]) - pos(b[0]));
 }
 
+// Enlace al documento de Estatutos publicado (archivo o enlace), si existe.
+function estatutoHref(docs) {
+  const d = docs.find((x) => x.categoria === 'estatutos' && (x.archivo || x.enlace));
+  return d ? (d.archivo || d.enlace) : null;
+}
+
 // Una categoría plegable: al presionar lista sus documentos, con filtro por
 // año e indexados por la fecha del acta (más reciente primero).
-function GrupoCategoria({ categoria, docs }) {
+function GrupoCategoria({ categoria, docs, fundamento, estatutoHref }) {
   const [abierto, setAbierto] = useState(false);
   const [anio, setAnio] = useState('');
   const anios = [...new Set(docs.map((d) => (d.fecha || '').slice(0, 4)).filter(Boolean))].sort().reverse();
@@ -46,6 +52,12 @@ function GrupoCategoria({ categoria, docs }) {
       </button>
       {abierto && (
         <div className="mc-cat-cuerpo">
+          {categoria !== 'estatutos' && fundamento && (
+            <div className="mc-fundamento">
+              <strong>Fundamento:</strong> {fundamento}
+              {estatutoHref && <> · <a href={estatutoHref} target="_blank" rel="noreferrer">Ver estatutos</a></>}
+            </div>
+          )}
           {anios.length > 1 && (
             <div className="mc-cat-filtro">
               <label>Año:</label>
@@ -175,7 +187,13 @@ export default function MiCuenta() {
                 <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto. Presiona una categoría para ver sus documentos.</p>
                 <div className="mc-cats">
                   {agruparDocumentos(datos.documentos).map(([cat, docs]) => (
-                    <GrupoCategoria key={cat} categoria={cat} docs={docs} />
+                    <GrupoCategoria
+                      key={cat}
+                      categoria={cat}
+                      docs={docs}
+                      fundamento={datos.fundamentos?.[cat]}
+                      estatutoHref={estatutoHref(datos.documentos)}
+                    />
                   ))}
                 </div>
               </>

@@ -24,7 +24,11 @@ export async function datosCuenta(propietarioId) {
     `SELECT id, titulo, categoria, descripcion, contenido, archivo, enlace, fecha
      FROM documentos WHERE publicado = 1 ORDER BY orden ASC, fecha DESC, titulo ASC`
   );
-  return { facturas, saldo, pagado, pendientes: abiertas.length, documentos };
+  // Fundamento estatutario de cada categoría (artículo de los Estatutos).
+  const filasFund = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'fundamento_%'");
+  const fundamentos = {};
+  for (const f of filasFund) fundamentos[f.clave.replace('fundamento_', '')] = f.valor;
+  return { facturas, saldo, pagado, pendientes: abiertas.length, documentos, fundamentos };
 }
 
 function logoDataUrl() {
@@ -48,7 +52,9 @@ const ETIQUETA_CATEGORIA = {
 // Página web pública del estado de cuenta (enlace privado por propietario).
 export function paginaCuentaHTML(propietario, datos) {
   const logo = logoDataUrl();
-  const { facturas, saldo, pagado, documentos = [] } = datos;
+  const { facturas, saldo, pagado, documentos = [], fundamentos = {} } = datos;
+  const estatutoDoc = documentos.find((d) => d.categoria === 'estatutos' && (d.archivo || d.enlace));
+  const estatutoHref = estatutoDoc ? (estatutoDoc.archivo || estatutoDoc.enlace) : null;
   const filas = facturas.map((f) => `
       <tr>
         <td>${escape(f.concepto)}<div class="sub">${f.fecha_emision || ''}${f.fecha_vencimiento ? ' · vence ' + f.fecha_vencimiento : ''}</div></td>
@@ -80,10 +86,13 @@ export function paginaCuentaHTML(propietario, datos) {
           <div class="doc-acc">${enlace}${texto}</div>
         </div>`;
     }).join('');
+    const fund = cat !== 'estatutos' && fundamentos[cat]
+      ? `<div class="doc-fund">Fundamento: ${escape(fundamentos[cat])}${estatutoHref ? ` · <a href="${escape(estatutoHref)}" target="_blank" rel="noreferrer">Ver estatutos</a>` : ''}</div>`
+      : '';
     return `
       <details class="doc-cat">
         <summary><span>${ETIQUETA_CATEGORIA[cat] || 'Normas'}</span><span class="doc-cat-n">${docs.length} doc.</span></summary>
-        <div class="doc-cat-cuerpo">${items}</div>
+        <div class="doc-cat-cuerpo">${fund}${items}</div>
       </details>`;
   }).join('');
 
@@ -118,6 +127,8 @@ export function paginaCuentaHTML(propietario, datos) {
   .doc-cat[open] > summary { border-bottom: 1px solid #eef1ee; }
   .doc-cat-n { color: #5d6b63; font-size: 12px; font-weight: 500; }
   .doc-cat-cuerpo { padding: 2px 14px; }
+  .doc-fund { background: #f2f6f2; border-left: 3px solid #2f6e4f; color: #3a4a42; font-size: 12px; padding: 7px 10px; border-radius: 6px; margin: 8px 0; }
+  .doc-fund a { color: #2f6e4f; font-weight: 600; text-decoration: none; }
   .doc-item { border-bottom: 1px solid #eef1ee; padding: 12px 0; }
   .doc-item:last-child { border-bottom: none; }
   .doc-tit { font-weight: 600; font-size: 14px; }

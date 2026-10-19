@@ -242,6 +242,8 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .mc-cat-meta { color: var(--texto-suave); font-size: 13px; white-space: nowrap; }
 .mc-cat-flecha { margin-left: 6px; font-size: 11px; }
 .mc-cat-cuerpo { padding: 4px 16px 14px; border-top: 1px solid var(--borde, #e4e8e3); }
+.mc-fundamento { background: #f2f6f2; border-left: 3px solid var(--verde); border-radius: 6px; padding: 8px 10px; margin: 10px 0; font-size: 13px; color: #3a4a42; }
+.mc-fundamento a { color: var(--verde); font-weight: 600; text-decoration: none; }
 .mc-cat-filtro { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 13px; color: var(--texto-suave); }
 .mc-cat-filtro select { padding: 4px 8px; }
 .mc-doc-item { padding: 10px 0; border-bottom: 1px solid var(--arena); }

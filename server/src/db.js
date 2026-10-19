@@ -508,6 +508,14 @@ const CONFIG_DEFECTO = {
   isr_tramo3: '867123',
   isr_tasa3: '20',
   isr_tasa4: '25',
+  // Fundamento estatutario de cada categoría de normas (editable): el artículo
+  // de los Estatutos que sustenta la categoría. Ajustar a los estatutos reales.
+  fundamento_reglamento_interno: 'Arts. 2, 4 y 7 de los Estatutos',
+  fundamento_convivencia: 'Art. 2 de los Estatutos (convivencia)',
+  fundamento_medio_ambiente: 'Art. 2 de los Estatutos (áreas comunes y entorno)',
+  fundamento_resoluciones: 'Art. 7 de los Estatutos (facultades de la Directiva)',
+  fundamento_resoluciones_asamblea_ordinaria: 'Arts. 6 y 8 de los Estatutos (asamblea ordinaria)',
+  fundamento_resoluciones_asamblea_extraordinaria: 'Arts. 6 y 8 de los Estatutos (asamblea extraordinaria)',
   gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
   // Sincronización por consulta (pull) con la plataforma del proveedor (p. ej. Systrack+).
   gps_sync_activo: '0',
