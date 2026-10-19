@@ -45,6 +45,7 @@ const MENU = [
     grupo: 'Personal',
     items: [
       { a: '/empleados', texto: 'Empleados', roles: ['administracion'] },
+      { a: '/prestamos', texto: 'Préstamos a empleados', roles: ['administracion'] },
       { a: '/turnos', texto: 'Turnos', roles: ['seguridad', 'administracion'] },
     ],
   },

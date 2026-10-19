@@ -211,6 +211,33 @@ CREATE TABLE IF NOT EXISTS accesos_empleado (
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+-- ===== Préstamos a empleados (con descuento por nómina) =====
+CREATE TABLE IF NOT EXISTS prestamos_empleado (
+  id             ${T.id},
+  empleado_id    INTEGER NOT NULL REFERENCES empleados(id) ON DELETE CASCADE,
+  monto          ${T.num} NOT NULL DEFAULT 0,   -- monto total del préstamo
+  cuota          ${T.num} NOT NULL DEFAULT 0,   -- monto a descontar por período
+  periodicidad   TEXT NOT NULL DEFAULT 'quincenal', -- semanal | quincenal | mensual
+  fecha          ${T.date} NOT NULL DEFAULT ${T.hoy},
+  motivo         TEXT,
+  estado         TEXT NOT NULL DEFAULT 'activo', -- activo | pagado | cancelado
+  registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- Descuentos de nómina aplicados a un préstamo.
+CREATE TABLE IF NOT EXISTS descuentos_nomina (
+  id             ${T.id},
+  prestamo_id    INTEGER NOT NULL REFERENCES prestamos_empleado(id) ON DELETE CASCADE,
+  empleado_id    INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
+  monto          ${T.num} NOT NULL DEFAULT 0,
+  fecha          ${T.date} NOT NULL DEFAULT ${T.hoy},
+  periodo        TEXT,   -- etiqueta del período de nómina (ej. "Octubre 2a quincena")
+  nota           TEXT,
+  registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
 -- ===== Vehículos de la asociación (con dispositivo GPS) =====
 CREATE TABLE IF NOT EXISTS vehiculos (
   id             ${T.id},
@@ -337,6 +364,18 @@ if (!(await tieneColumna('facturas', 'descuento_por'))) {
 }
 if (!(await tieneColumna('facturas', 'descuento_en'))) {
   await db.exec(`ALTER TABLE facturas ADD COLUMN descuento_en ${client === 'postgres' ? 'TIMESTAMPTZ' : 'TEXT'}`);
+}
+// Datos adicionales de la ficha del empleado (recursos humanos).
+const COLUMNAS_RH = [
+  ['fecha_nacimiento', 'TEXT'], ['nacionalidad', 'TEXT'], ['estado_civil', 'TEXT'],
+  ['genero', 'TEXT'], ['direccion', 'TEXT'], ['tipo_contrato', 'TEXT'],
+  ['nss', 'TEXT'], ['contacto_emergencia', 'TEXT'], ['telefono_emergencia', 'TEXT'],
+  ['banco', 'TEXT'], ['cuenta_banco', 'TEXT'], ['notas', 'TEXT'],
+];
+for (const [col, tipo] of COLUMNAS_RH) {
+  if (!(await tieneColumna('empleados', col))) {
+    await db.exec(`ALTER TABLE empleados ADD COLUMN ${col} ${tipo}`);
+  }
 }
 // Genera el token de cuenta para los propietarios que aún no lo tienen.
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');

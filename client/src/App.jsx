@@ -21,6 +21,7 @@ import Gastos from './pages/Gastos.jsx';
 import Reportes from './pages/Reportes.jsx';
 import Notificaciones from './pages/Notificaciones.jsx';
 import Empleados from './pages/Empleados.jsx';
+import Prestamos from './pages/Prestamos.jsx';
 import Turnos from './pages/Turnos.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/reportes" element={<Reportes />} />
         <Route path="/notificaciones" element={<Notificaciones />} />
         <Route path="/empleados" element={<Empleados />} />
+        <Route path="/prestamos" element={<Prestamos />} />
         <Route path="/turnos" element={<Turnos />} />
         {usuario.rol === 'admin' && <Route path="/usuarios" element={<Usuarios />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
