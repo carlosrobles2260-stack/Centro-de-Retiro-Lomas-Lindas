@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
-import { dinero } from '../lib/format.jsx';
+import { dinero, fecha } from '../lib/format.jsx';
+import { exportarExcel, exportarPDF } from '../lib/exportar.js';
 import CrudModule from '../components/CrudModule.jsx';
 
 const CATEGORIAS = [
@@ -23,12 +24,33 @@ const DEPRECIA = [
 ];
 const etq = (lista, v) => lista.find((x) => String(x.valor) === String(v))?.label || v || '—';
 
+const COLUMNAS_DEP = [
+  { key: 'nombre', label: 'Activo', ancho: 26 },
+  { key: 'codigo', label: 'Código', ancho: 14 },
+  { key: 'categoria', label: 'Categoría', fmt: (v) => etq(CATEGORIAS, v) },
+  { key: 'depreciable', label: 'Tipo', fmt: (v) => (Number(v) ? 'Depreciable' : 'Fijo') },
+  { key: 'fecha_adquisicion', label: 'Adquisición', fmt: (v) => (v ? fecha(v) : '') },
+  { key: 'valor_adquisicion', label: 'Valor adq. (RD$)', fmt: (v) => Number(v) || 0 },
+  { key: 'depreciacion_anual', label: 'Deprec. anual (RD$)', fmt: (v) => Number(v) || 0 },
+  { key: 'depreciacion_acumulada', label: 'Deprec. acum. (RD$)', fmt: (v) => Number(v) || 0 },
+  { key: 'valor_libros', label: 'Valor en libros (RD$)', fmt: (v) => Number(v) || 0 },
+];
+
 export default function Activos() {
   const [resumen, setResumen] = useState(null);
+  const [filas, setFilas] = useState([]);
   const cargarResumen = useCallback(async () => {
     setResumen(await api.get('/activos/resumen').catch(() => null));
   }, []);
   useEffect(() => { cargarResumen(); }, [cargarResumen]);
+
+  function exportar(tipo) {
+    const datos = [...filas];
+    const t = (k) => datos.reduce((a, f) => a + (Number(f[k]) || 0), 0);
+    datos.push({ nombre: 'TOTALES', valor_adquisicion: t('valor_adquisicion'), depreciacion_anual: t('depreciacion_anual'), depreciacion_acumulada: t('depreciacion_acumulada'), valor_libros: t('valor_libros') });
+    if (tipo === 'excel') exportarExcel({ nombre: 'reporte-depreciacion-activos', hoja: 'Depreciación', columnas: COLUMNAS_DEP, filas: datos });
+    else exportarPDF({ titulo: 'Reporte de depreciación de activos', subtitulo: `Valor en libros total: ${dinero(resumen?.valor_libros)} · ${new Date().toLocaleDateString('es-DO')}`, nombre: 'reporte-depreciacion-activos', columnas: COLUMNAS_DEP, filas: datos });
+  }
 
   return (
     <div>
@@ -39,11 +61,19 @@ export default function Activos() {
         <Stat etiqueta="Valor en libros" valor={dinero(resumen?.valor_libros)} clase="verde" />
       </div>
 
+      <div className="barra">
+        <div className="descripcion">Reporte de depreciación: exporta el detalle por activo con su valor en libros.</div>
+        <div className="filtros">
+          <button className="secundario" onClick={() => exportar('excel')} disabled={!filas.length}>Excel</button>
+          <button className="secundario" onClick={() => exportar('pdf')} disabled={!filas.length}>PDF</button>
+        </div>
+      </div>
+
       <CrudModule
+        onCambio={(f) => { setFilas(f); cargarResumen(); }}
         titulo="Activos de la asociación"
         descripcion="Inventario y valoración de los bienes de la asociación. Los activos fijos (p. ej. terrenos) conservan su valor; los depreciables bajan su valor en libros con el tiempo (depreciación lineal)."
         endpoint="/activos"
-        onCambio={cargarResumen}
         columnas={[
           { key: 'nombre', label: 'Activo', render: (f) => <><strong>{f.nombre}</strong>{f.codigo && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.codigo}</div>}</> },
           { key: 'categoria', label: 'Categoría', render: (f) => etq(CATEGORIAS, f.categoria) },

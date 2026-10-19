@@ -35,6 +35,7 @@ const MENU = [
   {
     grupo: 'Administración y finanzas',
     items: [
+      { a: '/panel-financiero', texto: 'Panel financiero', roles: ['administracion', 'presidente'] },
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion', 'presidente'] },
       { a: '/cuentas-por-cobrar', texto: 'Cuentas por cobrar', roles: ['administracion', 'presidente'] },
       { a: '/gastos', texto: 'Gastos', roles: ['administracion'] },

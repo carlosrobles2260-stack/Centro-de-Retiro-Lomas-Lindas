@@ -254,3 +254,11 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 @media (max-width: 620px) { .ficha-grid { grid-template-columns: 1fr; } }
 .ficha-lista { margin: 4px 0 0; padding-left: 18px; }
 .ficha-lista li { font-size: 14px; margin-bottom: 4px; color: var(--texto); }
+
+/* ===== Panel financiero ===== */
+.pf-fila { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.pf-fila > span { width: 80px; color: var(--texto-suave); font-size: 14px; }
+.pf-fila > strong { width: 130px; text-align: right; }
+.pf-barra { flex: 1; height: 18px; background: var(--arena); border-radius: 8px; overflow: hidden; }
+.pf-barra > div { height: 100%; border-radius: 8px; }
+.contenido h3 { margin: 18px 0 10px; font-size: 15px; }
