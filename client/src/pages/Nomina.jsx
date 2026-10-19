@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api.js';
 import { dinero } from '../lib/format.jsx';
 
@@ -17,6 +17,7 @@ export default function Nomina() {
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [tasas, setTasas] = useState(false);
 
   async function calcular() {
     setCargando(true); setError(null); setMensaje(null);
@@ -74,6 +75,7 @@ export default function Nomina() {
           <h2>Nómina por período</h2>
           <p className="descripcion">Cálculo de nómina con deducciones de ley (AFP, SFS e ISR) y descuento de préstamos. Genera el volante de pago de cada empleado.</p>
         </div>
+        <button className="secundario" onClick={() => setTasas(true)}>Tasas de ley</button>
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
@@ -95,7 +97,7 @@ export default function Nomina() {
       {data && (
         <>
           <div className="barra">
-            <div className="descripcion">Deducciones de ley: AFP {(data.tasas.afp * 100).toFixed(2)}% · SFS {(data.tasas.sfs * 100).toFixed(2)}% · ISR según escala DGII (exento hasta RD$416,220/año).</div>
+            <div className="descripcion">Deducciones de ley: AFP {(data.tasas.afp * 100).toFixed(2)}% · SFS {(data.tasas.sfs * 100).toFixed(2)}% · ISR según escala DGII (exento hasta {dinero(data.tasas.isr_exento)}/año).</div>
             <button className="secundario" onClick={descontarPrestamos} disabled={data.totales.prestamo <= 0}>Descontar préstamos del período</button>
           </div>
           <div className="tabla-wrap">
@@ -133,6 +135,63 @@ export default function Nomina() {
           </div>
         </>
       )}
+
+      {tasas && <ModalTasas onCerrar={() => setTasas(false)} onGuardado={() => { setTasas(false); setMensaje('Tasas actualizadas.'); if (data) calcular(); }} />}
+    </div>
+  );
+}
+
+// Editor de las tasas de ley (AFP, SFS y escala del ISR).
+const CAMPOS_TASAS = [
+  { k: 'nomina_afp', l: 'AFP — pensión (%)' },
+  { k: 'nomina_sfs', l: 'SFS — salud (%)' },
+  { k: 'isr_exento', l: 'ISR: exento hasta (RD$/año)' },
+  { k: 'isr_tramo2', l: 'ISR: tope tramo 2 (RD$/año)' },
+  { k: 'isr_tasa2', l: 'ISR: tasa tramo 2 (%)' },
+  { k: 'isr_tramo3', l: 'ISR: tope tramo 3 (RD$/año)' },
+  { k: 'isr_tasa3', l: 'ISR: tasa tramo 3 (%)' },
+  { k: 'isr_tasa4', l: 'ISR: tasa tramo 4 (%)' },
+];
+
+function ModalTasas({ onCerrar, onGuardado }) {
+  const [cfg, setCfg] = useState(null);
+  const [error, setError] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    api.get('/configuracion').then((c) => {
+      const o = {};
+      for (const { k } of CAMPOS_TASAS) o[k] = c[k] ?? '';
+      setCfg(o);
+    }).catch(() => setCfg({}));
+  }, []);
+
+  async function guardar(e) {
+    e.preventDefault(); setGuardando(true); setError(null);
+    try { await api.put('/configuracion', cfg); onGuardado(); }
+    catch (err) { setError(err.message); setGuardando(false); }
+  }
+
+  if (!cfg) return null;
+  return (
+    <div className="modal-fondo" onClick={onCerrar}>
+      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={guardar}>
+        <h3>Tasas de ley (nómina)</h3>
+        <p className="descripcion">Tasas de AFP y SFS, y la escala del ISR (DGII). Actualízalas cuando cambien las normas de la TSS o la DGII.</p>
+        <div className="ficha-grid">
+          {CAMPOS_TASAS.map(({ k, l }) => (
+            <div className="campo" key={k} style={{ margin: 0 }}>
+              <label>{l}</label>
+              <input type="number" step="any" min="0" value={cfg[k]} onChange={(e) => setCfg((c) => ({ ...c, [k]: e.target.value }))} />
+            </div>
+          ))}
+        </div>
+        {error && <p className="error">{error}</p>}
+        <div className="pie-modal">
+          <button type="button" className="secundario" onClick={onCerrar}>Cancelar</button>
+          <button type="submit" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar tasas'}</button>
+        </div>
+      </form>
     </div>
   );
 }

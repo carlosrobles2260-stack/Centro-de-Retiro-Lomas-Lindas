@@ -456,6 +456,15 @@ const CONFIG_DEFECTO = {
   // Montos de la cuota de mantenimiento según el tipo de propiedad (editables).
   cuota_solar: '500',
   cuota_edificado: '1000',
+  // Tasas de nómina (editables). AFP/SFS en %, escala del ISR en monto anual y %.
+  nomina_afp: '2.87',
+  nomina_sfs: '3.04',
+  isr_exento: '416220',
+  isr_tramo2: '624329',
+  isr_tasa2: '15',
+  isr_tramo3: '867123',
+  isr_tasa3: '20',
+  isr_tasa4: '25',
   gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
   // Sincronización por consulta (pull) con la plataforma del proveedor (p. ej. Systrack+).
   gps_sync_activo: '0',

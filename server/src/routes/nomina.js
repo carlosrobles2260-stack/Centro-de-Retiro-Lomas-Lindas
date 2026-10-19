@@ -4,20 +4,37 @@ import { ah } from '../async.js';
 
 const router = Router();
 
-// Tasas de deducción del empleado (República Dominicana, TSS): AFP y SFS.
-const AFP = 0.0287; // pensión
-const SFS = 0.0304; // salud
 // Proporción del salario mensual según la periodicidad del pago.
 const FACTOR = { mensual: 1, quincenal: 0.5, semanal: 12 / 52 };
 const PERIODOS_ANIO = { mensual: 12, quincenal: 24, semanal: 52 };
 
+// Valores por defecto de las tasas (se usan si falta la configuración).
+const TASAS_DEFECTO = {
+  nomina_afp: 2.87, nomina_sfs: 3.04,
+  isr_exento: 416220, isr_tramo2: 624329, isr_tasa2: 15,
+  isr_tramo3: 867123, isr_tasa3: 20, isr_tasa4: 25,
+};
+
+// Lee las tasas de nómina desde la configuración.
+async function leerTasas() {
+  const filas = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'nomina_%' OR clave LIKE 'isr_%'");
+  const c = { ...TASAS_DEFECTO };
+  for (const f of filas) if (Number.isFinite(Number(f.valor))) c[f.clave] = Number(f.valor);
+  return {
+    afp: c.nomina_afp / 100, sfs: c.nomina_sfs / 100,
+    isr: { exento: c.isr_exento, tramo2: c.isr_tramo2, tasa2: c.isr_tasa2 / 100, tramo3: c.isr_tramo3, tasa3: c.isr_tasa3 / 100, tasa4: c.isr_tasa4 / 100 },
+  };
+}
+
 // Impuesto sobre la Renta anual (escala DGII, República Dominicana).
 // La mayoría del personal queda exento (ingreso anual bajo el primer tramo).
-function isrAnual(rentaAnual) {
-  if (rentaAnual <= 416220) return 0;
-  if (rentaAnual <= 624329) return (rentaAnual - 416220) * 0.15;
-  if (rentaAnual <= 867123) return 31216 + (rentaAnual - 624329) * 0.20;
-  return 79776 + (rentaAnual - 867123) * 0.25;
+function isrAnual(rentaAnual, isr) {
+  if (rentaAnual <= isr.exento) return 0;
+  if (rentaAnual <= isr.tramo2) return (rentaAnual - isr.exento) * isr.tasa2;
+  const base3 = (isr.tramo2 - isr.exento) * isr.tasa2;
+  if (rentaAnual <= isr.tramo3) return base3 + (rentaAnual - isr.tramo2) * isr.tasa3;
+  const base4 = base3 + (isr.tramo3 - isr.tramo2) * isr.tasa3;
+  return base4 + (rentaAnual - isr.tramo3) * isr.tasa4;
 }
 
 const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
@@ -36,6 +53,7 @@ async function prestamosDelPeriodo(periodicidad) {
 async function calcularNomina(periodicidad) {
   const per = FACTOR[periodicidad] ? periodicidad : 'mensual';
   const factor = FACTOR[per];
+  const { afp: AFP, sfs: SFS, isr: ISR } = await leerTasas();
   const empleados = await db.all("SELECT id, nombre, puesto, departamento, salario FROM empleados WHERE activo = 1 ORDER BY nombre");
   const prestamos = await prestamosDelPeriodo(per);
   const porEmpleado = new Map();
@@ -51,7 +69,7 @@ async function calcularNomina(periodicidad) {
     const sfs = bruto * SFS;
     // ISR: se anualiza la renta neta de TSS, se aplica la escala y se prorratea al período.
     const rentaAnual = salarioMensual * 12 * (1 - AFP - SFS);
-    const isr = isrAnual(rentaAnual) / periodosAnio;
+    const isr = isrAnual(rentaAnual, ISR) / periodosAnio;
     const prestamo = porEmpleado.get(e.id) || 0;
     const deducciones = afp + sfs + isr + prestamo;
     return {
@@ -63,7 +81,7 @@ async function calcularNomina(periodicidad) {
 
   const sum = (k) => r2(filas.reduce((a, f) => a + f[k], 0));
   return {
-    periodicidad: per, tasas: { afp: AFP, sfs: SFS },
+    periodicidad: per, tasas: { afp: AFP, sfs: SFS, isr_exento: ISR.exento },
     empleados: filas,
     totales: { bruto: sum('bruto'), afp: sum('afp'), sfs: sum('sfs'), isr: sum('isr'), prestamo: sum('prestamo'), deducciones: sum('deducciones'), neto: sum('neto') },
   };
