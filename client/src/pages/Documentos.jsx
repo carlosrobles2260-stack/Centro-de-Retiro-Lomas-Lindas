@@ -6,6 +6,8 @@ const CATEGORIAS = [
   { valor: 'convivencia', label: 'Normas de convivencia' },
   { valor: 'medio_ambiente', label: 'Medio ambiente' },
   { valor: 'resoluciones', label: 'Resoluciones de la Directiva' },
+  { valor: 'resoluciones_asamblea_ordinaria', label: 'Resoluciones de Asamblea Ordinaria' },
+  { valor: 'resoluciones_asamblea_extraordinaria', label: 'Resoluciones de Asamblea Extraordinaria' },
   { valor: 'otra', label: 'Otras normas' },
 ];
 const PUBLICADO = [
@@ -18,7 +20,7 @@ export default function Documentos() {
   return (
     <CrudModule
       titulo="Normas y reglamentos"
-      descripcion="Estatutos, reglamentos, normas y resoluciones de la Directiva del proyecto. Lo que publiques aquí lo verá el propietario al entrar a su cuenta. Puedes subir un PDF, enlazar un documento o escribir el texto."
+      descripcion="Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) del proyecto. Lo que publiques aquí lo verá el propietario al entrar a su cuenta. Puedes subir un PDF, enlazar un documento o escribir el texto."
       endpoint="/documentos"
       filtros={[{ name: 'categoria', label: 'Categoría', opciones: CATEGORIAS }]}
       columnas={[

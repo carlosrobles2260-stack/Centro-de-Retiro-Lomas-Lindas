@@ -40,6 +40,8 @@ const ETIQUETA_CATEGORIA = {
   convivencia: 'Normas de convivencia',
   medio_ambiente: 'Medio ambiente',
   resoluciones: 'Resoluciones de la Directiva',
+  resoluciones_asamblea_ordinaria: 'Resoluciones de Asamblea Ordinaria',
+  resoluciones_asamblea_extraordinaria: 'Resoluciones de Asamblea Extraordinaria',
   otra: 'Otras normas',
 };
 

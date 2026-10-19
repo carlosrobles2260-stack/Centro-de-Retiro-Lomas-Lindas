@@ -10,6 +10,8 @@ const CATEGORIA_DOC = {
   convivencia: 'Normas de convivencia',
   medio_ambiente: 'Medio ambiente',
   resoluciones: 'Resoluciones de la Directiva',
+  resoluciones_asamblea_ordinaria: 'Resoluciones de Asamblea Ordinaria',
+  resoluciones_asamblea_extraordinaria: 'Resoluciones de Asamblea Extraordinaria',
   otra: 'Otras normas',
 };
 
@@ -105,7 +107,7 @@ export default function MiCuenta() {
             {datos.documentos?.length > 0 && (
               <>
                 <h2>Normas y reglamentos</h2>
-                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva de la asociación y del proyecto.</p>
+                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto.</p>
                 <div className="mc-docs">
                   {datos.documentos.map((d) => {
                     const destino = d.archivo || d.enlace;
