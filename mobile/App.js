@@ -14,6 +14,7 @@ import EscanerScreen from './src/screens/EscanerScreen';
 import RegistrarVisitaScreen from './src/screens/RegistrarVisitaScreen';
 import IncidentesScreen from './src/screens/IncidentesScreen';
 import RondasScreen from './src/screens/RondasScreen';
+import VertederoScreen from './src/screens/VertederoScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
 
 const Tab = createBottomTabNavigator();
@@ -55,6 +56,7 @@ function AppTabs() {
       <Tab.Screen name="VisitasTab" component={VisitasStack} options={{ title: 'Visitas', headerShown: false, tabBarLabel: 'Visitas', tabBarIcon: iconoTab('🚪') }} />
       <Tab.Screen name="Incidentes" component={IncidentesScreen} options={{ tabBarIcon: iconoTab('⚠️') }} />
       <Tab.Screen name="Rondas" component={RondasScreen} options={{ tabBarIcon: iconoTab('🧭') }} />
+      <Tab.Screen name="Vertedero" component={VertederoScreen} options={{ title: 'Vertedero', tabBarIcon: iconoTab('🚛') }} />
       <Tab.Screen name="Perfil" component={PerfilScreen} options={{ tabBarIcon: iconoTab('👤') }} />
     </Tab.Navigator>
   );

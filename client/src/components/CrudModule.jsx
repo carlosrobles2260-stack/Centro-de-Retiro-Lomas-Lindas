@@ -23,6 +23,7 @@ export default function CrudModule({
   filtros = [],
   permiteCrear = true,
   accionesExtra = [], // [{ texto, onClick(fila), clase }]
+  onCambio, // callback(filas) tras cada carga (crear/editar/eliminar)
 }) {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -40,6 +41,7 @@ export default function CrudModule({
       const datos = await api.get(endpoint + (qs ? `?${qs}` : ''));
       setFilas(datos);
       setError(null);
+      if (onCambio) onCambio(datos);
     } catch (e) {
       setError(e.message);
     } finally {

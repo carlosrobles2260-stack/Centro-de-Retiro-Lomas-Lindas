@@ -7,18 +7,46 @@ import { api } from '../api';
 import { colores } from '../theme';
 import { Badge, fechaHora } from '../components/ui';
 
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+
 export default function RondasScreen() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(false);
+  const [meta, setMeta] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
-    try { setFilas(await api.get('/rondas')); } catch (e) { Alert.alert('Error', e.message); }
+    try {
+      setFilas(await api.get('/rondas'));
+      const cfg = await api.get('/configuracion').catch(() => ({}));
+      setMeta(Number(cfg.meta_rondas_turno) || 0);
+    } catch (e) { Alert.alert('Error', e.message); }
     finally { setCargando(false); }
   }, []);
 
   useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+
+  const rondasHoy = filas.filter((r) => String(r.fecha_hora || '').slice(0, 10) === hoyISO()).length;
+  const cumplido = meta > 0 && rondasHoy >= meta;
+
+  const Encabezado = (
+    <View style={styles.resumen}>
+      <View style={styles.resCol}>
+        <Text style={styles.resNum}>{rondasHoy}</Text>
+        <Text style={styles.resLbl}>Hoy</Text>
+      </View>
+      <View style={styles.resCol}>
+        <Text style={styles.resNum}>{meta || '—'}</Text>
+        <Text style={styles.resLbl}>Meta</Text>
+      </View>
+      <View style={[styles.resCol, { flex: 1.4 }]}>
+        <Text style={[styles.resEstado, { color: meta === 0 ? colores.textoSuave : cumplido ? colores.verde : colores.rojo }]}>
+          {meta === 0 ? 'Sin meta' : cumplido ? '✓ Meta cumplida' : `Faltan ${Math.max(0, meta - rondasHoy)}`}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.fondo}>
@@ -31,6 +59,7 @@ export default function RondasScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
           onRefresh={cargar}
           refreshing={cargando}
+          ListHeaderComponent={Encabezado}
           ListEmptyComponent={<Text style={styles.vacio}>Sin rondas registradas.</Text>}
           renderItem={({ item }) => (
             <View style={styles.card}>
@@ -103,6 +132,11 @@ function FormRonda({ onCerrar, onGuardado }) {
 
 const styles = StyleSheet.create({
   fondo: { flex: 1, backgroundColor: colores.arena },
+  resumen: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: colores.borde, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  resCol: { alignItems: 'center' },
+  resNum: { fontSize: 26, fontWeight: '700', color: colores.texto },
+  resLbl: { fontSize: 12, color: colores.textoSuave },
+  resEstado: { fontSize: 14, fontWeight: '700', textAlign: 'center' },
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colores.borde, gap: 6 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   punto: { fontSize: 16, fontWeight: '700', color: colores.texto },

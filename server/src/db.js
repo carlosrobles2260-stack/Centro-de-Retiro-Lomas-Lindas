@@ -167,6 +167,25 @@ CREATE TABLE IF NOT EXISTS gastos (
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   creado_en     ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
+
+-- ===== Configuración (clave/valor) =====
+CREATE TABLE IF NOT EXISTS configuracion (
+  clave TEXT PRIMARY KEY,
+  valor TEXT
+);
+
+-- ===== Viajes del camión de basura al vertedero =====
+CREATE TABLE IF NOT EXISTS viajes_vertedero (
+  id             ${T.id},
+  fecha          ${T.date} NOT NULL DEFAULT ${T.hoy},
+  hora_salida    TEXT,
+  hora_regreso   TEXT,
+  responsable_id INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
+  vehiculo       TEXT,
+  notas          TEXT,
+  registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
 `;
 
 // Crea el esquema (idempotente).
@@ -226,6 +245,15 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
   await db.run(
     'INSERT INTO tipos_incidencia (nombre) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM tipos_incidencia WHERE nombre = ?)',
     [nombre, nombre]
+  );
+}
+
+// Valores de configuración por defecto (meta de rondas por turno).
+const CONFIG_DEFECTO = { meta_rondas_turno: '6' };
+for (const [clave, valor] of Object.entries(CONFIG_DEFECTO)) {
+  await db.run(
+    'INSERT INTO configuracion (clave, valor) SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM configuracion WHERE clave = ?)',
+    [clave, valor, clave]
   );
 }
 
