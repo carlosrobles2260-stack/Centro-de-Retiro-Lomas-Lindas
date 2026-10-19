@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api.js';
 import { dinero } from '../lib/format.jsx';
+import { exportarExcel, exportarPDF } from '../lib/exportar.js';
+
+const num2 = (v) => Math.round((Number(v) || 0) * 100) / 100;
+const COLUMNAS_NOMINA = [
+  { key: 'nombre', label: 'Empleado', ancho: 26 },
+  { key: 'puesto', label: 'Puesto', ancho: 20 },
+  { key: 'bruto', label: 'Bruto (RD$)', fmt: num2 },
+  { key: 'afp', label: 'AFP (RD$)', fmt: num2 },
+  { key: 'sfs', label: 'SFS (RD$)', fmt: num2 },
+  { key: 'isr', label: 'ISR (RD$)', fmt: num2 },
+  { key: 'prestamo', label: 'Préstamo (RD$)', fmt: num2 },
+  { key: 'deducciones', label: 'Deducciones (RD$)', fmt: num2 },
+  { key: 'neto', label: 'Neto (RD$)', fmt: num2 },
+];
 
 const PERIODICIDAD = [
   { valor: 'mensual', label: 'Mensual' },
@@ -33,6 +47,25 @@ export default function Nomina() {
       setMensaje(`Se registraron ${r.aplicados} descuento(s) de préstamo por ${dinero(r.total)}.`);
       calcular();
     } catch (e) { setError(e.message); }
+  }
+
+  function filasExport() {
+    const t = data.totales;
+    return [
+      ...data.empleados,
+      { nombre: 'TOTALES', puesto: '', bruto: t.bruto, afp: t.afp, sfs: t.sfs, isr: t.isr, prestamo: t.prestamo, deducciones: t.deducciones, neto: t.neto },
+    ];
+  }
+
+  function exportar(tipo) {
+    const etiquetaPer = PERIODICIDAD.find((p) => p.valor === data.periodicidad)?.label;
+    const nombre = `nomina-${(periodo || etiquetaPer).replace(/\s+/g, '-')}`;
+    if (tipo === 'excel') {
+      exportarExcel({ nombre, hoja: 'Nómina', columnas: COLUMNAS_NOMINA, filas: filasExport() });
+    } else {
+      const subtitulo = `Período: ${periodo || etiquetaPer} · ${etiquetaPer} · Pago: ${fecha} · Neto total: ${dinero(data.totales.neto)}`;
+      exportarPDF({ titulo: 'Reporte de nómina', subtitulo, nombre, columnas: COLUMNAS_NOMINA, filas: filasExport() });
+    }
   }
 
   async function volante(fila) {
@@ -98,7 +131,11 @@ export default function Nomina() {
         <>
           <div className="barra">
             <div className="descripcion">Deducciones de ley: AFP {(data.tasas.afp * 100).toFixed(2)}% · SFS {(data.tasas.sfs * 100).toFixed(2)}% · ISR según escala DGII (exento hasta {dinero(data.tasas.isr_exento)}/año).</div>
-            <button className="secundario" onClick={descontarPrestamos} disabled={data.totales.prestamo <= 0}>Descontar préstamos del período</button>
+            <div className="filtros">
+              <button className="secundario" onClick={() => exportar('excel')}>Excel</button>
+              <button className="secundario" onClick={() => exportar('pdf')}>PDF</button>
+              <button className="secundario" onClick={descontarPrestamos} disabled={data.totales.prestamo <= 0}>Descontar préstamos del período</button>
+            </div>
           </div>
           <div className="tabla-wrap">
             <table>
