@@ -234,13 +234,24 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .mc-monto.verde { color: var(--verde); }
 .mc-nota { color: var(--texto-suave); font-size: 13px; }
 .mc-pie { color: var(--texto-suave); font-size: 13px; margin-top: 24px; text-align: center; }
-.mc-docs { display: grid; gap: 12px; }
-.mc-doc { padding: 14px 16px; }
-.mc-doc-tit { font-weight: 600; margin-top: 6px; }
+.mc-cats { display: grid; gap: 10px; }
+.mc-cat { padding: 0; overflow: hidden; }
+.mc-cat-cab { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: none; border: none; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.mc-cat-cab:hover { background: var(--arena); }
+.mc-cat-nom { font-weight: 600; }
+.mc-cat-meta { color: var(--texto-suave); font-size: 13px; white-space: nowrap; }
+.mc-cat-flecha { margin-left: 6px; font-size: 11px; }
+.mc-cat-cuerpo { padding: 4px 16px 14px; border-top: 1px solid var(--borde, #e4e8e3); }
+.mc-cat-filtro { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 13px; color: var(--texto-suave); }
+.mc-cat-filtro select { padding: 4px 8px; }
+.mc-doc-item { padding: 10px 0; border-bottom: 1px solid var(--arena); }
+.mc-doc-item:last-child { border-bottom: none; }
+.mc-doc-tit { font-weight: 600; }
+.mc-doc-fecha { color: var(--texto-suave); font-size: 12px; margin-top: 2px; }
 .mc-doc-desc { color: var(--texto-suave); font-size: 13px; margin-top: 2px; }
 .mc-doc-acc { margin-top: 8px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .mc-doc-link { color: var(--verde); font-weight: 600; text-decoration: none; }
-.mc-doc details summary { color: var(--verde); font-weight: 600; cursor: pointer; }
+.mc-doc-item details summary { color: var(--verde); font-weight: 600; cursor: pointer; }
 .mc-doc-texto { white-space: pre-wrap; margin-top: 8px; font-size: 14px; }
 
 /* ===== Cuentas por cobrar: barra de antigüedad ===== */

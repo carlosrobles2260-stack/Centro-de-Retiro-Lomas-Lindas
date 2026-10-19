@@ -1,4 +1,5 @@
 import CrudModule from '../components/CrudModule.jsx';
+import { fecha } from '../lib/format.jsx';
 
 const CATEGORIAS = [
   { valor: 'estatutos', label: 'Estatutos' },
@@ -26,12 +27,14 @@ export default function Documentos() {
       columnas={[
         { key: 'titulo', label: 'Documento', render: (f) => <><strong>{f.titulo}</strong>{f.descripcion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.descripcion}</div>}</> },
         { key: 'categoria', label: 'Categoría', render: (f) => <span className="badge azul">{etq(CATEGORIAS, f.categoria)}</span> },
+        { key: 'fecha', label: 'Fecha', render: (f) => (f.fecha ? fecha(f.fecha) : '—') },
         { key: 'archivo', label: 'Archivo / enlace', render: (f) => (f.archivo || f.enlace) ? <a href={f.archivo || f.enlace} target="_blank" rel="noreferrer">Ver</a> : (f.contenido ? 'Texto' : '—') },
         { key: 'publicado', label: 'Estado', render: (f) => Number(f.publicado) ? <span className="badge verde">Publicado</span> : <span className="badge gris">Borrador</span> },
       ]}
       campos={[
         { name: 'titulo', label: 'Título', requerido: true },
         { name: 'categoria', label: 'Categoría', type: 'select', defecto: 'reglamento_interno', opciones: CATEGORIAS },
+        { name: 'fecha', label: 'Fecha del acta / documento', type: 'date' },
         { name: 'descripcion', label: 'Descripción breve (para el propietario)', type: 'textarea' },
         { name: 'archivo', label: 'Documento (PDF o imagen, máx. 15 MB)', type: 'file', accept: 'application/pdf,image/*' },
         { name: 'enlace', label: 'Enlace externo (opcional)' },

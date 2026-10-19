@@ -21,8 +21,8 @@ export async function datosCuenta(propietarioId) {
   const pagado = facturas.reduce((acc, f) => acc + Number(f.pagado), 0);
   // Normas y reglamentos publicados (reglamento interno, convivencia, medio ambiente).
   const documentos = await db.all(
-    `SELECT id, titulo, categoria, descripcion, contenido, archivo, enlace
-     FROM documentos WHERE publicado = 1 ORDER BY orden ASC, titulo ASC`
+    `SELECT id, titulo, categoria, descripcion, contenido, archivo, enlace, fecha
+     FROM documentos WHERE publicado = 1 ORDER BY orden ASC, fecha DESC, titulo ASC`
   );
   return { facturas, saldo, pagado, pendientes: abiertas.length, documentos };
 }
@@ -56,18 +56,35 @@ export function paginaCuentaHTML(propietario, datos) {
         <td><span class="badge" style="background:${COLOR_ESTADO[f.estado] || '#5d6b63'}">${ETIQUETA_ESTADO[f.estado] || f.estado}</span></td>
       </tr>`).join('');
 
-  // Bloque de normas y reglamentos (si hay documentos publicados).
-  const normas = documentos.map((d) => {
-    const destino = d.archivo || d.enlace;
-    const enlace = destino ? `<a class="doc-link" href="${escape(destino)}" target="_blank" rel="noreferrer">Ver documento</a>` : '';
-    const texto = d.contenido ? `<details><summary>Leer</summary><div class="doc-texto">${escape(d.contenido)}</div></details>` : '';
+  // Bloque de normas y reglamentos, agrupado por categoría. Al abrir una
+  // categoría se listan sus documentos (actas), ordenados por fecha (más
+  // recientes primero).
+  const ORDEN_CAT = Object.keys(ETIQUETA_CATEGORIA);
+  const grupos = new Map();
+  for (const d of documentos) {
+    const k = d.categoria || 'otra';
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(d);
+  }
+  const posCat = (k) => { const i = ORDEN_CAT.indexOf(k); return i < 0 ? 99 : i; };
+  const normas = [...grupos.entries()].sort((a, b) => posCat(a[0]) - posCat(b[0])).map(([cat, docs]) => {
+    const items = docs.slice().sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).map((d) => {
+      const destino = d.archivo || d.enlace;
+      const enlace = destino ? `<a class="doc-link" href="${escape(destino)}" target="_blank" rel="noreferrer">Ver documento</a>` : '';
+      const texto = d.contenido ? `<details><summary>Leer</summary><div class="doc-texto">${escape(d.contenido)}</div></details>` : '';
+      return `
+        <div class="doc-item">
+          <div class="doc-tit">${escape(d.titulo)}</div>
+          ${d.fecha ? `<div class="doc-fecha">${escape(d.fecha)}</div>` : ''}
+          ${d.descripcion ? `<div class="sub">${escape(d.descripcion)}</div>` : ''}
+          <div class="doc-acc">${enlace}${texto}</div>
+        </div>`;
+    }).join('');
     return `
-      <div class="doc">
-        <span class="etq">${ETIQUETA_CATEGORIA[d.categoria] || 'Normas'}</span>
-        <div class="doc-tit">${escape(d.titulo)}</div>
-        ${d.descripcion ? `<div class="sub">${escape(d.descripcion)}</div>` : ''}
-        <div class="doc-acc">${enlace}${texto}</div>
-      </div>`;
+      <details class="doc-cat">
+        <summary><span>${ETIQUETA_CATEGORIA[cat] || 'Normas'}</span><span class="doc-cat-n">${docs.length} doc.</span></summary>
+        <div class="doc-cat-cuerpo">${items}</div>
+      </details>`;
   }).join('');
 
   return `<!doctype html>
@@ -95,13 +112,20 @@ export function paginaCuentaHTML(propietario, datos) {
   .badge { color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
   .vacio { color: #5d6b63; text-align: center; padding: 20px; }
   .pie { text-align: center; color: #5d6b63; font-size: 12px; margin: 16px 0; }
-  .doc { border-bottom: 1px solid #eef1ee; padding: 12px 0; }
-  .doc .etq { display: inline-block; background: #e8efe9; color: #2f6e4f; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 4px; }
+  .doc-cat { border: 1px solid #e4e8e3; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+  .doc-cat > summary { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+  .doc-cat > summary::-webkit-details-marker { display: none; }
+  .doc-cat[open] > summary { border-bottom: 1px solid #eef1ee; }
+  .doc-cat-n { color: #5d6b63; font-size: 12px; font-weight: 500; }
+  .doc-cat-cuerpo { padding: 2px 14px; }
+  .doc-item { border-bottom: 1px solid #eef1ee; padding: 12px 0; }
+  .doc-item:last-child { border-bottom: none; }
   .doc-tit { font-weight: 600; font-size: 14px; }
+  .doc-fecha { color: #5d6b63; font-size: 12px; margin-top: 2px; }
   .doc-acc { margin-top: 6px; display: flex; gap: 14px; align-items: center; }
   .doc-link { color: #2f6e4f; font-weight: 600; font-size: 13px; text-decoration: none; }
-  .doc details { font-size: 13px; }
-  .doc summary { color: #2f6e4f; font-weight: 600; cursor: pointer; }
+  .doc-item details { font-size: 13px; }
+  .doc-item summary { color: #2f6e4f; font-weight: 600; cursor: pointer; }
   .doc-texto { white-space: pre-wrap; color: #1f2a24; margin-top: 6px; }
 </style></head>
 <body><div class="hoja">

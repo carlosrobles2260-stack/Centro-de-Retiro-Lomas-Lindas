@@ -5,10 +5,38 @@
 // "Normas y reglamentos".
 export const DOCUMENTOS_BASE = [
   {
+    titulo: 'Estatutos de la Asociación de Propietarios',
+    categoria: 'estatutos',
+    descripcion: 'Estatutos vigentes que rigen la asociación de propietarios del Centro de Retiro Lomas Lindas.',
+    orden: 0,
+    fecha: '2020-01-15',
+    contenido: `ESTATUTOS DE LA ASOCIACIÓN DE PROPIETARIOS (texto base de referencia)
+
+CAPÍTULO I. DENOMINACIÓN, DOMICILIO Y OBJETO
+Art. 1. La asociación se denomina Asociación de Propietarios del Centro de Retiro Lomas Lindas, sin fines de lucro.
+Art. 2. Su objeto es administrar las áreas comunes, velar por la seguridad y la convivencia, y representar los intereses comunes de los propietarios.
+
+CAPÍTULO II. DE LOS MIEMBROS
+Art. 3. Son miembros todos los propietarios de un solar o una edificación dentro del proyecto.
+Art. 4. Son deberes del miembro cumplir los estatutos, reglamentos y resoluciones, y mantener al día su cuota de mantenimiento.
+
+CAPÍTULO III. DE LOS ÓRGANOS
+Art. 5. Son órganos de la asociación la Asamblea General y la Directiva.
+Art. 6. La Asamblea General es la máxima autoridad; se reúne de forma ordinaria una vez al año y de forma extraordinaria cuando sea convocada.
+Art. 7. La Directiva administra la asociación entre asambleas y ejecuta sus resoluciones.
+
+CAPÍTULO IV. DE LAS ASAMBLEAS
+Art. 8. La asamblea ordinaria conoce la memoria, el estado financiero y el presupuesto; la extraordinaria trata los asuntos para los que fue convocada.
+Art. 9. Las resoluciones de asamblea obligan a todos los propietarios.
+
+(Texto base de referencia. La Directiva debe revisarlo y adaptarlo antes de su aplicación formal.)`,
+  },
+  {
     titulo: 'Reglamento Interno del Centro de Retiro Lomas Lindas',
     categoria: 'reglamento_interno',
     descripcion: 'Normas generales que rigen la vida en el proyecto y la relación entre los propietarios y la asociación.',
     orden: 1,
+    fecha: '2024-01-10',
     contenido: `CAPÍTULO I. DISPOSICIONES GENERALES
 Art. 1. El presente reglamento regula la convivencia, el uso de las áreas comunes y los deberes y derechos de los propietarios del Centro de Retiro Lomas Lindas.
 Art. 2. Es de obligatorio cumplimiento para propietarios, familiares, inquilinos, empleados domésticos y visitantes.
@@ -42,6 +70,7 @@ Art. 14. Lo no previsto en este reglamento será resuelto por la Directiva confo
     categoria: 'convivencia',
     descripcion: 'Reglas para una convivencia tranquila y respetuosa entre vecinos.',
     orden: 2,
+    fecha: '2024-01-10',
     contenido: `1. HORARIOS DE SILENCIO
 Se respetará el silencio de 10:00 p.m. a 7:00 a.m. Durante este horario se evitarán ruidos, música alta y trabajos de construcción.
 
@@ -70,6 +99,7 @@ Las obras deben realizarse en horario laboral, manteniendo limpio el entorno y r
     categoria: 'medio_ambiente',
     descripcion: 'Cuidado del entorno, manejo de residuos y protección de las áreas verdes del proyecto.',
     orden: 3,
+    fecha: '2024-01-10',
     contenido: `1. MANEJO DE RESIDUOS SÓLIDOS
 La basura debe depositarse en los puntos y horarios establecidos, debidamente embolsada. No se permite verter residuos en solares, calles ni áreas verdes.
 
@@ -92,5 +122,66 @@ Se evitarán actividades que generen contaminación sonora, de humo o de olores 
 La recolección de residuos y su traslado al vertedero se realiza por el personal de ornato con los vehículos autorizados, dejando constancia de cada viaje.
 
 (Texto base de referencia. La Directiva debe revisarlo y adaptarlo antes de su aplicación formal.)`,
+  },
+  {
+    titulo: 'Resolución de la Directiva 2026-01 — Cuota de mantenimiento',
+    categoria: 'resoluciones',
+    descripcion: 'Actualización del monto de la cuota de mantenimiento por tipo de propiedad.',
+    orden: 10,
+    fecha: '2026-02-05',
+    contenido: `RESOLUCIÓN DE LA DIRECTIVA No. 2026-01 (ejemplo)
+
+La Directiva, reunida en sesión ordinaria, RESUELVE:
+1. Actualizar la cuota de mantenimiento conforme a los costos de operación y la inflación.
+2. Mantener el mismo monto para las propiedades edificadas y un monto menor para los solares.
+3. La medida rige a partir del próximo período de facturación.
+
+(Ejemplo de referencia. Reemplazar por la resolución real.)`,
+  },
+  {
+    titulo: 'Acta de Asamblea Ordinaria 2025',
+    categoria: 'resoluciones_asamblea_ordinaria',
+    descripcion: 'Resoluciones de la asamblea ordinaria anual: memoria, estado financiero y presupuesto.',
+    orden: 20,
+    fecha: '2025-03-15',
+    contenido: `ACTA DE ASAMBLEA GENERAL ORDINARIA 2025 (ejemplo)
+
+Orden del día y resoluciones:
+1. Aprobación de la memoria anual de la Directiva.
+2. Aprobación del estado financiero del período.
+3. Aprobación del presupuesto para el nuevo año.
+4. Elección/ratificación de los miembros de la Directiva.
+
+(Ejemplo de referencia. Reemplazar por el acta real.)`,
+  },
+  {
+    titulo: 'Acta de Asamblea Ordinaria 2026',
+    categoria: 'resoluciones_asamblea_ordinaria',
+    descripcion: 'Resoluciones de la asamblea ordinaria anual: memoria, estado financiero y presupuesto.',
+    orden: 21,
+    fecha: '2026-03-14',
+    contenido: `ACTA DE ASAMBLEA GENERAL ORDINARIA 2026 (ejemplo)
+
+Orden del día y resoluciones:
+1. Aprobación de la memoria anual de la Directiva.
+2. Aprobación del estado financiero del período.
+3. Aprobación del presupuesto para el nuevo año.
+4. Plan de seguridad y mantenimiento de las áreas comunes.
+
+(Ejemplo de referencia. Reemplazar por el acta real.)`,
+  },
+  {
+    titulo: 'Acta de Asamblea Extraordinaria 2025-01 — Obras del portón',
+    categoria: 'resoluciones_asamblea_extraordinaria',
+    descripcion: 'Resoluciones sobre la inversión en el sistema de seguridad del portón de acceso.',
+    orden: 30,
+    fecha: '2025-09-10',
+    contenido: `ACTA DE ASAMBLEA GENERAL EXTRAORDINARIA 2025-01 (ejemplo)
+
+Asunto único de la convocatoria:
+1. Aprobación de la inversión en el nuevo sistema de control de acceso del portón.
+2. Forma de financiamiento y cronograma de ejecución.
+
+(Ejemplo de referencia. Reemplazar por el acta real.)`,
   },
 ];

@@ -14,6 +14,71 @@ const CATEGORIA_DOC = {
   resoluciones_asamblea_extraordinaria: 'Resoluciones de Asamblea Extraordinaria',
   otra: 'Otras normas',
 };
+const ORDEN_CAT = Object.keys(CATEGORIA_DOC);
+
+// Agrupa los documentos por categoría, respetando el orden de CATEGORIA_DOC.
+function agruparDocumentos(docs) {
+  const mapa = new Map();
+  for (const d of docs) {
+    const k = d.categoria || 'otra';
+    if (!mapa.has(k)) mapa.set(k, []);
+    mapa.get(k).push(d);
+  }
+  const pos = (k) => { const i = ORDEN_CAT.indexOf(k); return i < 0 ? 99 : i; };
+  return [...mapa.entries()].sort((a, b) => pos(a[0]) - pos(b[0]));
+}
+
+// Una categoría plegable: al presionar lista sus documentos, con filtro por
+// año e indexados por la fecha del acta (más reciente primero).
+function GrupoCategoria({ categoria, docs }) {
+  const [abierto, setAbierto] = useState(false);
+  const [anio, setAnio] = useState('');
+  const anios = [...new Set(docs.map((d) => (d.fecha || '').slice(0, 4)).filter(Boolean))].sort().reverse();
+  const lista = docs
+    .filter((d) => !anio || (d.fecha || '').slice(0, 4) === anio)
+    .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+
+  return (
+    <div className="mc-cat card">
+      <button type="button" className="mc-cat-cab" onClick={() => setAbierto((v) => !v)}>
+        <span className="mc-cat-nom">{CATEGORIA_DOC[categoria] || 'Normas'}</span>
+        <span className="mc-cat-meta">{docs.length} documento{docs.length === 1 ? '' : 's'} <span className="mc-cat-flecha">{abierto ? '▲' : '▼'}</span></span>
+      </button>
+      {abierto && (
+        <div className="mc-cat-cuerpo">
+          {anios.length > 1 && (
+            <div className="mc-cat-filtro">
+              <label>Año:</label>
+              <select value={anio} onChange={(e) => setAnio(e.target.value)}>
+                <option value="">Todos</option>
+                {anios.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          )}
+          {lista.map((d) => {
+            const destino = d.archivo || d.enlace;
+            return (
+              <div key={d.id} className="mc-doc-item">
+                <div className="mc-doc-tit">{d.titulo}</div>
+                {d.fecha && <div className="mc-doc-fecha">{fecha(d.fecha)}</div>}
+                {d.descripcion && <div className="mc-doc-desc">{d.descripcion}</div>}
+                <div className="mc-doc-acc">
+                  {destino && <a className="mc-doc-link" href={destino} target="_blank" rel="noreferrer">Ver documento</a>}
+                  {d.contenido && (
+                    <details>
+                      <summary>Leer</summary>
+                      <div className="mc-doc-texto">{d.contenido}</div>
+                    </details>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
@@ -107,27 +172,11 @@ export default function MiCuenta() {
             {datos.documentos?.length > 0 && (
               <>
                 <h2>Normas y reglamentos</h2>
-                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto.</p>
-                <div className="mc-docs">
-                  {datos.documentos.map((d) => {
-                    const destino = d.archivo || d.enlace;
-                    return (
-                      <div key={d.id} className="mc-doc card">
-                        <span className="badge azul">{CATEGORIA_DOC[d.categoria] || 'Normas'}</span>
-                        <div className="mc-doc-tit">{d.titulo}</div>
-                        {d.descripcion && <div className="mc-doc-desc">{d.descripcion}</div>}
-                        <div className="mc-doc-acc">
-                          {destino && <a className="mc-doc-link" href={destino} target="_blank" rel="noreferrer">Ver documento</a>}
-                          {d.contenido && (
-                            <details>
-                              <summary>Leer</summary>
-                              <div className="mc-doc-texto">{d.contenido}</div>
-                            </details>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto. Presiona una categoría para ver sus documentos.</p>
+                <div className="mc-cats">
+                  {agruparDocumentos(datos.documentos).map(([cat, docs]) => (
+                    <GrupoCategoria key={cat} categoria={cat} docs={docs} />
+                  ))}
                 </div>
               </>
             )}

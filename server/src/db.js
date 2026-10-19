@@ -314,6 +314,7 @@ CREATE TABLE IF NOT EXISTS documentos (
   contenido      TEXT,            -- texto de la norma (opcional, si no es un archivo)
   archivo        TEXT,            -- ruta del documento subido (PDF/imagen)
   enlace         TEXT,            -- enlace externo (opcional)
+  fecha          ${T.date},       -- fecha del acta/documento (para filtrar e indexar)
   publicado      INTEGER NOT NULL DEFAULT 1, -- 1 = visible para el propietario
   orden          INTEGER NOT NULL DEFAULT 0, -- orden de presentación
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora},
@@ -463,13 +464,18 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
   );
 }
 
+// Fecha del acta/documento en normas (bases antiguas).
+if (!(await tieneColumna('documentos', 'fecha'))) {
+  await db.exec(`ALTER TABLE documentos ADD COLUMN fecha ${client === 'postgres' ? 'DATE' : 'TEXT'}`);
+}
+
 // Contenido inicial de normas y reglamentos (se crean solo si no existen).
 const { DOCUMENTOS_BASE } = await import('./documentosBase.js');
 for (const d of DOCUMENTOS_BASE) {
   await db.run(
-    `INSERT INTO documentos (titulo, categoria, descripcion, contenido, publicado, orden)
-     SELECT ?, ?, ?, ?, 1, ? WHERE NOT EXISTS (SELECT 1 FROM documentos WHERE titulo = ?)`,
-    [d.titulo, d.categoria, d.descripcion, d.contenido, d.orden, d.titulo]
+    `INSERT INTO documentos (titulo, categoria, descripcion, contenido, fecha, publicado, orden)
+     SELECT ?, ?, ?, ?, ?, 1, ? WHERE NOT EXISTS (SELECT 1 FROM documentos WHERE titulo = ?)`,
+    [d.titulo, d.categoria, d.descripcion, d.contenido, d.fecha || null, d.orden, d.titulo]
   );
 }
 
