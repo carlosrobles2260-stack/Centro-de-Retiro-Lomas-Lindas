@@ -19,6 +19,9 @@ import notificacionesRoutes from './routes/notificaciones.js';
 import tiposIncidenciaRoutes from './routes/tiposIncidencia.js';
 import configuracionRoutes from './routes/configuracion.js';
 import viajesVertederoRoutes from './routes/viajesVertedero.js';
+import vehiculosRoutes from './routes/vehiculos.js';
+import geocercasRoutes from './routes/geocercas.js';
+import gpsRoutes from './routes/gps.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -64,6 +67,10 @@ app.use('/api/incidentes', requiereAuth, incidentesRoutes);
 app.use('/api/tipos-incidencia', requiereAuth, tiposIncidenciaRoutes);
 app.use('/api/configuracion', requiereAuth, configuracionRoutes);
 app.use('/api/viajes-vertedero', requiereAuth, viajesVertederoRoutes);
+app.use('/api/vehiculos', requiereAuth, vehiculosRoutes);
+app.use('/api/geocercas', requiereAuth, geocercasRoutes);
+// GPS: la ingesta es pública (autenticada por token); el router gestiona su propia auth.
+app.use('/api/gps', gpsRoutes);
 app.use('/api/rondas', requiereAuth, rondasRoutes);
 app.use('/api/facturas', requiereAuth, facturasRoutes);
 app.use('/api/gastos', requiereAuth, gastosRoutes);

@@ -10,6 +10,9 @@ import Incidentes from './pages/Incidentes.jsx';
 import TiposIncidencia from './pages/TiposIncidencia.jsx';
 import Rondas from './pages/Rondas.jsx';
 import ViajesVertedero from './pages/ViajesVertedero.jsx';
+import Mapa from './pages/Mapa.jsx';
+import Vehiculos from './pages/Vehiculos.jsx';
+import Geocercas from './pages/Geocercas.jsx';
 import Facturas from './pages/Facturas.jsx';
 import Gastos from './pages/Gastos.jsx';
 import Reportes from './pages/Reportes.jsx';
@@ -35,6 +38,9 @@ export default function App() {
         <Route path="/tipos-incidencia" element={<TiposIncidencia />} />
         <Route path="/rondas" element={<Rondas />} />
         <Route path="/viajes-vertedero" element={<ViajesVertedero />} />
+        <Route path="/mapa" element={<Mapa />} />
+        <Route path="/vehiculos" element={<Vehiculos />} />
+        <Route path="/geocercas" element={<Geocercas />} />
         <Route path="/facturas" element={<Facturas />} />
         <Route path="/gastos" element={<Gastos />} />
         <Route path="/reportes" element={<Reportes />} />

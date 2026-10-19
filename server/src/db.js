@@ -186,6 +186,43 @@ CREATE TABLE IF NOT EXISTS viajes_vertedero (
   registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
+
+-- ===== Vehículos de la asociación (con dispositivo GPS) =====
+CREATE TABLE IF NOT EXISTS vehiculos (
+  id             ${T.id},
+  nombre         TEXT NOT NULL,
+  placa          TEXT,
+  tipo           TEXT DEFAULT 'camion',   -- camion | patrulla | moto | pickup | otro
+  gps_id         TEXT,                    -- IMEI o identificador del dispositivo GPS
+  proveedor_gps  TEXT,                    -- nombre del proveedor/plataforma de rastreo
+  responsable_id INTEGER REFERENCES empleados(id) ON DELETE SET NULL,
+  activo         INTEGER NOT NULL DEFAULT 1,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- ===== Geocercas (zonas: vertedero, puntos de control, etc.) =====
+CREATE TABLE IF NOT EXISTS geocercas (
+  id         ${T.id},
+  nombre     TEXT NOT NULL,
+  tipo       TEXT NOT NULL DEFAULT 'punto_control', -- vertedero | punto_control | otro
+  lat        ${T.num} NOT NULL,
+  lng        ${T.num} NOT NULL,
+  radio_m    ${T.num} NOT NULL DEFAULT 80,  -- radio en metros
+  activo     INTEGER NOT NULL DEFAULT 1,
+  creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- ===== Posiciones reportadas por el GPS de cada vehículo =====
+CREATE TABLE IF NOT EXISTS posiciones_gps (
+  id          ${T.id},
+  vehiculo_id INTEGER NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
+  lat         ${T.num} NOT NULL,
+  lng         ${T.num} NOT NULL,
+  velocidad   ${T.num},   -- km/h
+  rumbo       ${T.num},   -- grados 0-359
+  fecha_hora  ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  creado_en   ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
 `;
 
 // Crea el esquema (idempotente).
@@ -225,6 +262,22 @@ if (!(await tieneColumna('incidentes', 'propietario_id'))) {
 if (!(await tieneColumna('incidentes', 'involucrado'))) {
   await db.exec('ALTER TABLE incidentes ADD COLUMN involucrado TEXT');
 }
+// Columnas para enlazar los registros automáticos del GPS.
+if (!(await tieneColumna('viajes_vertedero', 'vehiculo_id'))) {
+  await db.exec('ALTER TABLE viajes_vertedero ADD COLUMN vehiculo_id INTEGER REFERENCES vehiculos(id)');
+}
+if (!(await tieneColumna('viajes_vertedero', 'origen'))) {
+  await db.exec("ALTER TABLE viajes_vertedero ADD COLUMN origen TEXT DEFAULT 'manual'");
+}
+if (!(await tieneColumna('rondas', 'vehiculo_id'))) {
+  await db.exec('ALTER TABLE rondas ADD COLUMN vehiculo_id INTEGER REFERENCES vehiculos(id)');
+}
+if (!(await tieneColumna('rondas', 'geocerca_id'))) {
+  await db.exec('ALTER TABLE rondas ADD COLUMN geocerca_id INTEGER REFERENCES geocercas(id)');
+}
+if (!(await tieneColumna('rondas', 'origen'))) {
+  await db.exec("ALTER TABLE rondas ADD COLUMN origen TEXT DEFAULT 'manual'");
+}
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {
   await db.run('UPDATE visitantes SET codigo = ? WHERE id = ?', [generarCodigo(), v.id]);
@@ -248,8 +301,13 @@ for (const nombre of TIPOS_INCIDENCIA_BASE) {
   );
 }
 
-// Valores de configuración por defecto (meta de rondas por turno).
-const CONFIG_DEFECTO = { meta_rondas_turno: '6' };
+// Valores de configuración por defecto.
+// - meta_rondas_turno: meta de rondas por turno.
+// - gps_token: clave que el proveedor de GPS usa para enviarnos las posiciones.
+const CONFIG_DEFECTO = {
+  meta_rondas_turno: '6',
+  gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
+};
 for (const [clave, valor] of Object.entries(CONFIG_DEFECTO)) {
   await db.run(
     'INSERT INTO configuracion (clave, valor) SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM configuracion WHERE clave = ?)',

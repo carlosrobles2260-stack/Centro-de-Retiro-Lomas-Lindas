@@ -24,6 +24,14 @@ const MENU = [
     ],
   },
   {
+    grupo: 'Flota y GPS',
+    items: [
+      { a: '/mapa', texto: 'Mapa en tiempo real', roles: ['seguridad', 'administracion'] },
+      { a: '/vehiculos', texto: 'Vehículos', roles: ['administracion'] },
+      { a: '/geocercas', texto: 'Geocercas', roles: ['administracion'] },
+    ],
+  },
+  {
     grupo: 'Administración y finanzas',
     items: [
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion'] },

@@ -182,3 +182,28 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
   .contenido { margin-left: 0; padding: 20px; }
   .app { flex-direction: column; }
 }
+
+/* ===== Mapa en tiempo real (GPS) ===== */
+.mapa-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: stretch; }
+.mapa-lienzo { height: 540px; border-radius: var(--radio); border: 1px solid var(--borde); overflow: hidden; z-index: 0; }
+.mapa-panel { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; overflow-y: auto; max-height: 540px; }
+.mapa-panel h3 { margin: 0 0 10px; font-size: 15px; }
+.veh-fila { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 8px; cursor: pointer; }
+.veh-fila:hover { background: var(--verde-muy-claro); }
+.veh-fila.apagado { opacity: 0.6; cursor: default; }
+.veh-fila.apagado:hover { background: transparent; }
+.veh-emoji { font-size: 22px; }
+.veh-meta { font-size: 12px; color: var(--texto-suave); }
+.veh-sep { margin: 12px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); }
+.veh-pin { font-size: 24px; line-height: 34px; text-align: center; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.simular { margin-top: 16px; }
+.simular-fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.simular-fila select, .simular-fila input { flex: 1; min-width: 120px; }
+.simular-atajos { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--texto-suave); }
+.simular-atajos button { padding: 4px 10px; font-size: 12px; }
+.ok-msg { color: var(--verde); font-size: 13px; margin: 10px 0 0; font-weight: 600; }
+.webhook-url { background: var(--arena); padding: 10px 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--borde); }
+@media (max-width: 760px) {
+  .mapa-layout { grid-template-columns: 1fr; }
+  .mapa-panel { max-height: none; }
+}
