@@ -3,13 +3,6 @@ import { api } from '../lib/api.js';
 import { Badge, fecha } from '../lib/format.jsx';
 import { archivoAImagenBase64 } from '../lib/imagen.js';
 
-const TIPOS = [
-  { valor: 'acceso', label: 'Control de acceso' },
-  { valor: 'robo', label: 'Robo / hurto' },
-  { valor: 'emergencia', label: 'Emergencia' },
-  { valor: 'daño', label: 'Daño a la propiedad' },
-  { valor: 'otro', label: 'Otro' },
-];
 const GRAVEDADES = ['baja', 'media', 'alta', 'critica'];
 const ESTADOS = ['abierto', 'en_proceso', 'cerrado'];
 const INVOLUCRADOS = [
@@ -25,6 +18,7 @@ export default function Incidentes() {
   const [filas, setFilas] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [propietarios, setPropietarios] = useState([]);
+  const [tipos, setTipos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar
   const [filtroEstado, setFiltroEstado] = useState('');
@@ -43,6 +37,7 @@ export default function Incidentes() {
   useEffect(() => {
     api.get('/empleados').then(setEmpleados).catch(() => {});
     api.get('/propietarios').then(setPropietarios).catch(() => {});
+    api.get('/tipos-incidencia?activos=1').then(setTipos).catch(() => {});
   }, []);
 
   async function eliminar(f) {
@@ -123,6 +118,7 @@ export default function Incidentes() {
           incidente={modal}
           empleados={empleados}
           propietarios={propietarios}
+          tipos={tipos}
           onCerrar={() => setModal(null)}
           onGuardado={() => { setModal(null); cargar(); }}
         />
@@ -131,10 +127,10 @@ export default function Incidentes() {
   );
 }
 
-function ModalIncidente({ incidente, empleados, propietarios, onCerrar, onGuardado }) {
+function ModalIncidente({ incidente, empleados, propietarios, tipos, onCerrar, onGuardado }) {
   const esNuevo = !incidente.id;
   const [datos, setDatos] = useState({
-    tipo: incidente.tipo || 'otro',
+    tipo: incidente.tipo || tipos[0]?.nombre || '',
     involucrado: incidente.involucrado || '',
     gravedad: incidente.gravedad || 'baja',
     estado: incidente.estado || 'abierto',
@@ -193,7 +189,9 @@ function ModalIncidente({ incidente, empleados, propietarios, onCerrar, onGuarda
           <div className="campo">
             <label>Tipo</label>
             <select value={datos.tipo} onChange={(e) => set('tipo', e.target.value)}>
-              {TIPOS.map((t) => <option key={t.valor} value={t.valor}>{t.label}</option>)}
+              {/* Si el tipo guardado ya no está en el catálogo, se muestra igual. */}
+              {datos.tipo && !tipos.some((t) => t.nombre === datos.tipo) && <option value={datos.tipo}>{datos.tipo}</option>}
+              {tipos.map((t) => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
             </select>
           </div>
           <div className="campo">

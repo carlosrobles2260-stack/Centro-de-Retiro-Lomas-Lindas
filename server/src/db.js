@@ -87,6 +87,13 @@ CREATE TABLE IF NOT EXISTS visitas (
   creado_en       ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
+CREATE TABLE IF NOT EXISTS tipos_incidencia (
+  id        ${T.id},
+  nombre    TEXT NOT NULL UNIQUE,
+  activo    INTEGER NOT NULL DEFAULT 1,
+  creado_en ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
 CREATE TABLE IF NOT EXISTS incidentes (
   id             ${T.id},
   fecha          ${T.ts} NOT NULL DEFAULT ${T.ahora},
@@ -202,6 +209,24 @@ if (!(await tieneColumna('incidentes', 'involucrado'))) {
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {
   await db.run('UPDATE visitantes SET codigo = ? WHERE id = ?', [generarCodigo(), v.id]);
+}
+
+// Catálogo base de tipos de incidencia (se crean solo si no existen).
+const TIPOS_INCIDENCIA_BASE = [
+  'Producción de ruidos',
+  'Riñas',
+  'Accidente',
+  'Robo',
+  'Violación de propiedad',
+  'Verter residuos sólidos',
+  'Quema de basura',
+  'Otro',
+];
+for (const nombre of TIPOS_INCIDENCIA_BASE) {
+  await db.run(
+    'INSERT INTO tipos_incidencia (nombre) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM tipos_incidencia WHERE nombre = ?)',
+    [nombre, nombre]
+  );
 }
 
 export function generarCodigo() {

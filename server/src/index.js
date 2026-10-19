@@ -16,6 +16,7 @@ import gastosRoutes from './routes/gastos.js';
 import dashboardRoutes from './routes/dashboard.js';
 import reportesRoutes from './routes/reportes.js';
 import notificacionesRoutes from './routes/notificaciones.js';
+import tiposIncidenciaRoutes from './routes/tiposIncidencia.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -58,6 +59,7 @@ app.use('/api/propietarios', requiereAuth, propietariosRoutes);
 app.use('/api/visitantes', requiereAuth, visitantesRoutes);
 app.use('/api/visitas', requiereAuth, visitasRoutes);
 app.use('/api/incidentes', requiereAuth, incidentesRoutes);
+app.use('/api/tipos-incidencia', requiereAuth, tiposIncidenciaRoutes);
 app.use('/api/rondas', requiereAuth, rondasRoutes);
 app.use('/api/facturas', requiereAuth, facturasRoutes);
 app.use('/api/gastos', requiereAuth, gastosRoutes);

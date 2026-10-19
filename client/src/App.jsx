@@ -7,6 +7,7 @@ import Visitas from './pages/Visitas.jsx';
 import Propietarios from './pages/Propietarios.jsx';
 import Visitantes from './pages/Visitantes.jsx';
 import Incidentes from './pages/Incidentes.jsx';
+import TiposIncidencia from './pages/TiposIncidencia.jsx';
 import Rondas from './pages/Rondas.jsx';
 import Facturas from './pages/Facturas.jsx';
 import Gastos from './pages/Gastos.jsx';
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/propietarios" element={<Propietarios />} />
         <Route path="/visitantes" element={<Visitantes />} />
         <Route path="/incidentes" element={<Incidentes />} />
+        <Route path="/tipos-incidencia" element={<TiposIncidencia />} />
         <Route path="/rondas" element={<Rondas />} />
         <Route path="/facturas" element={<Facturas />} />
         <Route path="/gastos" element={<Gastos />} />

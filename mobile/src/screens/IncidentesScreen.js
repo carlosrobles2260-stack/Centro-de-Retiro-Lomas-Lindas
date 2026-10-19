@@ -9,7 +9,6 @@ import { API_URL } from '../config';
 import { colores } from '../theme';
 import { Badge, fechaHora } from '../components/ui';
 
-const TIPOS = ['acceso', 'robo', 'emergencia', 'daño', 'otro'];
 const GRAVEDADES = ['baja', 'media', 'alta', 'critica'];
 const INVOLUCRADOS = ['visitante', 'propietario', 'empleado', 'seguridad', 'otro'];
 
@@ -71,7 +70,8 @@ export default function IncidentesScreen() {
 }
 
 function FormIncidente({ onCerrar, onGuardado }) {
-  const [tipo, setTipo] = useState('otro');
+  const [tipos, setTipos] = useState([]);
+  const [tipo, setTipo] = useState('');
   const [involucrado, setInvolucrado] = useState('');
   const [gravedad, setGravedad] = useState('baja');
   const [descripcion, setDescripcion] = useState('');
@@ -88,6 +88,10 @@ function FormIncidente({ onCerrar, onGuardado }) {
   useEffect(() => {
     api.get('/empleados').then(setEmpleados).catch(() => {});
     api.get('/propietarios').then(setPropietarios).catch(() => {});
+    api.get('/tipos-incidencia?activos=1').then((ts) => {
+      setTipos(ts);
+      setTipo((prev) => prev || ts[0]?.nombre || '');
+    }).catch(() => {});
   }, []);
 
   function elegirPropietario(p) {
@@ -127,7 +131,7 @@ function FormIncidente({ onCerrar, onGuardado }) {
       <Text style={styles.formTitulo}>Reportar incidente</Text>
 
       <Text style={styles.label}>Tipo</Text>
-      <Chips opciones={TIPOS} valor={tipo} onElegir={setTipo} />
+      <Chips opciones={tipos.map((t) => t.nombre)} valor={tipo} onElegir={setTipo} />
 
       <Text style={styles.label}>¿Con quién fue el incidente?</Text>
       <Chips opciones={INVOLUCRADOS} valor={involucrado} onElegir={setInvolucrado} />
