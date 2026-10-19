@@ -187,6 +187,19 @@ CREATE TABLE IF NOT EXISTS viajes_vertedero (
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
+-- ===== Empleados particulares de cada propietario (servicio doméstico, etc.) =====
+CREATE TABLE IF NOT EXISTS empleados_propietario (
+  id             ${T.id},
+  propietario_id INTEGER NOT NULL REFERENCES propietarios(id) ON DELETE CASCADE,
+  nombre         TEXT NOT NULL,
+  puesto         TEXT,       -- empleada doméstica | jardinero | cuidador | motorista | otro
+  documento      TEXT,
+  telefono       TEXT,
+  codigo         TEXT,       -- código de la credencial de acceso
+  activo         INTEGER NOT NULL DEFAULT 1,
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
 -- ===== Vehículos de la asociación (con dispositivo GPS) =====
 CREATE TABLE IF NOT EXISTS vehiculos (
   id             ${T.id},
@@ -288,6 +301,19 @@ if (!(await tieneColumna('propietarios', 'tipo_propiedad'))) {
 }
 if (!(await tieneColumna('propietarios', 'fotos_propiedad'))) {
   await db.exec('ALTER TABLE propietarios ADD COLUMN fotos_propiedad TEXT');
+}
+// Token para el enlace privado del estado de cuenta del propietario.
+if (!(await tieneColumna('propietarios', 'token_cuenta'))) {
+  await db.exec('ALTER TABLE propietarios ADD COLUMN token_cuenta TEXT');
+}
+// Enlace de un usuario con su propietario (acceso del propietario con contraseña).
+if (!(await tieneColumna('usuarios', 'propietario_id'))) {
+  await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
+}
+// Genera el token de cuenta para los propietarios que aún no lo tienen.
+const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
+for (const p of sinToken) {
+  await db.run('UPDATE propietarios SET token_cuenta = ? WHERE id = ?', [generarCodigo() + generarCodigo().slice(3), p.id]);
 }
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {

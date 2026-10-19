@@ -1,9 +1,13 @@
 import { Router } from 'express';
-import db from '../db.js';
+import bcrypt from 'bcryptjs';
+import db, { generarCodigo } from '../db.js';
 import { ah } from '../async.js';
+import { requiereRol } from '../auth.js';
 import { guardarImagenBase64 } from '../fotos.js';
 
 const router = Router();
+
+const nuevoToken = () => generarCodigo() + generarCodigo().slice(3);
 
 const CAMPOS = ['nombre', 'propiedad', 'tipo_propiedad', 'carnet', 'documento', 'telefono', 'email', 'direccion', 'activo'];
 
@@ -30,9 +34,13 @@ function soloCampos(body) {
   return datos;
 }
 
-// Listar
+// Listar (incluye el correo de acceso del propietario si tiene usuario con contraseña)
 router.get('/', ah(async (req, res) => {
-  const filas = await db.all('SELECT * FROM propietarios ORDER BY nombre');
+  const filas = await db.all(`
+    SELECT p.*,
+           (SELECT email FROM usuarios u WHERE u.propietario_id = p.id AND u.rol = 'propietario' AND u.activo = 1 LIMIT 1) AS acceso_email
+    FROM propietarios p ORDER BY p.nombre
+  `);
   res.json(filas.map(conFotos));
 }));
 
@@ -48,6 +56,7 @@ router.post('/', ah(async (req, res) => {
   const datos = soloCampos(req.body);
   if (!datos.nombre) return res.status(400).json({ error: 'El nombre es obligatorio' });
   datos.fotos_propiedad = JSON.stringify(resolverFotos(req.body, []));
+  datos.token_cuenta = nuevoToken(); // enlace privado del estado de cuenta
 
   const columnas = Object.keys(datos);
   const marcadores = columnas.map(() => '?').join(', ');
@@ -80,6 +89,39 @@ router.delete('/:id', ah(async (req, res) => {
   const info = await db.run('DELETE FROM propietarios WHERE id = ?', [req.params.id]);
   if (info.changes === 0) return res.status(404).json({ error: 'No encontrado' });
   res.json({ ok: true });
+}));
+
+// Crear o restablecer el acceso con contraseña del propietario (admin/administración).
+router.post('/:id/acceso', requiereRol('admin', 'administracion'), ah(async (req, res) => {
+  const prop = await db.get('SELECT * FROM propietarios WHERE id = ?', [req.params.id]);
+  if (!prop) return res.status(404).json({ error: 'Propietario no encontrado' });
+
+  const email = String(req.body?.email || prop.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Se requiere un correo para crear el acceso' });
+
+  const password = 'LL' + Math.random().toString(36).slice(2, 8); // contraseña temporal
+  const hash = bcrypt.hashSync(password, 10);
+
+  const existente = await db.get("SELECT * FROM usuarios WHERE propietario_id = ? AND rol = 'propietario' LIMIT 1", [prop.id]);
+  if (existente) {
+    const dup = await db.get('SELECT id FROM usuarios WHERE email = ? AND id <> ?', [email, existente.id]);
+    if (dup) return res.status(409).json({ error: 'Ya existe otro usuario con ese correo' });
+    await db.run('UPDATE usuarios SET nombre = ?, email = ?, password = ?, activo = 1 WHERE id = ?', [prop.nombre, email, hash, existente.id]);
+  } else {
+    const dup = await db.get('SELECT id FROM usuarios WHERE email = ?', [email]);
+    if (dup) return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+    await db.run("INSERT INTO usuarios (nombre, email, password, rol, propietario_id) VALUES (?, ?, ?, 'propietario', ?)", [prop.nombre, email, hash, prop.id]);
+  }
+  res.json({ ok: true, email, password });
+}));
+
+// Regenerar el enlace privado del estado de cuenta (invalida el anterior).
+router.post('/:id/regenerar-enlace', requiereRol('admin', 'administracion'), ah(async (req, res) => {
+  const prop = await db.get('SELECT id FROM propietarios WHERE id = ?', [req.params.id]);
+  if (!prop) return res.status(404).json({ error: 'Propietario no encontrado' });
+  const token = nuevoToken();
+  await db.run('UPDATE propietarios SET token_cuenta = ? WHERE id = ?', [token, prop.id]);
+  res.json({ token_cuenta: token });
 }));
 
 // Visitantes asociados a un propietario

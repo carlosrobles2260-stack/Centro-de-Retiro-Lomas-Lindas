@@ -16,6 +16,7 @@ const MENU = [
       { a: '/visitas', texto: 'Registro de visitas', roles: ['seguridad'] },
       { a: '/propietarios', texto: 'Propietarios', roles: ['seguridad', 'administracion'] },
       { a: '/visitantes', texto: 'Visitantes', roles: ['seguridad', 'administracion'] },
+      { a: '/empleados-propietario', texto: 'Empleados de propietarios', roles: ['administracion'] },
       { a: '/incidentes', texto: 'Incidentes', roles: ['seguridad'] },
       { a: '/tipos-incidencia', texto: 'Tipos de incidencia', roles: ['administracion'] },
       { a: '/rondas', texto: 'Rondas de vigilancia', roles: ['seguridad'] },

@@ -22,6 +22,8 @@ import viajesVertederoRoutes from './routes/viajesVertedero.js';
 import vehiculosRoutes from './routes/vehiculos.js';
 import geocercasRoutes from './routes/geocercas.js';
 import gpsRoutes from './routes/gps.js';
+import miCuentaRoutes from './routes/miCuenta.js';
+import empleadosPropietarioRoutes from './routes/empleadosPropietario.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -40,16 +42,39 @@ app.get('/credencial/:codigo', async (req, res) => {
   try {
     const { default: db } = await import('./db.js');
     const { generarQrDataUrl, paginaCredencialHTML } = await import('./credencial.js');
-    const v = await db.get(
+    let v = await db.get(
       `SELECT v.*, p.nombre AS propietario_nombre FROM visitantes v
        LEFT JOIN propietarios p ON p.id = v.propietario_id WHERE v.codigo = ?`,
       [req.params.codigo]
     );
+    // Si no es un visitante, puede ser un empleado del propietario.
+    if (!v) {
+      const e = await db.get(
+        `SELECT e.*, p.nombre AS propietario_nombre FROM empleados_propietario e
+         LEFT JOIN propietarios p ON p.id = e.propietario_id WHERE e.codigo = ?`,
+        [req.params.codigo]
+      );
+      if (e) v = { ...e, tipo: e.puesto || 'empleado' };
+    }
     if (!v) return res.status(404).send('<h1>Credencial no encontrada</h1>');
     const qr = await generarQrDataUrl(v.codigo);
     res.type('html').send(paginaCredencialHTML(v, qr));
   } catch (e) {
     res.status(500).send('Error al generar la credencial');
+  }
+});
+
+// Página pública del estado de cuenta del propietario (enlace privado por token).
+app.get('/cuenta/:token', async (req, res) => {
+  try {
+    const { default: db } = await import('./db.js');
+    const { datosCuenta, paginaCuentaHTML } = await import('./cuenta.js');
+    const p = await db.get('SELECT * FROM propietarios WHERE token_cuenta = ?', [req.params.token]);
+    if (!p) return res.status(404).send('<h1>Estado de cuenta no encontrado</h1>');
+    const datos = await datosCuenta(p.id);
+    res.type('html').send(paginaCuentaHTML(p, datos));
+  } catch (e) {
+    res.status(500).send('Error al generar el estado de cuenta');
   }
 });
 
@@ -61,6 +86,8 @@ app.use('/api/dashboard', requiereAuth, dashboardRoutes);
 app.use('/api/empleados', requiereAuth, empleadosRoutes);
 app.use('/api/turnos', requiereAuth, turnosRoutes);
 app.use('/api/propietarios', requiereAuth, propietariosRoutes);
+app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);
+app.use('/api/mi-cuenta', requiereAuth, miCuentaRoutes);
 app.use('/api/visitantes', requiereAuth, visitantesRoutes);
 app.use('/api/visitas', requiereAuth, visitasRoutes);
 app.use('/api/incidentes', requiereAuth, incidentesRoutes);

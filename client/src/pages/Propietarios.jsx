@@ -13,6 +13,7 @@ export default function Propietarios() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar
+  const [acceso, setAcceso] = useState(null); // resultado de crear/restablecer acceso
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -26,6 +27,26 @@ export default function Propietarios() {
     if (!confirm('¿Eliminar este propietario? Esta acción no se puede deshacer.')) return;
     await api.del(`/propietarios/${f.id}`);
     cargar();
+  }
+
+  function verCuenta(p) {
+    window.open(`/cuenta/${p.token_cuenta}`, '_blank');
+  }
+
+  async function copiarEnlace(p) {
+    const url = `${window.location.origin}/cuenta/${p.token_cuenta}`;
+    try { await navigator.clipboard.writeText(url); alert('Enlace copiado:\n' + url); }
+    catch { prompt('Copia el enlace del estado de cuenta:', url); }
+  }
+
+  async function crearAcceso(p) {
+    const verbo = p.acceso_email ? 'restablecer la contraseña del' : 'crear el';
+    if (!confirm(`¿Deseas ${verbo} acceso con contraseña para ${p.nombre}?`)) return;
+    try {
+      const r = await api.post(`/propietarios/${p.id}/acceso`, {});
+      setAcceso({ nombre: p.nombre, ...r });
+      cargar();
+    } catch (e) { alert('Error: ' + e.message); }
   }
 
   return (
@@ -53,7 +74,10 @@ export default function Propietarios() {
             <tbody>
               {filas.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.nombre}</td>
+                  <td>
+                    {p.nombre}
+                    {p.acceso_email && <div style={{ fontSize: 12, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
+                  </td>
                   <td>{p.carnet || '—'}</td>
                   <td>
                     {p.propiedad || '—'}
@@ -75,6 +99,9 @@ export default function Propietarios() {
                   <td><Badge estado={p.activo ? 'normal' : 'gris'} /></td>
                   <td>
                     <div className="acciones">
+                      <button className="secundario" onClick={() => verCuenta(p)} title="Abrir el estado de cuenta">Cuenta</button>
+                      <button className="secundario" onClick={() => copiarEnlace(p)} title="Copiar el enlace privado">Enlace</button>
+                      <button className="secundario" onClick={() => crearAcceso(p)} title="Crear o restablecer el acceso con contraseña">{p.acceso_email ? 'Restablecer' : 'Acceso'}</button>
                       <button className="secundario" onClick={() => setModal(p)}>Editar</button>
                       <button className="peligro" onClick={() => eliminar(p)}>Eliminar</button>
                     </div>
@@ -92,6 +119,21 @@ export default function Propietarios() {
           onCerrar={() => setModal(null)}
           onGuardado={() => { setModal(null); cargar(); }}
         />
+      )}
+
+      {acceso && (
+        <div className="modal-fondo" onClick={() => setAcceso(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Acceso del propietario</h3>
+            <p className="descripcion">Entrega estos datos a <strong>{acceso.nombre}</strong>. Podrá iniciar sesión en el sistema y ver solo su estado de cuenta.</p>
+            <div className="campo"><label>Correo (usuario)</label><input readOnly value={acceso.email} /></div>
+            <div className="campo"><label>Contraseña temporal</label><input readOnly value={acceso.password} /></div>
+            <p className="descripcion">Se recomienda que el propietario cambie la contraseña. Puedes restablecerla en cualquier momento.</p>
+            <div className="pie-modal">
+              <button onClick={() => setAcceso(null)}>Entendido</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

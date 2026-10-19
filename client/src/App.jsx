@@ -13,6 +13,8 @@ import ViajesVertedero from './pages/ViajesVertedero.jsx';
 import Mapa from './pages/Mapa.jsx';
 import Vehiculos from './pages/Vehiculos.jsx';
 import Geocercas from './pages/Geocercas.jsx';
+import MiCuenta from './pages/MiCuenta.jsx';
+import EmpleadosPropietario from './pages/EmpleadosPropietario.jsx';
 import Facturas from './pages/Facturas.jsx';
 import Gastos from './pages/Gastos.jsx';
 import Reportes from './pages/Reportes.jsx';
@@ -27,12 +29,16 @@ export default function App() {
   if (cargando) return <div className="cargando" style={{ marginTop: 80 }}>Cargando...</div>;
   if (!usuario) return <Login />;
 
+  // El propietario solo ve su estado de cuenta.
+  if (usuario.rol === 'propietario') return <MiCuenta />;
+
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/visitas" element={<Visitas />} />
         <Route path="/propietarios" element={<Propietarios />} />
+        <Route path="/empleados-propietario" element={<EmpleadosPropietario />} />
         <Route path="/visitantes" element={<Visitantes />} />
         <Route path="/incidentes" element={<Incidentes />} />
         <Route path="/tipos-incidencia" element={<TiposIncidencia />} />

@@ -43,6 +43,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:4000',
       '/credencial': 'http://localhost:4000',
+      '/cuenta': 'http://localhost:4000',
       '/uploads': 'http://localhost:4000',
     },
   },

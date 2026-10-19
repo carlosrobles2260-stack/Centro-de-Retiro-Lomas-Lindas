@@ -216,3 +216,21 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .foto-item img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--borde); }
 .foto-item button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--rojo); color: #fff; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; }
 .foto-item button:hover { background: #a93226; }
+
+/* ===== Vista "Mi cuenta" del propietario ===== */
+.micuenta { min-height: 100vh; background: var(--arena); }
+.mc-top { background: var(--verde); color: #fff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mc-marca { display: flex; align-items: center; gap: 12px; }
+.mc-marca img { width: 40px; height: 40px; background: #fff; border-radius: 10px; padding: 3px; }
+.mc-marca strong { display: block; line-height: 1.1; }
+.mc-marca span { font-size: 12px; opacity: .85; }
+.mc-user { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.mc-main { max-width: 760px; margin: 0 auto; padding: 22px 16px 40px; }
+.mc-main h2 { font-size: 16px; margin: 26px 0 10px; }
+.mc-saldo { text-align: center; padding: 24px; }
+.mc-saldo .etiqueta { color: var(--texto-suave); font-size: 13px; }
+.mc-monto { font-size: 38px; font-weight: 800; margin: 6px 0; }
+.mc-monto.rojo { color: var(--rojo); }
+.mc-monto.verde { color: var(--verde); }
+.mc-nota { color: var(--texto-suave); font-size: 13px; }
+.mc-pie { color: var(--texto-suave); font-size: 13px; margin-top: 24px; text-align: center; }

@@ -4,7 +4,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cambia-este-secreto-en-produccion'
 
 export function firmarToken(usuario) {
   return jwt.sign(
-    { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+    { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol, propietario_id: usuario.propietario_id ?? null },
     JWT_SECRET,
     { expiresIn: '12h' }
   );
