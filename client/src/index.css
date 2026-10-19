@@ -211,3 +211,8 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .sync-check input { width: auto; }
 .sync-fila { display: flex; gap: 12px; flex-wrap: wrap; }
 .sync-botones { display: flex; gap: 10px; margin-top: 12px; }
+.galeria-fotos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.foto-item { position: relative; width: 84px; height: 84px; }
+.foto-item img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--borde); }
+.foto-item button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--rojo); color: #fff; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.foto-item button:hover { background: #a93226; }

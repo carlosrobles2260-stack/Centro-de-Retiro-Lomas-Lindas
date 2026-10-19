@@ -278,6 +278,17 @@ if (!(await tieneColumna('rondas', 'geocerca_id'))) {
 if (!(await tieneColumna('rondas', 'origen'))) {
   await db.exec("ALTER TABLE rondas ADD COLUMN origen TEXT DEFAULT 'manual'");
 }
+// Datos adicionales del propietario: número de carnet, tipo de propiedad
+// (solar / residencia) y fotos del frente de la propiedad (JSON de rutas).
+if (!(await tieneColumna('propietarios', 'carnet'))) {
+  await db.exec('ALTER TABLE propietarios ADD COLUMN carnet TEXT');
+}
+if (!(await tieneColumna('propietarios', 'tipo_propiedad'))) {
+  await db.exec('ALTER TABLE propietarios ADD COLUMN tipo_propiedad TEXT');
+}
+if (!(await tieneColumna('propietarios', 'fotos_propiedad'))) {
+  await db.exec('ALTER TABLE propietarios ADD COLUMN fotos_propiedad TEXT');
+}
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {
   await db.run('UPDATE visitantes SET codigo = ? WHERE id = ?', [generarCodigo(), v.id]);
