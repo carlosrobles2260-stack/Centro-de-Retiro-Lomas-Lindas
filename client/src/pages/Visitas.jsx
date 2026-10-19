@@ -31,6 +31,7 @@ export default function Visitas() {
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(false);
   const [visitantePre, setVisitantePre] = useState(null); // visitante preseleccionado por QR
+  const [empleadoAcceso, setEmpleadoAcceso] = useState(null); // empleado del propietario escaneado
   const [escaneando, setEscaneando] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
@@ -49,13 +50,20 @@ export default function Visitas() {
 
   async function alEscanear(codigo) {
     setEscaneando(false);
+    // 1) ¿Es un visitante?
     try {
       const visitante = await api.get(`/visitantes/codigo/${encodeURIComponent(codigo)}`);
       setVisitantePre(visitante);
       setModal(true);
-    } catch {
-      alert(`No se encontró ningún visitante con el código "${codigo}". Regístralo en la sección Visitantes.`);
-    }
+      return;
+    } catch { /* intentar con empleado del propietario */ }
+    // 2) ¿Es un empleado del propietario?
+    try {
+      const empleado = await api.get(`/empleados-propietario/codigo/${encodeURIComponent(codigo)}`);
+      setEmpleadoAcceso(empleado);
+      return;
+    } catch { /* no encontrado */ }
+    alert(`No se encontró ninguna credencial con el código "${codigo}".`);
   }
 
   async function cambiarEstado(visita, estado) {
@@ -137,6 +145,12 @@ export default function Visitas() {
       </div>
 
       {escaneando && <EscanerQR onDetectado={alEscanear} onCerrar={() => setEscaneando(false)} />}
+      {empleadoAcceso && (
+        <ModalAccesoEmpleado
+          empleado={empleadoAcceso}
+          onCerrar={() => setEmpleadoAcceso(null)}
+        />
+      )}
       {modal && (
         <ModalVisita
           visitantePre={visitantePre}
@@ -144,6 +158,66 @@ export default function Visitas() {
           onGuardado={() => { setModal(false); setVisitantePre(null); cargar(); }}
         />
       )}
+    </div>
+  );
+}
+
+const PUESTO = { domestica: 'Empleada doméstica', jardinero: 'Jardinero', cuidador: 'Cuidador', motorista: 'Motorista', otro: 'Otro' };
+
+// Registro de entrada/salida de un empleado del propietario escaneado.
+function ModalAccesoEmpleado({ empleado, onCerrar }) {
+  const [guardando, setGuardando] = useState(null); // 'entrada' | 'salida'
+  const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function registrar(tipo) {
+    setGuardando(tipo);
+    setError(null);
+    try {
+      const r = await api.post('/empleados-propietario/acceso', { codigo: empleado.codigo, tipo });
+      setResultado(r.tipo);
+    } catch (e) {
+      setError(e.message);
+      setGuardando(null);
+    }
+  }
+
+  const sugerido = empleado.sugerido || 'entrada';
+
+  return (
+    <div className="modal-fondo" onClick={onCerrar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Acceso de empleado</h3>
+        <div className="card" style={{ background: 'var(--verde-muy-claro)', borderColor: 'var(--verde-claro)', marginBottom: 14, padding: 12 }}>
+          👷 <strong>{empleado.nombre}</strong> · {PUESTO[empleado.puesto] || empleado.puesto || 'Empleado'}
+          <div style={{ fontSize: 13, color: 'var(--texto-suave)', marginTop: 4 }}>
+            {empleado.propietario_nombre ? `Propietario: ${empleado.propietario_nombre}` : ''}
+            {empleado.propiedad ? ` · ${empleado.propiedad}` : ''}
+            {empleado.carnet ? ` · Carné ${empleado.carnet}` : ''}
+          </div>
+        </div>
+
+        {resultado ? (
+          <>
+            <p className="ok-msg">✓ {resultado === 'entrada' ? 'Entrada' : 'Salida'} registrada para {empleado.nombre}.</p>
+            <div className="pie-modal"><button onClick={onCerrar}>Cerrar</button></div>
+          </>
+        ) : (
+          <>
+            <p className="descripcion">¿Qué movimiento registras?</p>
+            {error && <p className="error">{error}</p>}
+            <div className="acciones" style={{ gap: 10 }}>
+              <button onClick={() => registrar('entrada')} disabled={!!guardando}>
+                {guardando === 'entrada' ? 'Registrando...' : `⬇️ Entrada${sugerido === 'entrada' ? ' (sugerido)' : ''}`}
+              </button>
+              <button className="secundario" onClick={() => registrar('salida')} disabled={!!guardando}>
+                {guardando === 'salida' ? 'Registrando...' : `⬆️ Salida${sugerido === 'salida' ? ' (sugerido)' : ''}`}
+              </button>
+              <button className="secundario" onClick={onCerrar}>Cancelar</button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

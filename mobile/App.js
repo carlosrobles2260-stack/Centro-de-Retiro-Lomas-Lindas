@@ -12,6 +12,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import VisitasScreen from './src/screens/VisitasScreen';
 import EscanerScreen from './src/screens/EscanerScreen';
 import RegistrarVisitaScreen from './src/screens/RegistrarVisitaScreen';
+import AccesoEmpleadoScreen from './src/screens/AccesoEmpleadoScreen';
 import IncidentesScreen from './src/screens/IncidentesScreen';
 import RondasScreen from './src/screens/RondasScreen';
 import VertederoScreen from './src/screens/VertederoScreen';
@@ -34,6 +35,7 @@ function VisitasStack() {
       <Stack.Screen name="Visitas" component={VisitasScreen} options={{ title: 'Registro de visitas' }} />
       <Stack.Screen name="Escanear" component={EscanerScreen} options={{ title: 'Escanear credencial' }} />
       <Stack.Screen name="RegistrarVisita" component={RegistrarVisitaScreen} options={{ title: 'Registrar visita' }} />
+      <Stack.Screen name="AccesoEmpleado" component={AccesoEmpleadoScreen} options={{ title: 'Acceso de empleado' }} />
     </Stack.Navigator>
   );
 }

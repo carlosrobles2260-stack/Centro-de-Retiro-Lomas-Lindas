@@ -13,16 +13,22 @@ export default function EscanerScreen({ navigation }) {
     if (yaLeido.current || buscando) return;
     yaLeido.current = true;
     setBuscando(true);
+    const codigo = String(data).trim();
+    // 1) ¿Es un visitante? 2) ¿Es un empleado del propietario?
     try {
-      const codigo = String(data).trim();
       const visitante = await api.get(`/visitantes/codigo/${encodeURIComponent(codigo)}`);
       navigation.replace('RegistrarVisita', { visitante });
-    } catch (e) {
-      // Permite reintentar tras un breve margen.
-      setBuscando(false);
-      setTimeout(() => { yaLeido.current = false; }, 1500);
-      alert(e.message || 'Credencial no encontrada');
-    }
+      return;
+    } catch (_) { /* intentar con empleado del propietario */ }
+    try {
+      const empleado = await api.get(`/empleados-propietario/codigo/${encodeURIComponent(codigo)}`);
+      navigation.replace('AccesoEmpleado', { empleado });
+      return;
+    } catch (_) { /* no encontrado */ }
+    // Permite reintentar tras un breve margen.
+    setBuscando(false);
+    setTimeout(() => { yaLeido.current = false; }, 1500);
+    alert('Credencial no encontrada');
   }
 
   if (!permiso) {

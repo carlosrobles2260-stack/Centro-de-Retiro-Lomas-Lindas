@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { api } from '../lib/api.js';
+import { fechaHora } from '../lib/format.jsx';
 import CrudModule from '../components/CrudModule.jsx';
 
 const PUESTOS = [
@@ -11,6 +14,7 @@ const etiquetaPuesto = (v) => PUESTOS.find((p) => p.valor === v)?.label || v || 
 
 export default function EmpleadosPropietario() {
   return (
+    <div>
     <CrudModule
       titulo="Empleados de propietarios"
       descripcion="Trabajadores particulares de cada propietario (empleada doméstica, jardinero, cuidador, motorista). Cada uno recibe una credencial de acceso."
@@ -37,5 +41,38 @@ export default function EmpleadosPropietario() {
         { name: 'telefono', label: 'Teléfono' },
       ]}
     />
+    <BitacoraAccesos />
+    </div>
+  );
+}
+
+// Bitácora de entradas y salidas de empleados registradas en el portón.
+function BitacoraAccesos() {
+  const [accesos, setAccesos] = useState([]);
+  useEffect(() => { api.get('/empleados-propietario/accesos').then(setAccesos).catch(() => {}); }, []);
+  if (accesos.length === 0) return null;
+  return (
+    <div style={{ marginTop: 28 }}>
+      <h2>Accesos recientes</h2>
+      <p className="descripcion">Entradas y salidas de empleados registradas al escanear su credencial en el portón.</p>
+      <div className="tabla-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha y hora</th><th>Empleado</th><th>Propietario</th><th>Movimiento</th><th>Registró</th></tr>
+          </thead>
+          <tbody>
+            {accesos.map((a) => (
+              <tr key={a.id}>
+                <td>{fechaHora(a.fecha_hora)}</td>
+                <td>{a.empleado_nombre}</td>
+                <td>{a.propietario_nombre || '—'}</td>
+                <td><span className={`badge ${a.tipo === 'entrada' ? 'verde' : 'amarillo'}`}>{a.tipo}</span></td>
+                <td>{a.registrado_por_nombre || '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

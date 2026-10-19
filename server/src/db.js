@@ -201,6 +201,16 @@ CREATE TABLE IF NOT EXISTS empleados_propietario (
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
+-- ===== Registro de accesos (entrada/salida) de los empleados del propietario =====
+CREATE TABLE IF NOT EXISTS accesos_empleado (
+  id             ${T.id},
+  empleado_id    INTEGER NOT NULL REFERENCES empleados_propietario(id) ON DELETE CASCADE,
+  propietario_id INTEGER REFERENCES propietarios(id) ON DELETE SET NULL,
+  tipo           TEXT NOT NULL DEFAULT 'entrada', -- entrada | salida
+  fecha_hora     ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  registrado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
 -- ===== Vehículos de la asociación (con dispositivo GPS) =====
 CREATE TABLE IF NOT EXISTS vehiculos (
   id             ${T.id},
