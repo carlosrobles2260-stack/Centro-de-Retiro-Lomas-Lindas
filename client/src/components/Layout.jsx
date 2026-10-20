@@ -51,6 +51,12 @@ const MENU = [
     ],
   },
   {
+    grupo: 'Gobernanza',
+    items: [
+      { a: '/elecciones', texto: 'Elecciones de la Directiva', roles: ['administracion', 'presidente'] },
+    ],
+  },
+  {
     grupo: 'Personal',
     items: [
       { a: '/empleados', texto: 'Empleados', roles: ['administracion'] },

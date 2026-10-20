@@ -31,6 +31,7 @@ import accionesPersonalRoutes from './routes/accionesPersonal.js';
 import nominaRoutes from './routes/nomina.js';
 import documentosRoutes from './routes/documentos.js';
 import accesoRoutes from './routes/acceso.js';
+import eleccionesRoutes from './routes/elecciones.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -112,6 +113,7 @@ app.use('/api/acciones-personal', requiereAuth, requiereRol('administracion'), a
 app.use('/api/nomina', requiereAuth, requiereRol('administracion'), nominaRoutes);
 app.use('/api/documentos', requiereAuth, requiereRol('administracion', 'presidente'), documentosRoutes);
 app.use('/api/acceso', requiereAuth, accesoRoutes);
+app.use('/api/elecciones', requiereAuth, eleccionesRoutes);
 app.use('/api/turnos', requiereAuth, turnosRoutes);
 app.use('/api/propietarios', requiereAuth, propietariosRoutes);
 app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);

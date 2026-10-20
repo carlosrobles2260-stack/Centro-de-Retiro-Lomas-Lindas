@@ -283,6 +283,41 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .ficha-lista { margin: 4px 0 0; padding-left: 18px; }
 .ficha-lista li { font-size: 14px; margin-bottom: 4px; color: var(--texto); }
 
+/* ===== Votación de la Directiva (propietario) ===== */
+.mc-voto-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.mc-voto-cab strong { font-size: 16px; }
+.mc-voto-periodo { display: block; color: var(--texto-suave); font-size: 13px; margin-top: 2px; }
+.mc-voto-sello { background: var(--verde-muy-claro); color: var(--verde); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.mc-planchas { display: grid; gap: 10px; margin: 12px 0; }
+.mc-plancha { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--borde); border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+.mc-plancha:hover { border-color: var(--verde-claro); }
+.mc-plancha.sel { border-color: var(--verde); background: var(--verde-muy-claro); box-shadow: 0 0 0 2px var(--verde-muy-claro); }
+.mc-plancha input { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--verde); }
+.mc-plancha-cuerpo { min-width: 0; }
+.mc-plancha-tit { display: flex; align-items: center; gap: 8px; }
+.mc-plancha-num { background: var(--verde); color: #fff; font-weight: 700; font-size: 12px; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mc-plancha-lema { color: var(--texto-suave); font-size: 13px; margin-top: 2px; }
+.mc-plancha-int { white-space: pre-line; font-size: 13px; margin-top: 6px; color: var(--texto); }
+.mc-voto-confirma { background: var(--arena); border-radius: 10px; padding: 14px; margin-top: 6px; }
+.mc-voto-confirma p { margin: 0 0 10px; }
+.mc-voto-acc { display: flex; gap: 10px; }
+.mc-voto-hecho { display: flex; gap: 14px; align-items: flex-start; background: var(--verde-muy-claro); border-radius: 10px; padding: 14px; margin-top: 12px; }
+.mc-voto-check { background: var(--verde); color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0; }
+.mc-voto-hecho p { margin: 4px 0 0; }
+.mc-voto-bloqueo { background: #fcf3f2; border-left: 3px solid var(--rojo); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
+.mc-voto-bloqueo p { margin: 0 0 4px; }
+
+/* ===== Resultados de elección (administración) ===== */
+.mc-res-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--texto-suave); font-size: 14px; }
+.mc-res-meta strong { color: var(--texto); }
+.res-barras { display: grid; gap: 12px; margin: 14px 0; }
+.res-fila.gana .res-relleno { background: var(--verde); }
+.res-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.res-cifra { font-weight: 700; white-space: nowrap; }
+.res-sello { color: var(--verde); font-weight: 700; font-size: 13px; }
+.res-pista { height: 20px; background: var(--arena); border-radius: 8px; overflow: hidden; }
+.res-relleno { height: 100%; background: var(--verde-claro); border-radius: 8px; transition: width .4s; min-width: 2px; }
+
 /* ===== Panel financiero ===== */
 .pf-fila { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .pf-fila > span { width: 80px; color: var(--texto-suave); font-size: 14px; }

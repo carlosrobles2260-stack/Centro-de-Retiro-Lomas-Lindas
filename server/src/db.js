@@ -334,6 +334,50 @@ CREATE TABLE IF NOT EXISTS accesos (
   registrado_por INTEGER REFERENCES usuarios(id),
   fecha          ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
+
+-- ===== Elecciones de la Directiva (voto secreto de los propietarios) =====
+CREATE TABLE IF NOT EXISTS elecciones (
+  id             ${T.id},
+  titulo         TEXT NOT NULL,
+  periodo        TEXT,            -- ej. "2026-2028"
+  descripcion    TEXT,
+  fecha_apertura ${T.date},
+  fecha_cierre   ${T.date},
+  estado         TEXT NOT NULL DEFAULT 'borrador', -- borrador | abierta | cerrada
+  solo_solventes INTEGER NOT NULL DEFAULT 1, -- 1 = solo propietarios al día pueden votar
+  creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  cerrada_en     ${T.ts}
+);
+
+-- Planchas (candidaturas) de una elección.
+CREATE TABLE IF NOT EXISTS planchas (
+  id           ${T.id},
+  eleccion_id  INTEGER NOT NULL REFERENCES elecciones(id) ON DELETE CASCADE,
+  numero       INTEGER,
+  nombre       TEXT NOT NULL,
+  lema         TEXT,            -- lema o propuesta breve
+  integrantes  TEXT,            -- integrantes y cargos (texto, una línea por cargo)
+  activo       INTEGER NOT NULL DEFAULT 1,
+  creado_en    ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- Padrón de participación: quién ya votó (evita el doble voto). No guarda la
+-- opción elegida, de modo que el voto sigue siendo secreto.
+CREATE TABLE IF NOT EXISTS votantes (
+  id             ${T.id},
+  eleccion_id    INTEGER NOT NULL REFERENCES elecciones(id) ON DELETE CASCADE,
+  propietario_id INTEGER NOT NULL REFERENCES propietarios(id),
+  fecha          ${T.ts} NOT NULL DEFAULT ${T.ahora},
+  UNIQUE (eleccion_id, propietario_id)
+);
+
+-- Boletas anónimas: solo la elección y la plancha elegida (sin propietario).
+CREATE TABLE IF NOT EXISTS votos (
+  id           ${T.id},
+  eleccion_id  INTEGER NOT NULL REFERENCES elecciones(id) ON DELETE CASCADE,
+  plancha_id   INTEGER NOT NULL REFERENCES planchas(id),
+  fecha        ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
 `;
 
 // Crea el esquema (idempotente).

@@ -29,6 +29,7 @@ import PanelFinanciero from './pages/PanelFinanciero.jsx';
 import Documentos from './pages/Documentos.jsx';
 import ControlAcceso from './pages/ControlAcceso.jsx';
 import Turnos from './pages/Turnos.jsx';
+import Elecciones from './pages/Elecciones.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/documentos" element={<Documentos />} />
         <Route path="/control-acceso" element={<ControlAcceso />} />
         <Route path="/turnos" element={<Turnos />} />
+        <Route path="/elecciones" element={<Elecciones />} />
         {usuario.rol === 'admin' && <Route path="/usuarios" element={<Usuarios />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

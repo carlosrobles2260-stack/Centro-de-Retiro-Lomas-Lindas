@@ -128,6 +128,97 @@ function PaseAcceso() {
   );
 }
 
+// Votación de la Directiva: el propietario vota desde la app, sin necesidad de
+// asistir a la asamblea. El voto es secreto (la boleta no se liga a su nombre),
+// una sola vez, y solo si está al día (cuando la elección lo exige).
+function VotacionDirectiva() {
+  const [datos, setDatos] = useState(undefined); // undefined = cargando
+  const [sel, setSel] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
+  const [confirmar, setConfirmar] = useState(false);
+
+  const cargar = () => api.get('/elecciones/abierta')
+    .then(setDatos).catch((e) => { setDatos(null); setError(e.message); });
+  useEffect(() => { cargar(); }, []);
+
+  if (datos === undefined) return null;          // aún cargando: no ocupa espacio
+  if (!datos || !datos.eleccion) return null;    // no hay elección abierta
+
+  const e = datos.eleccion;
+  const votar = () => {
+    setEnviando(true); setError(null);
+    api.post(`/elecciones/${e.id}/votar`, { plancha_id: sel })
+      .then(() => { setConfirmar(false); return cargar(); })
+      .catch((err) => setError(err.message))
+      .finally(() => setEnviando(false));
+  };
+
+  return (
+    <>
+      <h2>Elección de la Directiva</h2>
+      <div className="card mc-voto">
+        <div className="mc-voto-cab">
+          <div>
+            <strong>{e.titulo}</strong>
+            {e.periodo && <span className="mc-voto-periodo">Período {e.periodo}</span>}
+          </div>
+          <span className="mc-voto-sello">Voto secreto</span>
+        </div>
+        {e.descripcion && <p className="descripcion">{e.descripcion}</p>}
+
+        {datos.yaVoto ? (
+          <div className="mc-voto-hecho">
+            <span className="mc-voto-check">✓</span>
+            <div>
+              <strong>Tu voto quedó registrado.</strong>
+              <p className="descripcion">Gracias por participar. El voto es secreto y no puede vincularse a tu nombre. Los resultados se publican al cerrar la elección.</p>
+            </div>
+          </div>
+        ) : !datos.elegible ? (
+          <div className="mc-voto-bloqueo">
+            <p>{datos.motivo || 'En este momento no puedes votar en esta elección.'}</p>
+            {e.solo_solventes && datos.saldo > 0 && (
+              <p className="descripcion">Saldo pendiente: {dinero(datos.saldo)}. Ponte al día con la administración para habilitar tu voto mientras la elección siga abierta.</p>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="descripcion">Elige una sola plancha. Puedes votar desde aquí aunque no hayas asistido a la asamblea; tu voto es secreto y vale una sola vez.</p>
+            <div className="mc-planchas">
+              {datos.planchas.map((p) => (
+                <label key={p.id} className={`mc-plancha ${sel === p.id ? 'sel' : ''}`}>
+                  <input type="radio" name="plancha" value={p.id} checked={sel === p.id} onChange={() => setSel(p.id)} />
+                  <div className="mc-plancha-cuerpo">
+                    <div className="mc-plancha-tit">
+                      {p.numero != null && <span className="mc-plancha-num">{p.numero}</span>}
+                      <strong>{p.nombre}</strong>
+                    </div>
+                    {p.lema && <div className="mc-plancha-lema">{p.lema}</div>}
+                    {p.integrantes && <div className="mc-plancha-int">{p.integrantes}</div>}
+                  </div>
+                </label>
+              ))}
+            </div>
+            {error && <p className="error">{error}</p>}
+            {!confirmar ? (
+              <button className="primario" disabled={!sel} onClick={() => setConfirmar(true)}>Votar</button>
+            ) : (
+              <div className="mc-voto-confirma">
+                <p>Vas a emitir tu voto por <strong>{datos.planchas.find((p) => p.id === sel)?.nombre}</strong>. El voto es definitivo y no se puede cambiar.</p>
+                <div className="mc-voto-acc">
+                  <button className="secundario" disabled={enviando} onClick={() => setConfirmar(false)}>Cancelar</button>
+                  <button className="primario" disabled={enviando} onClick={votar}>{enviando ? 'Enviando...' : 'Confirmar mi voto'}</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
@@ -168,6 +259,8 @@ export default function MiCuenta() {
                 {' · '}Total pagado: {dinero(datos.pagado)}
               </div>
             </div>
+
+            <VotacionDirectiva />
 
             <h2>Mi pase de acceso</h2>
             <PaseAcceso />
