@@ -85,6 +85,17 @@
   footer p { margin: 4px 0; font-size: .9rem; }
 
   @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+  /* Impresión / PDF: evita encabezados sueltos y tarjetas o capturas cortadas. */
+  @media print {
+    section { padding-block: 26px; }
+    .eyebrow { break-after: avoid-page; }
+    section h2 { break-after: avoid-page; break-inside: avoid; }
+    section p.intro { break-after: avoid-page; }
+    .card, .shot, figure.shot, .lista li, .pasos .paso, .nota { break-inside: avoid; }
+    .shot img, img { break-inside: avoid; }
+    header.hero, footer { break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
