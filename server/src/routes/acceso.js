@@ -2,9 +2,15 @@
 import { Router } from 'express';
 import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
-import { generarPaseQr, registrarAcceso, estadoSujeto } from '../acceso.js';
+import { requiereRol } from '../auth.js';
+import { generarPaseQr, registrarAcceso, estadoSujeto, probarBarrera } from '../acceso.js';
 
 const router = Router();
+
+// POST /api/acceso/probar-barrera  -> envía una señal de apertura de prueba al relé.
+router.post('/probar-barrera', requiereRol('administracion'), ah(async (req, res) => {
+  res.json({ barrera: await probarBarrera() });
+}));
 
 // GET /api/acceso/mi-qr  -> pase (QR) rotativo del propietario que inició sesión.
 router.get('/mi-qr', ah(async (req, res) => {

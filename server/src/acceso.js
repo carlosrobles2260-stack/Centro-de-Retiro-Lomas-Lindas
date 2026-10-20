@@ -67,6 +67,11 @@ export async function estaDentro(tipo, sujetoId) {
   return r?.direccion === 'entrada';
 }
 
+// Prueba manual de la barrera (para verificar el cableado del relé).
+export async function probarBarrera() {
+  return abrirBarrera();
+}
+
 // Envía la señal de apertura a la barrera (si está configurada). Best-effort.
 async function abrirBarrera() {
   const url = (await config('acceso_rele_url', '')).trim();
