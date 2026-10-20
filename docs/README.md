@@ -9,5 +9,6 @@ Documentos de referencia para la Directiva y la administración sobre la puesta 
 | [costos-publicacion.md](./costos-publicacion.md) | Costos de publicar el sistema en la web: servicios imprescindibles y opcionales, escenarios de presupuesto y dónde verificar precios. |
 | [acceso-qr.md](./acceso-qr.md) | Acceso al proyecto por QR dinámico con antipassback: cómo funciona, qué quedó implementado (Fase 1) y qué falta para abrir la barrera (Fase 2). |
 | [votacion-directiva.md](./votacion-directiva.md) | Votación electrónica para elegir la Directiva (período 2026-2028): voto secreto desde la app sin asistir a la asamblea, reglas, lo implementado y una propuesta de resolución para la Directiva. |
+| [instructivo-votar.md](./instructivo-votar.md) | Instructivo para los propietarios: cómo votar desde la app paso a paso, requisitos, voto secreto y preguntas frecuentes. |
 
 Los montos y precios son aproximados y deben confirmarse al contratar.
