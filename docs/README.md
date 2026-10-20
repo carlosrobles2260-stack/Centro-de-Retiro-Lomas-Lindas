@@ -8,5 +8,6 @@ Documentos de referencia para la Directiva y la administración sobre la puesta 
 | [recursos-implementacion.md](./recursos-implementacion.md) | Recursos necesarios para implementar la aplicación: servicios, equipos, datos a cargar, roles, puesta en marcha y protección de datos. |
 | [costos-publicacion.md](./costos-publicacion.md) | Costos de publicar el sistema en la web: servicios imprescindibles y opcionales, escenarios de presupuesto y dónde verificar precios. |
 | [acceso-qr.md](./acceso-qr.md) | Acceso al proyecto por QR dinámico con antipassback: cómo funciona, qué quedó implementado (Fase 1) y qué falta para abrir la barrera (Fase 2). |
+| [votacion-directiva.md](./votacion-directiva.md) | Votación electrónica para elegir la Directiva (período 2026-2028): voto secreto desde la app sin asistir a la asamblea, reglas, lo implementado y una propuesta de resolución para la Directiva. |
 
 Los montos y precios son aproximados y deben confirmarse al contratar.
