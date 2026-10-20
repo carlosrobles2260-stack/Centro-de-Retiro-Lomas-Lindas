@@ -28,17 +28,18 @@ Ya está construido y probado de extremo a extremo. Funciona hoy, sin hardware n
 | Antipassback | Bloquea el reingreso si la persona ya está dentro | Listo |
 | Registro y bitácora | Entrada/salida con hora, por persona | Listo |
 | Señal a la barrera | Envía la orden de abrir a una URL de relé (configurable) | Listo (falta el equipo) |
+| Pantalla de configuración | La administración define la URL del relé, el tiempo del pase y "abrir al salir", con un botón para **probar la barrera** y la bitácora de accesos | Listo |
 | Tiempo de vida del pase | Configurable (por defecto 45 s) | Listo |
 
 Se probó: el propietario genera su pase; el guardia lo registra como **entrada** y se dispara la señal de apertura; reintentar el mismo pase se rechaza; estando dentro, un nuevo pase se registra como **salida** (nunca dos entradas seguidas); un pase alterado o vencido se rechaza.
 
 ## Qué falta para abrir la barrera (Fase 2)
 
-El sistema ya envía la orden de apertura a una **URL de relé** configurable; solo falta el dispositivo que reciba esa orden y mueva la barrera. Es la única pieza física.
+El sistema ya tiene lista la pantalla de configuración y envía la orden de apertura a una **URL de relé**; solo falta el dispositivo que reciba esa orden y mueva la barrera. Es la única pieza física.
 
 - **Un relé/controlador conectado** en la caseta del portón, con internet o wifi, que al recibir la señal active la apertura. Equipos comunes y económicos (tipo Shelly u otro relé Wi-Fi) sirven; su costo ronda US$15–40 por única vez.
 - **Compatibilidad con la barrera actual.** La mayoría de las talanquidas/barreras aceptan un **contacto seco** (un pulso de relé) para abrir. Si la barrera ya trae API de red, se usa esa directamente.
-- **Configurar la URL** del relé en el sistema (una sola vez) y probar la apertura.
+- **Pegar la URL del relé** en la pantalla "Control de acceso (QR)" del sistema (ya existe) y usar el botón **"Probar barrera"** para verificar el cableado. Una sola vez, sin tocar código.
 
 Opcional, más adelante (Fase 3): un **lector fijo** en el portón para autoservicio sin guardia, y **dos lectores** (entrada y salida) para un control de dirección aún más estricto.
 
