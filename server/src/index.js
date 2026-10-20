@@ -30,6 +30,7 @@ import activosRoutes from './routes/activos.js';
 import accionesPersonalRoutes from './routes/accionesPersonal.js';
 import nominaRoutes from './routes/nomina.js';
 import documentosRoutes from './routes/documentos.js';
+import accesoRoutes from './routes/acceso.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -47,7 +48,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true, servicio: 'ERP Lomas L
 app.get('/credencial/:codigo', async (req, res) => {
   try {
     const { default: db } = await import('./db.js');
-    const { generarQrDataUrl, paginaCredencialHTML } = await import('./credencial.js');
+    const { paginaCredencialHTML } = await import('./credencial.js');
     let v = await db.get(
       `SELECT v.*, p.nombre AS propietario_nombre FROM visitantes v
        LEFT JOIN propietarios p ON p.id = v.propietario_id WHERE v.codigo = ?`,
@@ -63,10 +64,25 @@ app.get('/credencial/:codigo', async (req, res) => {
       if (e) v = { ...e, tipo: e.puesto || 'empleado', carne: e.carnet };
     }
     if (!v) return res.status(404).send('<h1>Credencial no encontrada</h1>');
-    const qr = await generarQrDataUrl(v.codigo);
-    res.type('html').send(paginaCredencialHTML(v, qr));
+    res.type('html').send(paginaCredencialHTML(v));
   } catch (e) {
     res.status(500).send('Error al generar la credencial');
+  }
+});
+
+// Imagen del QR (pase dinámico) de una credencial, para refrescarse desde la
+// página pública. Cada llamada devuelve un pase nuevo de corta vida.
+app.get('/pase/:codigo.png', async (req, res) => {
+  try {
+    const { tipoDeCodigo, generarPase } = await import('./acceso.js');
+    const { generarQrBuffer } = await import('./credencial.js');
+    const tipo = await tipoDeCodigo(req.params.codigo);
+    if (!tipo) return res.status(404).end();
+    const { token } = await generarPase(tipo, req.params.codigo);
+    const buf = await generarQrBuffer(token);
+    res.type('png').set('Cache-Control', 'no-store').send(buf);
+  } catch (e) {
+    res.status(500).end();
   }
 });
 
@@ -95,6 +111,7 @@ app.use('/api/activos', requiereAuth, requiereRol('administracion'), activosRout
 app.use('/api/acciones-personal', requiereAuth, requiereRol('administracion'), accionesPersonalRoutes);
 app.use('/api/nomina', requiereAuth, requiereRol('administracion'), nominaRoutes);
 app.use('/api/documentos', requiereAuth, requiereRol('administracion', 'presidente'), documentosRoutes);
+app.use('/api/acceso', requiereAuth, accesoRoutes);
 app.use('/api/turnos', requiereAuth, turnosRoutes);
 app.use('/api/propietarios', requiereAuth, propietariosRoutes);
 app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);

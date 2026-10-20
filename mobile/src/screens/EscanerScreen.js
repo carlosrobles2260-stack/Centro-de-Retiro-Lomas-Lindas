@@ -9,26 +9,47 @@ export default function EscanerScreen({ navigation }) {
   const [buscando, setBuscando] = useState(false);
   const yaLeido = useRef(false);
 
+  function reintentar(mensaje) {
+    setBuscando(false);
+    setTimeout(() => { yaLeido.current = false; }, 1500);
+    if (mensaje) alert(mensaje);
+  }
+
   async function alEscanear({ data }) {
     if (yaLeido.current || buscando) return;
     yaLeido.current = true;
     setBuscando(true);
-    const codigo = String(data).trim();
-    // 1) ¿Es un visitante? 2) ¿Es un empleado del propietario?
+    const texto = String(data).trim();
+
+    // 1) Pase dinámico (QR rotativo): se valida y registra entrada/salida con
+    //    control de reingreso (antipassback) y señal a la barrera.
     try {
-      const visitante = await api.get(`/visitantes/codigo/${encodeURIComponent(codigo)}`);
+      const r = await api.post('/acceso/registrar', { token: texto });
+      const dir = r.direccion === 'salida' ? 'SALIDA' : 'ENTRADA';
+      const barrera = r.barrera === 'abierta' ? 'Barrera abierta.'
+        : r.barrera === 'no_configurada' ? 'Registrado (barrera no configurada).'
+        : 'Registrado.';
+      reintentar(`✅ ${dir} — ${r.sujeto?.nombre || ''}\n${barrera}`);
+      return;
+    } catch (e) {
+      // Pase ya usado, inactivo, etc.: mensaje claro y no se cae al flujo antiguo.
+      if (e?.code && e.code !== 'pase') { reintentar(e.message || 'No se pudo registrar el acceso.'); return; }
+      // code 'pase' (o sin code) = no es un pase dinámico: probar credenciales antiguas.
+    }
+
+    // 2) Compatibilidad: credencial antigua con código fijo (visitante / empleado).
+    try {
+      const visitante = await api.get(`/visitantes/codigo/${encodeURIComponent(texto)}`);
       navigation.replace('RegistrarVisita', { visitante });
       return;
     } catch (_) { /* intentar con empleado del propietario */ }
     try {
-      const empleado = await api.get(`/empleados-propietario/codigo/${encodeURIComponent(codigo)}`);
+      const empleado = await api.get(`/empleados-propietario/codigo/${encodeURIComponent(texto)}`);
       navigation.replace('AccesoEmpleado', { empleado });
       return;
     } catch (_) { /* no encontrado */ }
-    // Permite reintentar tras un breve margen.
-    setBuscando(false);
-    setTimeout(() => { yaLeido.current = false; }, 1500);
-    alert('Credencial no encontrada');
+
+    reintentar('Credencial no válida o no encontrada');
   }
 
   if (!permiso) {

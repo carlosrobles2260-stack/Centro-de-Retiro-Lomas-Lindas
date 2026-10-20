@@ -26,8 +26,11 @@ export function generarQrBuffer(codigo) {
 }
 
 // Página web pública de la credencial (para abrir desde un enlace / WhatsApp).
-export function paginaCredencialHTML(v, qrDataUrl) {
+// El QR es DINÁMICO: la imagen se renueva sola cada pocos segundos (pase de
+// corta vida), de modo que una captura de pantalla caduca y no se reutiliza.
+export function paginaCredencialHTML(v) {
   const logo = logoDataUrl();
+  const cod = encodeURIComponent(v.codigo || '');
   return `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8" />
@@ -41,22 +44,33 @@ export function paginaCredencialHTML(v, qrDataUrl) {
   .logo { width: 150px; margin: 0 auto 6px; display: block; }
   h1 { color: #2f6e4f; font-size: 18px; margin: 0 0 2px; }
   .sub { color: #5d6b63; font-size: 13px; margin-bottom: 18px; }
+  .qrbox { position: relative; width: 240px; height: 240px; margin: 0 auto; }
+  .qr { width: 240px; height: 240px; display: block; }
+  .vivo { position: absolute; top: 8px; right: 8px; font-size: 11px; color: #2f6e4f; font-weight: 700; }
+  .vivo span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2f6e4f; margin-right: 4px; animation: lat 1.4s infinite; }
+  @keyframes lat { 50% { opacity: .25; } }
   .nombre { font-size: 22px; font-weight: 700; color: #1f2a24; margin: 14px 0 2px; }
   .dato { color: #5d6b63; font-size: 14px; }
-  .codigo { font-family: monospace; font-size: 17px; letter-spacing: 1px; margin-top: 14px; color: #1f2a24; }
-  .qr { width: 240px; height: 240px; }
 </style></head>
 <body><div class="carnet">
   ${logo ? `<img class="logo" src="${logo}" alt="Lomas Lindas" />` : '<h1>Centro de Retiro Lomas Lindas</h1>'}
   <div class="sub">Credencial de visitante</div>
-  <img class="qr" src="${qrDataUrl}" alt="Código QR" />
+  <div class="qrbox">
+    <img class="qr" id="qr" src="/pase/${cod}.png" alt="Código QR dinámico" />
+    <div class="vivo"><span></span>en vivo</div>
+  </div>
   <div class="nombre">${escape(v.nombre)}</div>
   <div class="dato" style="text-transform:capitalize">${escape(v.tipo || '')}${v.documento ? ' · ' + escape(v.documento) : ''}</div>
   ${v.carne ? `<div class="dato">Carné: ${escape(v.carne)}</div>` : ''}
   ${v.propietario_nombre ? `<div class="dato">Autoriza: ${escape(v.propietario_nombre)}</div>` : ''}
-  <div class="codigo">${escape(v.codigo || '')}</div>
-  <p class="dato" style="margin-top:18px;font-size:12px">Presenta este código en la entrada del centro.</p>
-</div></body></html>`;
+  <p class="dato" style="margin-top:18px;font-size:12px">Presenta este código en la entrada. Se renueva solo; una captura de pantalla no sirve.</p>
+</div>
+<script>
+  // Renueva el QR periódicamente (el pase caduca en pocos segundos).
+  var img = document.getElementById('qr');
+  setInterval(function () { img.src = '/pase/${cod}.png?t=' + Date.now(); }, 25000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) img.src = '/pase/${cod}.png?t=' + Date.now(); });
+</script></body></html>`;
 }
 
 // Cuerpo HTML del correo con la credencial (el QR va como imagen adjunta cid:qr).

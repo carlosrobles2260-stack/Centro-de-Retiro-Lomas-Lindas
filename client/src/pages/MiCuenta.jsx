@@ -92,6 +92,42 @@ function GrupoCategoria({ categoria, docs, fundamento, estatutoHref }) {
   );
 }
 
+// Pase de acceso del propietario: QR dinámico que se renueva solo (una captura
+// de pantalla caduca). Se presenta en el portón para levantar la barrera.
+function PaseAcceso() {
+  const [pase, setPase] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let vivo = true;
+    const cargar = () => api.get('/acceso/mi-qr')
+      .then((p) => { if (vivo) { setPase(p); setError(null); } })
+      .catch((e) => { if (vivo) setError(e.message); });
+    cargar();
+    // Renueva el pase antes de que caduque (ttl ~45 s).
+    const id = setInterval(cargar, 25000);
+    const onVis = () => { if (!document.hidden) cargar(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { vivo = false; clearInterval(id); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
+
+  if (error) return <div className="card"><p className="descripcion">No se pudo generar tu pase. {error}</p></div>;
+  if (!pase) return <div className="card"><div className="cargando">Generando pase...</div></div>;
+
+  return (
+    <div className="card mc-pase">
+      <div className="mc-pase-qr">
+        <img src={pase.qr} alt="Pase de acceso (QR dinámico)" />
+        <span className="mc-pase-vivo"><i></i>en vivo</span>
+      </div>
+      <div className="mc-pase-info">
+        <strong>{pase.titular}</strong>
+        <p className="descripcion">Presenta este código en el portón para entrar. Se <strong>renueva solo</strong> cada pocos segundos, así que una captura de pantalla no sirve. No lo compartas: tu acceso queda registrado y no permite reingresar sin haber salido.</p>
+      </div>
+    </div>
+  );
+}
+
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
@@ -132,6 +168,9 @@ export default function MiCuenta() {
                 {' · '}Total pagado: {dinero(datos.pagado)}
               </div>
             </div>
+
+            <h2>Mi pase de acceso</h2>
+            <PaseAcceso />
 
             <h2>Mis cuotas</h2>
             <div className="tabla-wrap">

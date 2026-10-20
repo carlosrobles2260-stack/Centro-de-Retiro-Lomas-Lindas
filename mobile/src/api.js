@@ -46,7 +46,12 @@ async function request(metodo, ruta, cuerpo) {
 
   const texto = await res.text();
   const datos = texto ? JSON.parse(texto) : null;
-  if (!res.ok) throw new Error(datos?.error || 'Error en la solicitud');
+  if (!res.ok) {
+    const err = new Error(datos?.error || 'Error en la solicitud');
+    err.code = datos?.code;
+    err.status = res.status;
+    throw err;
+  }
   return datos;
 }
 

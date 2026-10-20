@@ -320,6 +320,20 @@ CREATE TABLE IF NOT EXISTS documentos (
   creado_en      ${T.ts} NOT NULL DEFAULT ${T.ahora},
   actualizado_en ${T.ts}
 );
+
+-- ===== Bitácora unificada de accesos por QR (propietarios, visitantes, empleados) =====
+-- La "presencia" (dentro/fuera) de un sujeto es la dirección de su último acceso.
+CREATE TABLE IF NOT EXISTS accesos (
+  id             ${T.id},
+  tipo_sujeto    TEXT NOT NULL,   -- propietario | visitante | empleado
+  sujeto_id      INTEGER NOT NULL,
+  codigo         TEXT,
+  direccion      TEXT NOT NULL,   -- entrada | salida
+  jti            TEXT,            -- id del pase (QR) usado, para evitar reuso
+  barrera        TEXT,            -- resultado de la señal a la barrera
+  registrado_por INTEGER REFERENCES usuarios(id),
+  fecha          ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
 `;
 
 // Crea el esquema (idempotente).
@@ -390,6 +404,10 @@ if (!(await tieneColumna('propietarios', 'fotos_propiedad'))) {
 if (!(await tieneColumna('propietarios', 'token_cuenta'))) {
   await db.exec('ALTER TABLE propietarios ADD COLUMN token_cuenta TEXT');
 }
+// Código de la credencial de acceso del propietario (para su QR de entrada).
+if (!(await tieneColumna('propietarios', 'codigo'))) {
+  await db.exec('ALTER TABLE propietarios ADD COLUMN codigo TEXT');
+}
 // Enlace de un usuario con su propietario (acceso del propietario con contraseña).
 if (!(await tieneColumna('usuarios', 'propietario_id'))) {
   await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
@@ -440,6 +458,11 @@ if (!(await tieneColumna('activos', 'valor_residual'))) {
 const sinToken = await db.all('SELECT id FROM propietarios WHERE token_cuenta IS NULL');
 for (const p of sinToken) {
   await db.run('UPDATE propietarios SET token_cuenta = ? WHERE id = ?', [generarCodigo() + generarCodigo().slice(3), p.id]);
+}
+// Genera el código de acceso (QR) para los propietarios que aún no lo tienen.
+const sinCodigoProp = await db.all('SELECT id FROM propietarios WHERE codigo IS NULL');
+for (const p of sinCodigoProp) {
+  await db.run('UPDATE propietarios SET codigo = ? WHERE id = ?', [generarCodigo(), p.id]);
 }
 const sinCodigo = await db.all('SELECT id FROM visitantes WHERE codigo IS NULL');
 for (const v of sinCodigo) {
@@ -516,6 +539,10 @@ const CONFIG_DEFECTO = {
   fundamento_resoluciones: 'Art. 7 de los Estatutos (facultades de la Directiva)',
   fundamento_resoluciones_asamblea_ordinaria: 'Arts. 6 y 8 de los Estatutos (asamblea ordinaria)',
   fundamento_resoluciones_asamblea_extraordinaria: 'Arts. 6 y 8 de los Estatutos (asamblea extraordinaria)',
+  // Acceso por QR dinámico y barrera del portón.
+  acceso_token_ttl: '45',     // segundos de validez del pase QR (rota antes de caducar)
+  acceso_rele_url: '',        // URL del relé/controlador de la barrera (vacío = no abre nada)
+  acceso_abrir_en_salida: '1', // 1 = la barrera también abre al registrar salida
   gps_token: process.env.GPS_TOKEN || generarCodigo() + generarCodigo().slice(3),
   // Sincronización por consulta (pull) con la plataforma del proveedor (p. ej. Systrack+).
   gps_sync_activo: '0',
