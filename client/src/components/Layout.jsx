@@ -57,6 +57,12 @@ const MENU = [
     ],
   },
   {
+    grupo: 'Capacitación',
+    items: [
+      { a: '/capacitacion', texto: 'Capacitación', roles: ['seguridad', 'administracion', 'presidente'] },
+    ],
+  },
+  {
     grupo: 'Personal',
     items: [
       { a: '/empleados', texto: 'Empleados', roles: ['administracion'] },

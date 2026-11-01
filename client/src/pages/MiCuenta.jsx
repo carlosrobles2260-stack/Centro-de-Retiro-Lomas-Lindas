@@ -219,6 +219,95 @@ function VotacionDirectiva() {
   );
 }
 
+// Autorizar invitados: el propietario genera la credencial QR de su invitado
+// y la comparte (p. ej. por WhatsApp). El invitado la presenta en el portón.
+function AutorizarInvitado() {
+  const [lista, setLista] = useState([]);
+  const [form, setForm] = useState({ nombre: '', documento: '', telefono: '', placa_vehiculo: '' });
+  const [nuevo, setNuevo] = useState(null);
+  const [error, setError] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const cargar = () => api.get('/mi-cuenta/invitados').then(setLista).catch(() => {});
+  useEffect(() => { cargar(); }, []);
+
+  const credUrl = (codigo) => `${window.location.origin}/credencial/${codigo}`;
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function crear(e) {
+    e.preventDefault();
+    if (!form.nombre.trim()) { setError('Escribe el nombre del invitado.'); return; }
+    setEnviando(true); setError(null);
+    try {
+      const r = await api.post('/mi-cuenta/invitados', form);
+      setNuevo({ nombre: form.nombre.trim(), codigo: r.codigo });
+      setForm({ nombre: '', documento: '', telefono: '', placa_vehiculo: '' });
+      cargar();
+    } catch (err) { setError(err.message); }
+    finally { setEnviando(false); }
+  }
+  async function eliminar(id) {
+    if (!confirm('¿Eliminar esta autorización? El invitado ya no podrá entrar con esa credencial.')) return;
+    try { await api.del(`/mi-cuenta/invitados/${id}`); cargar(); } catch (e) { setError(e.message); }
+  }
+  function compartir(nombre, codigo) {
+    const texto = `Hola ${nombre}, aquí está tu credencial de acceso al Centro de Retiro Lomas Lindas. Preséntala en la entrada: ${credUrl(codigo)}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+  }
+  function copiar(codigo) {
+    try { navigator.clipboard.writeText(credUrl(codigo)); } catch (_) { /* ignore */ }
+  }
+
+  return (
+    <div className="card mc-inv">
+      <p className="descripcion">Autoriza a tus invitados: crea su credencial y compártela. La presentan en el portón para entrar.</p>
+      <form className="mc-inv-form" onSubmit={crear}>
+        <div className="fila">
+          <div className="campo"><label>Nombre del invitado *</label><input value={form.nombre} onChange={(e) => set('nombre', e.target.value)} placeholder="Nombre y apellido" required /></div>
+          <div className="campo"><label>Documento (opcional)</label><input value={form.documento} onChange={(e) => set('documento', e.target.value)} placeholder="Cédula / ID" /></div>
+        </div>
+        <div className="fila">
+          <div className="campo"><label>Teléfono (opcional)</label><input value={form.telefono} onChange={(e) => set('telefono', e.target.value)} placeholder="Teléfono" /></div>
+          <div className="campo"><label>Placa del vehículo (opcional)</label><input value={form.placa_vehiculo} onChange={(e) => set('placa_vehiculo', e.target.value)} placeholder="Placa" /></div>
+        </div>
+        {error && <p className="error">{error}</p>}
+        <button className="primario" disabled={enviando}>{enviando ? 'Generando...' : 'Generar credencial'}</button>
+      </form>
+
+      {nuevo && (
+        <div className="mc-inv-ok">
+          <strong>✓ Credencial lista para {nuevo.nombre}</strong>
+          <p className="descripcion">Compártela con tu invitado. La presenta en la entrada.</p>
+          <div className="mc-inv-acc">
+            <button className="wa" onClick={() => compartir(nuevo.nombre, nuevo.codigo)}>Compartir por WhatsApp</button>
+            <button className="secundario" onClick={() => copiar(nuevo.codigo)}>Copiar enlace</button>
+            <a className="secundario-link" href={credUrl(nuevo.codigo)} target="_blank" rel="noreferrer">Ver credencial</a>
+          </div>
+        </div>
+      )}
+
+      {lista.length > 0 && (
+        <div className="mc-inv-lista">
+          <h3>Invitados autorizados</h3>
+          {lista.map((v) => (
+            <div key={v.id} className="mc-inv-item">
+              <div>
+                <strong>{v.nombre}</strong>
+                <span className="mc-inv-sub">{v.documento ? `${v.documento} · ` : ''}{v.codigo}</span>
+              </div>
+              <div className="mc-inv-item-acc">
+                <button className="wa chico" onClick={() => compartir(v.nombre, v.codigo)}>WhatsApp</button>
+                <a className="secundario-link chico" href={credUrl(v.codigo)} target="_blank" rel="noreferrer">Ver</a>
+                <button className="peligro chico" onClick={() => eliminar(v.id)}>Quitar</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
@@ -264,6 +353,9 @@ export default function MiCuenta() {
 
             <h2>Mi pase de acceso</h2>
             <PaseAcceso />
+
+            <h2>Autorizar invitados</h2>
+            <AutorizarInvitado />
 
             <h2>Mis cuotas</h2>
             <div className="tabla-wrap">
@@ -330,6 +422,15 @@ export default function MiCuenta() {
                 </div>
               </>
             )}
+
+            <h2>Capacitación</h2>
+            <div className="card mc-capacitacion">
+              <div>
+                <strong>Aprende a usar tu portal</strong>
+                <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación. Con autoevaluación.</p>
+              </div>
+              <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
+            </div>
 
             <p className="mc-pie">Para registrar un pago o aclarar un cargo, comunícate con la administración del centro.</p>
           </>

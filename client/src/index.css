@@ -316,6 +316,35 @@ td .acciones button { padding: 5px 10px; font-size: 12px; }
 .mc-voto-bloqueo { background: #fcf3f2; border-left: 3px solid var(--rojo); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
 .mc-voto-bloqueo p { margin: 0 0 4px; }
 
+/* ===== Autorizar invitados (propietario) ===== */
+.mc-inv-ok { background: var(--verde-muy-claro); border-radius: 10px; padding: 14px; margin-top: 14px; }
+.mc-inv-ok p { margin: 4px 0 10px; }
+.mc-inv-acc { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.wa { background: #25D366; color: #fff; }
+button.wa:hover { background: #1fb858; }
+button.chico { padding: 6px 12px; font-size: 13px; }
+.secundario-link { display: inline-block; background: #fff; color: var(--verde); border: 1px solid var(--borde); border-radius: 10px; padding: 11px 18px; text-decoration: none; font-weight: 600; }
+.secundario-link.chico { padding: 6px 12px; font-size: 13px; }
+.primario-link { display: inline-block; background: var(--verde); color: #fff; border-radius: 10px; padding: 12px 20px; text-decoration: none; font-weight: 600; white-space: nowrap; }
+.primario-link:hover { background: var(--verde-claro); }
+.mc-inv-lista { margin-top: 18px; }
+.mc-inv-lista h3 { margin: 0 0 10px; font-size: 15px; }
+.mc-inv-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--arena); flex-wrap: wrap; }
+.mc-inv-sub { display: block; color: var(--texto-suave); font-size: 13px; margin-top: 2px; }
+.mc-inv-item-acc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mc-capacitacion { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ===== Módulo de capacitación (incrustado en el ERP) ===== */
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 12px; }
+.cap-card { text-align: left; background: #fff; border: 1px solid var(--borde); border-radius: 14px; padding: 20px; box-shadow: var(--sombra); cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: inherit; transition: border-color .15s, transform .1s; }
+.cap-card:hover { border-color: var(--verde-claro); background: #fff; transform: translateY(-2px); }
+.cap-ico { font-size: 2rem; }
+.cap-card strong { font-size: 1.05rem; color: var(--verde); }
+.cap-desc { color: var(--texto-suave); font-size: .92rem; }
+.cap-cta { margin-top: 8px; color: var(--verde); font-weight: 700; font-size: .9rem; }
+.cap-visor { display: flex; flex-direction: column; gap: 12px; }
+.cap-iframe { width: 100%; height: calc(100vh - 160px); min-height: 520px; border: 1px solid var(--borde); border-radius: 12px; background: #fff; }
+
 /* ===== Resultados de elección (administración) ===== */
 .mc-res-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--texto-suave); font-size: 14px; }
 .mc-res-meta strong { color: var(--texto); }
