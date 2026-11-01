@@ -10,5 +10,6 @@ Documentos de referencia para la Directiva y la administración sobre la puesta 
 | [acceso-qr.md](./acceso-qr.md) | Acceso al proyecto por QR dinámico con antipassback: cómo funciona, qué quedó implementado (Fase 1) y qué falta para abrir la barrera (Fase 2). |
 | [votacion-directiva.md](./votacion-directiva.md) | Votación electrónica para elegir la Directiva (período 2026-2028): voto secreto desde la app sin asistir a la asamblea, reglas, lo implementado y una propuesta de resolución para la Directiva. |
 | [instructivo-votar.md](./instructivo-votar.md) | Instructivo para los propietarios: cómo votar desde la app paso a paso, requisitos, voto secreto y preguntas frecuentes. |
+| [despliegue-contabo.md](./despliegue-contabo.md) | Guía técnica paso a paso para poner el sistema en línea en un VPS de Contabo: Docker, dominio con HTTPS (Caddy), variables, puesta en marcha, copias de seguridad y actualizaciones. |
 
 Los montos y precios son aproximados y deben confirmarse al contratar.
