@@ -42,9 +42,11 @@ if (client === 'postgres') {
     let i = 0;
     return sql.replace(/\?/g, () => `$${++i}`);
   };
-  // Añade RETURNING id a los INSERT para obtener el id generado.
+  // Añade RETURNING * a los INSERT para obtener el id generado cuando exista.
+  // Usamos * (no "id") porque algunas tablas (p. ej. configuracion) se
+  // identifican por otra clave y no tienen columna id; con "id" fallaría.
   const conReturning = (sql) =>
-    /^\s*insert/i.test(sql) && !/returning/i.test(sql) ? `${sql} RETURNING id` : sql;
+    /^\s*insert/i.test(sql) && !/returning/i.test(sql) ? `${sql} RETURNING *` : sql;
 
   async function ejecutar(ejecutor, sql, params) {
     const esInsert = /^\s*insert/i.test(sql);
