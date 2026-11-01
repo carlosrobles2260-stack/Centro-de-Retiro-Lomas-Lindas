@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cambia-este-secreto-en-produccion';
 
@@ -8,6 +9,24 @@ export function firmarToken(usuario) {
     JWT_SECRET,
     { expiresIn: '12h' }
   );
+}
+
+// ===== Recuperación de contraseña =====
+// Huella corta de la contraseña actual: permite invalidar el enlace de
+// recuperación en cuanto la contraseña cambie (uso efectivo de una sola vez).
+export function huellaPassword(hash) {
+  return crypto.createHash('sha256').update(String(hash)).digest('hex').slice(0, 16);
+}
+
+// Token de restablecimiento, válido 1 hora, ligado a la contraseña actual.
+export function firmarReset(usuario) {
+  return jwt.sign({ id: usuario.id, prop: 'reset', h: huellaPassword(usuario.password) }, JWT_SECRET, { expiresIn: '1h' });
+}
+
+export function verificarReset(token) {
+  const d = jwt.verify(token, JWT_SECRET);
+  if (d.prop !== 'reset') throw new Error('Token no válido');
+  return d; // { id, h }
 }
 
 // Verifica el token JWT del encabezado Authorization: Bearer <token>.

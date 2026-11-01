@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/auth.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
+import Restablecer from './pages/Restablecer.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Visitas from './pages/Visitas.jsx';
 import Propietarios from './pages/Propietarios.jsx';
@@ -36,6 +37,8 @@ export default function App() {
   const { usuario, cargando } = useAuth();
 
   if (cargando) return <div className="cargando" style={{ marginTop: 80 }}>Cargando...</div>;
+  // Página pública para restablecer la contraseña desde el enlace del correo.
+  if (window.location.pathname === '/restablecer') return <Restablecer />;
   if (!usuario) return <Login />;
 
   // El propietario solo ve su estado de cuenta.
