@@ -110,7 +110,8 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
     tipo: miembro.tipo || 'directiva',
     cargo: miembro.cargo || '',
     nombre: miembro.nombre || '',
-    periodo: miembro.periodo || '',
+    anio_desde: miembro.anio_desde ?? '',
+    anio_hasta: miembro.anio_hasta ?? '',
     orden: miembro.orden ?? 0,
   });
   const [fotoNueva, setFotoNueva] = useState(null); // base64 si se sube una nueva
@@ -177,9 +178,15 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
             <input value={datos.cargo} onChange={(e) => set('cargo', e.target.value)} placeholder="Ej.: Presidente, Tesorero, Vocal…" />
           </div>
         )}
-        <div className="campo">
-          <label>Período</label>
-          <input value={datos.periodo} onChange={(e) => set('periodo', e.target.value)} placeholder="Ej.: 2024 - 2026" />
+        <div className="fila">
+          <div className="campo">
+            <label>Año desde</label>
+            <input type="number" value={datos.anio_desde} onChange={(e) => set('anio_desde', e.target.value)} placeholder="Ej.: 2026" />
+          </div>
+          <div className="campo">
+            <label>Año hasta</label>
+            <input type="number" value={datos.anio_hasta} onChange={(e) => set('anio_hasta', e.target.value)} placeholder="Vacío = actual" />
+          </div>
         </div>
         <div className="campo">
           <label>Orden (menor aparece primero)</label>

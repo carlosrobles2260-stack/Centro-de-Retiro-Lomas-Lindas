@@ -6,12 +6,23 @@ import { guardarImagenBase64 } from '../fotos.js';
 
 const router = Router();
 
-const CAMPOS = ['tipo', 'cargo', 'nombre', 'periodo', 'orden'];
+const CAMPOS = ['tipo', 'cargo', 'nombre', 'periodo', 'anio_desde', 'anio_hasta', 'orden'];
 
 function soloCampos(body) {
   const datos = {};
   for (const c of CAMPOS) if (body[c] !== undefined) datos[c] = body[c];
+  // Los años vacíos van como null (no romper columnas INTEGER).
+  for (const c of ['anio_desde', 'anio_hasta']) {
+    if (datos[c] === '' || datos[c] === undefined) datos[c] = null;
+    else if (datos[c] !== null) datos[c] = parseInt(datos[c], 10) || null;
+  }
   return datos;
+}
+
+// Arma el texto del período a partir de los años (ej. "2026 - 2028" o "2026 - actual").
+function armarPeriodo(datos) {
+  if (datos.anio_desde == null) return datos.periodo ?? null;
+  return datos.anio_hasta == null ? `${datos.anio_desde} - actual` : `${datos.anio_desde} - ${datos.anio_hasta}`;
 }
 
 // Si viene una foto nueva en base64, la guarda y devuelve su URL; si no, conserva la actual.
@@ -38,6 +49,7 @@ router.get('/', ah(async (req, res) => {
 router.post('/', requiereRol('admin', 'administracion', 'presidente'), ah(async (req, res) => {
   const datos = soloCampos(req.body);
   if (!datos.nombre) return res.status(400).json({ error: 'El nombre es obligatorio' });
+  datos.periodo = armarPeriodo(datos);
   datos.foto = resolverFoto(req.body, null);
   const columnas = Object.keys(datos);
   const marcadores = columnas.map(() => '?').join(', ');
@@ -49,6 +61,7 @@ router.put('/:id', requiereRol('admin', 'administracion', 'presidente'), ah(asyn
   const actual = await db.get('SELECT * FROM directiva WHERE id = ?', [req.params.id]);
   if (!actual) return res.status(404).json({ error: 'No encontrado' });
   const datos = soloCampos(req.body);
+  datos.periodo = armarPeriodo(datos);
   datos.foto = resolverFoto(req.body, actual.foto);
   const columnas = Object.keys(datos);
   const asignaciones = columnas.map((c) => `${c} = ?`).join(', ');

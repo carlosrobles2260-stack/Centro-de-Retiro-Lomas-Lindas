@@ -385,6 +385,8 @@ CREATE TABLE IF NOT EXISTS directiva (
   cargo      TEXT,
   nombre     TEXT NOT NULL,
   periodo    TEXT,
+  anio_desde INTEGER,
+  anio_hasta INTEGER,
   foto       TEXT,
   orden      INTEGER NOT NULL DEFAULT 0,
   creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
@@ -408,6 +410,13 @@ async function tieneColumna(tabla, columna) {
   }
   const cols = await db.all(`PRAGMA table_info(${tabla})`);
   return cols.some((c) => c.name === columna);
+}
+
+// Años de período de la Directiva/presidentes (bases creadas antes de este cambio).
+for (const col of ['anio_desde', 'anio_hasta']) {
+  if (!(await tieneColumna('directiva', col))) {
+    await db.exec(`ALTER TABLE directiva ADD COLUMN ${col} INTEGER`);
+  }
 }
 
 if (!(await tieneColumna('visitantes', 'codigo'))) {
