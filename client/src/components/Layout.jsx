@@ -79,11 +79,33 @@ const MENU = [
   },
 ];
 
+const CLAVE_COLAPSADOS = 'menu_colapsados';
+
+function leerColapsados() {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CLAVE_COLAPSADOS) || '[]');
+    return new Set(Array.isArray(guardado) ? guardado : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [colapsados, setColapsados] = useState(leerColapsados);
   const puedeVer = (roles) => usuario.rol === 'admin' || roles.includes(usuario.rol);
   const cerrarMenu = () => setMenuAbierto(false);
+
+  const alternarGrupo = (grupo) => {
+    setColapsados((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(grupo)) siguiente.delete(grupo);
+      else siguiente.add(grupo);
+      try { localStorage.setItem(CLAVE_COLAPSADOS, JSON.stringify([...siguiente])); } catch {}
+      return siguiente;
+    });
+  };
 
   return (
     <div className="app">
@@ -108,10 +130,19 @@ export default function Layout() {
           {MENU.map((seccion) => {
             const visibles = seccion.items.filter((i) => puedeVer(i.roles));
             if (visibles.length === 0) return null;
+            const colapsado = colapsados.has(seccion.grupo);
             return (
-              <div key={seccion.grupo}>
-                <div className="grupo">{seccion.grupo}</div>
-                {visibles.map((i) => (
+              <div key={seccion.grupo} className={`seccion ${colapsado ? 'colapsada' : ''}`}>
+                <button
+                  type="button"
+                  className="grupo"
+                  onClick={() => alternarGrupo(seccion.grupo)}
+                  aria-expanded={!colapsado}
+                >
+                  <span>{seccion.grupo}</span>
+                  <span className="chevron" aria-hidden="true">▾</span>
+                </button>
+                {!colapsado && visibles.map((i) => (
                   <NavLink
                     key={i.a}
                     to={i.a}
