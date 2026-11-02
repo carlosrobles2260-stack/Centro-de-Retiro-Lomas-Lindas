@@ -172,6 +172,16 @@ th, td { text-align: left; padding: 12px 14px; font-size: 16px; }
 th { background: var(--verde-muy-claro); color: var(--verde); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
 tbody tr { border-top: 1px solid var(--borde); }
 tbody tr:hover { background: #fafbfa; }
+/* Buscador sobre las tablas */
+.barra-busqueda { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; flex-wrap: wrap; }
+.barra-busqueda input[type="search"] { flex: 1; min-width: 260px; max-width: 520px; }
+.barra-busqueda .busqueda-conteo { color: var(--texto-suave); font-size: 14px; }
+
+/* Controles de paginación */
+.paginacion { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px 0 4px; }
+.paginacion .paginacion-info { font-size: 15px; color: var(--texto-suave); }
+.paginacion button:disabled { opacity: 0.5; cursor: default; }
+
 td .acciones { display: flex; gap: 6px; align-items: center; }
 td .acciones button { padding: 7px 12px; font-size: 14px; white-space: nowrap; }
 /* Ancho fijo para el botón que cambia de texto (Acceso/Restablecer), así los

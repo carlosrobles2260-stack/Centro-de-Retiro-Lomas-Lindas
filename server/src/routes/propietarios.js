@@ -41,13 +41,40 @@ function soloCampos(body) {
   return datos;
 }
 
-// Listar (incluye el correo de acceso del propietario si tiene usuario con contraseña)
+// Listar propietarios.
+// - Sin parámetros: devuelve todo (compatibilidad con los menús desplegables).
+// - Con ?pagina: devuelve { datos, total, pagina, limite, paginas } y admite
+//   ?q para buscar por nombre, propiedad, carnet, documento o correo.
 router.get('/', ah(async (req, res) => {
-  const filas = await db.all(`
+  const q = String(req.query.q || '').trim().toLowerCase();
+  const cond = [];
+  const params = [];
+  if (q) {
+    cond.push('(LOWER(p.nombre) LIKE ? OR LOWER(p.propiedad) LIKE ? OR LOWER(p.carnet) LIKE ? OR LOWER(p.documento) LIKE ? OR LOWER(p.email) LIKE ?)');
+    const like = `%${q}%`;
+    params.push(like, like, like, like, like);
+  }
+  const whereSql = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
+  const selectBase = `
     SELECT p.*,
            (SELECT email FROM usuarios u WHERE u.propietario_id = p.id AND u.rol = 'propietario' AND u.activo = 1 LIMIT 1) AS acceso_email
-    FROM propietarios p ORDER BY p.nombre
-  `);
+    FROM propietarios p ${whereSql} ORDER BY p.nombre`;
+
+  if (req.query.pagina !== undefined) {
+    const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
+    const limite = Math.min(100, Math.max(1, parseInt(req.query.limite, 10) || 20));
+    const offset = (pagina - 1) * limite;
+    const totalRow = await db.get(`SELECT COUNT(*) AS n FROM propietarios p ${whereSql}`, params);
+    const total = Number(totalRow?.n || 0);
+    const filas = await db.all(`${selectBase} LIMIT ? OFFSET ?`, [...params, limite, offset]);
+    return res.json({
+      datos: filas.map(conFotos),
+      total, pagina, limite,
+      paginas: Math.max(1, Math.ceil(total / limite)),
+    });
+  }
+
+  const filas = await db.all(selectBase, params);
   res.json(filas.map(conFotos));
 }));
 

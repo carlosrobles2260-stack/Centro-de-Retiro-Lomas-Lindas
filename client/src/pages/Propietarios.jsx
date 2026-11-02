@@ -9,19 +9,39 @@ const TIPOS = [
 ];
 const etiquetaTipo = (v) => TIPOS.find((t) => t.valor === v)?.label || v;
 
+const POR_PAGINA = 20;
+
 export default function Propietarios() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar
   const [acceso, setAcceso] = useState(null); // resultado de crear/restablecer acceso
+  const [q, setQ] = useState('');          // texto de búsqueda (lo que se escribe)
+  const [busqueda, setBusqueda] = useState(''); // búsqueda aplicada (con retardo)
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
-    setFilas(await api.get('/propietarios'));
+    const params = new URLSearchParams({ pagina: String(pagina), limite: String(POR_PAGINA) });
+    if (busqueda) params.set('q', busqueda);
+    const r = await api.get(`/propietarios?${params.toString()}`);
+    setFilas(r.datos || []);
+    setPaginas(r.paginas || 1);
+    setTotal(r.total || 0);
     setCargando(false);
-  }, []);
+    // Si quedamos en una página que ya no existe (p. ej. al eliminar), retrocede.
+    if (pagina > (r.paginas || 1)) setPagina(r.paginas || 1);
+  }, [pagina, busqueda]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  // Aplica la búsqueda con un pequeño retardo y vuelve a la primera página.
+  useEffect(() => {
+    const t = setTimeout(() => { setBusqueda(q.trim()); setPagina(1); }, 350);
+    return () => clearTimeout(t);
+  }, [q]);
 
   async function eliminar(f) {
     if (!confirm('¿Eliminar este propietario? Esta acción no se puede deshacer.')) return;
@@ -59,11 +79,26 @@ export default function Propietarios() {
         <button onClick={() => setModal({})}>+ Nuevo propietario</button>
       </div>
 
+      <div className="barra-busqueda">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar por nombre, propiedad, carnet, documento o correo…"
+          aria-label="Buscar propietario"
+        />
+        {!cargando && (
+          <span className="busqueda-conteo">
+            {total} propietario{total === 1 ? '' : 's'}{busqueda ? ' encontrados' : ''}
+          </span>
+        )}
+      </div>
+
       <div className="tabla-wrap">
         {cargando ? (
           <div className="cargando">Cargando...</div>
         ) : filas.length === 0 ? (
-          <div className="vacio">No hay propietarios registrados.</div>
+          <div className="vacio">{busqueda ? `No se encontraron propietarios para "${busqueda}".` : 'No hay propietarios registrados.'}</div>
         ) : (
           <table>
             <thead>
@@ -112,6 +147,18 @@ export default function Propietarios() {
           </table>
         )}
       </div>
+
+      {!cargando && paginas > 1 && (
+        <div className="paginacion">
+          <button className="secundario" disabled={pagina <= 1} onClick={() => setPagina((p) => Math.max(1, p - 1))}>
+            ‹ Anterior
+          </button>
+          <span className="paginacion-info">Página {pagina} de {paginas}</span>
+          <button className="secundario" disabled={pagina >= paginas} onClick={() => setPagina((p) => Math.min(paginas, p + 1))}>
+            Siguiente ›
+          </button>
+        </div>
+      )}
 
       {modal && (
         <ModalPropietario
