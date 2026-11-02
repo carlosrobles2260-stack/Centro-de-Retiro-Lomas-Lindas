@@ -6,7 +6,7 @@ import InstalarApp from './InstalarApp.jsx';
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
 // Versión visible de la app (sirve para confirmar qué build está cargado).
-const VERSION = 'v2026.11.02-6';
+const VERSION = 'v2026.11.02-7';
 
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
@@ -87,21 +87,14 @@ const MENU = [
   },
 ];
 
-const CLAVE_COLAPSADOS = 'menu_colapsados';
-
-function leerColapsados() {
-  try {
-    const guardado = JSON.parse(localStorage.getItem(CLAVE_COLAPSADOS) || '[]');
-    return new Set(Array.isArray(guardado) ? guardado : []);
-  } catch {
-    return new Set();
-  }
-}
+// Al ingresar, todos los grupos del menú arrancan plegados (recogidos). El
+// usuario abre el que necesite; esa elección dura mientras no recargue la página.
+const TODOS_LOS_GRUPOS = MENU.map((s) => s.grupo);
 
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [colapsados, setColapsados] = useState(leerColapsados);
+  const [colapsados, setColapsados] = useState(() => new Set(TODOS_LOS_GRUPOS));
   const puedeVer = (roles) => usuario.rol === 'admin' || roles.includes(usuario.rol);
   const cerrarMenu = () => setMenuAbierto(false);
 
@@ -110,7 +103,6 @@ export default function Layout() {
       const siguiente = new Set(prev);
       if (siguiente.has(grupo)) siguiente.delete(grupo);
       else siguiente.add(grupo);
-      try { localStorage.setItem(CLAVE_COLAPSADOS, JSON.stringify([...siguiente])); } catch {}
       return siguiente;
     });
   };
