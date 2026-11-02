@@ -33,6 +33,8 @@ import documentosRoutes from './routes/documentos.js';
 import accesoRoutes from './routes/acceso.js';
 import eleccionesRoutes from './routes/elecciones.js';
 import directivaRoutes from './routes/directiva.js';
+import permisosRoutes from './routes/permisos.js';
+import { inicializarPermisos, permite } from './permisos.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -105,43 +107,50 @@ app.get('/cuenta/:token', async (req, res) => {
 // Autenticación (login es público; el resto protegido dentro del router)
 app.use('/api/auth', authRoutes);
 
-// Todas las rutas siguientes requieren sesión iniciada.
-app.use('/api/dashboard', requiereAuth, dashboardRoutes);
-app.use('/api/empleados', requiereAuth, empleadosRoutes);
-app.use('/api/prestamos-empleado', requiereAuth, requiereRol('administracion'), prestamosEmpleadoRoutes);
-app.use('/api/activos', requiereAuth, requiereRol('administracion'), activosRoutes);
-app.use('/api/acciones-personal', requiereAuth, requiereRol('administracion'), accionesPersonalRoutes);
-app.use('/api/nomina', requiereAuth, requiereRol('administracion'), nominaRoutes);
-app.use('/api/documentos', requiereAuth, requiereRol('administracion', 'presidente'), documentosRoutes);
+// Todas las rutas siguientes requieren sesión iniciada. El candado permite()
+// aplica los permisos dinámicos (GET=leer, otros=escribir) por módulo y rol.
+app.use('/api/permisos', requiereAuth, permisosRoutes);
+app.use('/api/dashboard', requiereAuth, permite('panel'), dashboardRoutes);
+app.use('/api/empleados', requiereAuth, permite('empleados'), empleadosRoutes);
+app.use('/api/prestamos-empleado', requiereAuth, permite('prestamos'), prestamosEmpleadoRoutes);
+app.use('/api/activos', requiereAuth, permite('activos'), activosRoutes);
+app.use('/api/acciones-personal', requiereAuth, permite('acciones_personal'), accionesPersonalRoutes);
+app.use('/api/nomina', requiereAuth, permite('nomina'), nominaRoutes);
+app.use('/api/documentos', requiereAuth, permite('documentos'), documentosRoutes);
+// Acceso (escáner del portón + QR del propietario): auth propia, sin candado de módulo.
 app.use('/api/acceso', requiereAuth, accesoRoutes);
-app.use('/api/elecciones', requiereAuth, eleccionesRoutes);
-app.use('/api/directiva', requiereAuth, directivaRoutes);
-app.use('/api/turnos', requiereAuth, turnosRoutes);
-app.use('/api/propietarios', requiereAuth, propietariosRoutes);
+app.use('/api/elecciones', requiereAuth, permite('elecciones'), eleccionesRoutes);
+app.use('/api/directiva', requiereAuth, permite('directiva'), directivaRoutes);
+app.use('/api/turnos', requiereAuth, permite('turnos'), turnosRoutes);
+app.use('/api/propietarios', requiereAuth, permite('propietarios'), propietariosRoutes);
+// Empleados de propietarios: lo usa también el escáner del guardia (/acceso); sin candado de módulo.
 app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);
 app.use('/api/mi-cuenta', requiereAuth, miCuentaRoutes);
-app.use('/api/visitantes', requiereAuth, visitantesRoutes);
-app.use('/api/visitas', requiereAuth, visitasRoutes);
-app.use('/api/incidentes', requiereAuth, incidentesRoutes);
-app.use('/api/tipos-incidencia', requiereAuth, tiposIncidenciaRoutes);
+app.use('/api/visitantes', requiereAuth, permite('visitantes'), visitantesRoutes);
+app.use('/api/visitas', requiereAuth, permite('visitas'), visitasRoutes);
+app.use('/api/incidentes', requiereAuth, permite('incidentes'), incidentesRoutes);
+app.use('/api/tipos-incidencia', requiereAuth, permite('tipos_incidencia'), tiposIncidenciaRoutes);
 app.use('/api/configuracion', requiereAuth, configuracionRoutes);
-app.use('/api/viajes-vertedero', requiereAuth, viajesVertederoRoutes);
-app.use('/api/vehiculos', requiereAuth, vehiculosRoutes);
-app.use('/api/geocercas', requiereAuth, geocercasRoutes);
+app.use('/api/viajes-vertedero', requiereAuth, permite('viajes_vertedero'), viajesVertederoRoutes);
+app.use('/api/vehiculos', requiereAuth, permite('vehiculos'), vehiculosRoutes);
+app.use('/api/geocercas', requiereAuth, permite('geocercas'), geocercasRoutes);
 // GPS: la ingesta es pública (autenticada por token); el router gestiona su propia auth.
 app.use('/api/gps', gpsRoutes);
-app.use('/api/rondas', requiereAuth, rondasRoutes);
-app.use('/api/facturas', requiereAuth, facturasRoutes);
-app.use('/api/cuentas-por-cobrar', requiereAuth, requiereRol('administracion', 'presidente'), cuentasPorCobrarRoutes);
-app.use('/api/gastos', requiereAuth, gastosRoutes);
-app.use('/api/reportes', requiereAuth, reportesRoutes);
-app.use('/api/notificaciones', requiereAuth, notificacionesRoutes);
+app.use('/api/rondas', requiereAuth, permite('rondas'), rondasRoutes);
+app.use('/api/facturas', requiereAuth, permite('facturas'), facturasRoutes);
+app.use('/api/cuentas-por-cobrar', requiereAuth, permite('cuentas_por_cobrar'), cuentasPorCobrarRoutes);
+app.use('/api/gastos', requiereAuth, permite('gastos'), gastosRoutes);
+app.use('/api/reportes', requiereAuth, permite('reportes'), reportesRoutes);
+app.use('/api/notificaciones', requiereAuth, permite('notificaciones'), notificacionesRoutes);
 
 // Manejo de errores no capturados.
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
+
+// Carga/siembra los permisos dinámicos antes de aceptar peticiones.
+await inicializarPermisos();
 
 app.listen(PORT, () => {
   console.log(`✅ API del ERP Lomas Lindas escuchando en http://localhost:${PORT}`);

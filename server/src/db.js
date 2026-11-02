@@ -379,6 +379,14 @@ CREATE TABLE IF NOT EXISTS votos (
   fecha        ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
+CREATE TABLE IF NOT EXISTS permisos (
+  rol       TEXT NOT NULL,
+  modulo    TEXT NOT NULL,
+  leer      INTEGER NOT NULL DEFAULT 0,
+  escribir  INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (rol, modulo)
+);
+
 CREATE TABLE IF NOT EXISTS directiva (
   id         ${T.id},
   tipo       TEXT NOT NULL DEFAULT 'directiva',   -- 'directiva' | 'presidente'
