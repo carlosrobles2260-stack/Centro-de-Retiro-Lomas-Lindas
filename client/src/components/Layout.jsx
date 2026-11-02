@@ -6,7 +6,7 @@ import InstalarApp from './InstalarApp.jsx';
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
 // Versión visible de la app (sirve para confirmar qué build está cargado).
-const VERSION = 'v2026.11.02-21';
+const VERSION = 'v2026.11.02-22';
 
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
@@ -49,6 +49,8 @@ const MENU = [
     grupo: 'Administración y finanzas',
     items: [
       { a: '/panel-financiero', texto: 'Panel financiero', roles: ['administracion', 'presidente'] },
+      { a: '/estado-ingresos-gastos', texto: 'Estado de ingresos y gastos', roles: ['administracion', 'presidente', 'directiva'] },
+      { a: '/bancos', texto: 'Cuentas bancarias', roles: ['administracion'] },
       { a: '/facturas', texto: 'Facturas y cuotas', roles: ['administracion', 'presidente'] },
       { a: '/cuentas-por-cobrar', texto: 'Cuentas por cobrar', roles: ['administracion', 'presidente'] },
       { a: '/gastos', texto: 'Gastos', roles: ['administracion'] },

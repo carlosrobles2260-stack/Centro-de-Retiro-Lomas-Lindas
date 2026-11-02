@@ -143,10 +143,13 @@ router.get('/estado-ingresos-gastos', ah(async (req, res) => {
      WHERE ${SQL.anioMes('fecha')} BETWEEN ? AND ? GROUP BY categoria, concepto, ${SQL.anioMes('fecha')}`,
     [desde, hasta]
   );
+  // Normaliza categorías (incluye las viejas) a los 4 grupos del estado.
+  const MAPA_CAT = { mantenimiento: 'mantenimiento', personal: 'personal', nomina: 'personal',
+    financieros: 'financieros', generales: 'generales', operativo: 'generales', servicios: 'generales', otro: 'generales' };
   // Estructura: { categoria: { concepto: { periodo: monto } } }
   const gastos = {};
   for (const f of gasFilas) {
-    const cat = f.categoria || 'generales';
+    const cat = MAPA_CAT[f.categoria] || 'generales';
     ((gastos[cat] ||= {})[f.concepto || '(sin concepto)'] ||= {})[f.m] = Number(f.t) || 0;
   }
 

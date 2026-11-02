@@ -9,11 +9,10 @@ export default function Gastos() {
       endpoint="/gastos"
       filtros={[
         { name: 'categoria', label: 'Categoría', opciones: [
-          { valor: 'operativo', label: 'Operativo' },
-          { valor: 'nomina', label: 'Nómina' },
           { valor: 'mantenimiento', label: 'Mantenimiento' },
-          { valor: 'servicios', label: 'Servicios' },
-          { valor: 'otro', label: 'Otro' },
+          { valor: 'personal', label: 'Personal' },
+          { valor: 'financieros', label: 'Financieros' },
+          { valor: 'generales', label: 'Generales' },
         ]},
       ]}
       columnas={[
@@ -26,13 +25,12 @@ export default function Gastos() {
       campos={[
         { name: 'concepto', label: 'Concepto', requerido: true },
         {
-          name: 'categoria', label: 'Categoría', type: 'select', defecto: 'operativo',
+          name: 'categoria', label: 'Categoría', type: 'select', defecto: 'mantenimiento',
           opciones: [
-            { valor: 'operativo', label: 'Operativo' },
-            { valor: 'nomina', label: 'Nómina' },
             { valor: 'mantenimiento', label: 'Mantenimiento' },
-            { valor: 'servicios', label: 'Servicios' },
-            { valor: 'otro', label: 'Otro' },
+            { valor: 'personal', label: 'Personal' },
+            { valor: 'financieros', label: 'Financieros' },
+            { valor: 'generales', label: 'Generales' },
           ],
         },
         { name: 'monto', label: 'Monto', type: 'number', requerido: true },

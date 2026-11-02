@@ -240,6 +240,16 @@ tbody tr:hover { background: #fafbfa; }
 .modal-directiva .fila > * { flex: 1 1 120px; }
 .modal-directiva .fila > .campo-orden { flex: 0 0 72px; }
 
+/* Estado de Ingresos y Gastos / saldos bancarios */
+.tabla-eig th, .tabla-eig td { padding: 7px 10px; white-space: nowrap; }
+.tabla-eig th { text-align: right; }
+.tabla-eig th.col-concepto, .tabla-eig td.col-concepto { text-align: left; position: sticky; left: 0; background: #fff; z-index: 1; }
+.tabla-eig thead th.col-concepto { background: var(--verde-muy-claro); }
+.tabla-eig td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabla-eig tr.titulo td { font-weight: 700; color: var(--verde); background: var(--arena); }
+.tabla-eig tr.sub td { font-weight: 700; border-top: 1px solid var(--borde); }
+.saldo-input { width: 92px; text-align: right; padding: 5px 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
+
 /* Matriz de permisos por rol */
 .tabla-permisos th, .tabla-permisos td { text-align: center; }
 .tabla-permisos .col-modulo { text-align: left; font-weight: 600; white-space: nowrap; position: sticky; left: 0; background: #fff; }
