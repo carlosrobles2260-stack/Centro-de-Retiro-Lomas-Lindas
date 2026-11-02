@@ -5,6 +5,9 @@ import InstalarApp from './InstalarApp.jsx';
 
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
+// Versión visible de la app (sirve para confirmar qué build está cargado).
+const VERSION = 'v2026.11.02-1';
+
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
   {
@@ -167,6 +170,7 @@ export default function Layout() {
           <div style={{ opacity: 0.8, fontSize: 12 }}>{ROLES[usuario.rol] || usuario.rol}</div>
           <InstalarApp />
           <button onClick={logout}>Cerrar sesión</button>
+          <div className="version-app">{VERSION}</div>
         </div>
       </aside>
       <main className="contenido">
