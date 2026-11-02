@@ -377,3 +377,19 @@ button.chico { padding: 6px 12px; font-size: 13px; }
 .pf-barra { flex: 1; height: 18px; background: var(--arena); border-radius: 8px; overflow: hidden; }
 .pf-barra > div { height: 100%; border-radius: 8px; }
 .contenido h3 { margin: 18px 0 10px; font-size: 15px; }
+
+/* ===== Aviso de nueva versión (PWA) ===== */
+.actualizar-barra {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 200;
+  background: var(--verde); color: #fff; border-radius: 14px; padding: 12px 16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.28); display: flex; align-items: center; gap: 16px;
+  max-width: 92vw; font-size: 15px; flex-wrap: wrap; justify-content: center;
+  animation: actualizar-sube .25s ease;
+}
+.actualizar-barra strong { font-weight: 700; }
+.actualizar-barra .actualizar-acc { display: flex; gap: 8px; }
+.actualizar-barra button { padding: 9px 16px; font-size: 14px; background: #fff; color: var(--verde); }
+.actualizar-barra button:hover { background: #eef3ef; }
+.actualizar-barra button.secundario { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
+.actualizar-barra button.secundario:hover { background: rgba(255,255,255,.12); }
+@keyframes actualizar-sube { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
