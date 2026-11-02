@@ -111,6 +111,15 @@ label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-su
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  transition: transform 0.22s ease;
+  z-index: 60;
+}
+.contenido { transition: margin-left 0.22s ease; }
+
+/* Ocultar/mostrar la barra lateral en escritorio */
+@media (min-width: 721px) {
+  .app.lateral-oculta .sidebar { transform: translateX(-100%); }
+  .app.lateral-oculta .contenido { margin-left: 0; }
 }
 .sidebar .marca { padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 12px; }
 .sidebar .marca-logo { width: 42px; height: 42px; background: #fff; border-radius: 10px; padding: 3px; flex-shrink: 0; }
@@ -146,11 +155,17 @@ label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-su
 
 /* Barra superior del contenido: usuario + cerrar sesión (escritorio) */
 .barra-superior {
-  display: flex; align-items: center; justify-content: flex-end; gap: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
   margin: -28px -32px 22px; padding: 10px 32px;
   background: #fff; border-bottom: 1px solid var(--borde);
   position: sticky; top: 0; z-index: 50;
 }
+.barra-superior .bs-toggle {
+  background: var(--arena); color: var(--verde); font-size: 20px; line-height: 1;
+  padding: 7px 13px; border-radius: 8px;
+}
+.barra-superior .bs-toggle:hover { background: #e7e1d4; }
+.barra-superior .bs-derecha { display: flex; align-items: center; gap: 16px; }
 .barra-superior .bs-usuario { display: flex; flex-direction: column; line-height: 1.2; text-align: right; }
 .barra-superior .bs-usuario strong { font-size: 15px; }
 .barra-superior .bs-usuario span { font-size: 12px; color: var(--texto-suave); }

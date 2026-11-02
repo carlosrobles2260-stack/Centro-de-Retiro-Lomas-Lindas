@@ -6,7 +6,7 @@ import InstalarApp from './InstalarApp.jsx';
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
 // Versión visible de la app (sirve para confirmar qué build está cargado).
-const VERSION = 'v2026.11.02-9';
+const VERSION = 'v2026.11.02-10';
 
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
@@ -95,8 +95,17 @@ export default function Layout() {
   const { usuario, logout } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [colapsados, setColapsados] = useState(() => new Set(TODOS_LOS_GRUPOS));
+  const [lateralOculta, setLateralOculta] = useState(() => {
+    try { return localStorage.getItem('lateral_oculta') === '1'; } catch { return false; }
+  });
   const puedeVer = (roles) => usuario.rol === 'admin' || roles.includes(usuario.rol);
   const cerrarMenu = () => setMenuAbierto(false);
+
+  const alternarLateral = () => setLateralOculta((v) => {
+    const n = !v;
+    try { localStorage.setItem('lateral_oculta', n ? '1' : '0'); } catch {}
+    return n;
+  });
 
   const alternarGrupo = (grupo) => {
     setColapsados((prev) => {
@@ -108,7 +117,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${lateralOculta ? 'lateral-oculta' : ''}`}>
       {/* Barra superior: solo visible en móvil */}
       <header className="topbar-movil">
         <button className="hamburguesa" aria-label="Abrir menú" onClick={() => setMenuAbierto(true)}>☰</button>
@@ -165,11 +174,21 @@ export default function Layout() {
       </aside>
       <main className="contenido">
         <header className="barra-superior">
-          <div className="bs-usuario">
-            <strong>{usuario.nombre}</strong>
-            <span>{ROLES[usuario.rol] || usuario.rol}</span>
+          <button
+            className="bs-toggle"
+            onClick={alternarLateral}
+            aria-label={lateralOculta ? 'Mostrar el menú' : 'Ocultar el menú'}
+            title={lateralOculta ? 'Mostrar el menú' : 'Ocultar el menú'}
+          >
+            ☰
+          </button>
+          <div className="bs-derecha">
+            <div className="bs-usuario">
+              <strong>{usuario.nombre}</strong>
+              <span>{ROLES[usuario.rol] || usuario.rol}</span>
+            </div>
+            <button className="bs-salir" onClick={logout}>Cerrar sesión</button>
           </div>
-          <button className="bs-salir" onClick={logout}>Cerrar sesión</button>
         </header>
         <Outlet />
       </main>
