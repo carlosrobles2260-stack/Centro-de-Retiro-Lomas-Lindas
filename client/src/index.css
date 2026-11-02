@@ -240,6 +240,16 @@ tbody tr:hover { background: #fafbfa; }
 .modal-directiva .fila > * { flex: 1 1 120px; }
 .modal-directiva .fila > .campo-orden { flex: 0 0 72px; }
 
+/* Matriz de permisos por rol */
+.tabla-permisos th, .tabla-permisos td { text-align: center; }
+.tabla-permisos .col-modulo { text-align: left; font-weight: 600; white-space: nowrap; position: sticky; left: 0; background: #fff; }
+.tabla-permisos thead .col-modulo { background: var(--verde-muy-claro); }
+.tabla-permisos th { border-left: 1px solid var(--borde); }
+.tabla-permisos th.sub { font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.tabla-permisos .celda-check { border-left: 1px solid var(--borde); }
+.tabla-permisos input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--verde); cursor: pointer; }
+.tabla-permisos input[type="checkbox"]:disabled { cursor: default; opacity: 0.4; }
+
 /* Buscador sobre las tablas */
 .barra-busqueda { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; flex-wrap: wrap; }
 .barra-busqueda input[type="search"] { flex: 1; min-width: 260px; max-width: 520px; }
