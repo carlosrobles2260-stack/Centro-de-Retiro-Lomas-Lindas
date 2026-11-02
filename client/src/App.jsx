@@ -3,6 +3,7 @@ import { useAuth } from './lib/auth.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
 import Restablecer from './pages/Restablecer.jsx';
+import CambiarPassword from './pages/CambiarPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Visitas from './pages/Visitas.jsx';
 import Propietarios from './pages/Propietarios.jsx';
@@ -41,6 +42,9 @@ export default function App() {
   // Página pública para restablecer la contraseña desde el enlace del correo.
   if (window.location.pathname === '/restablecer') return <Restablecer />;
   if (!usuario) return <Login />;
+
+  // Primer ingreso con contraseña temporal: obliga a crear una propia.
+  if (usuario.debe_cambiar) return <CambiarPassword />;
 
   // El propietario solo ve su estado de cuenta.
   if (usuario.rol === 'propietario') return <MiCuenta />;

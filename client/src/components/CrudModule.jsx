@@ -24,6 +24,7 @@ export default function CrudModule({
   permiteCrear = true,
   accionesExtra = [], // [{ texto, onClick(fila), clase }]
   onCambio, // callback(filas) tras cada carga (crear/editar/eliminar)
+  onCreado, // callback(respuesta) tras crear un registro nuevo
 }) {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -63,10 +64,13 @@ export default function CrudModule({
   }, [endpoint]); // eslint-disable-line
 
   async function guardar(datos) {
+    let resp;
     if (modal.id) await api.put(`${endpoint}/${modal.id}`, datos);
-    else await api.post(endpoint, datos);
+    else resp = await api.post(endpoint, datos);
+    const creado = !modal.id;
     setModal(null);
     cargar();
+    if (creado && onCreado) onCreado(resp);
   }
 
   async function eliminar(fila) {

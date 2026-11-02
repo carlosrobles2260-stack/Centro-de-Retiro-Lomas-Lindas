@@ -31,8 +31,14 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   }
 
+  // Vuelve a leer el usuario del servidor (p. ej. tras cambiar la contraseña).
+  async function recargarUsuario() {
+    const d = await api.get('/auth/me');
+    setUsuario(d.usuario);
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, cargando, login, logout }}>
+    <AuthContext.Provider value={{ usuario, cargando, login, logout, recargarUsuario }}>
       {children}
     </AuthContext.Provider>
   );

@@ -456,6 +456,10 @@ if (!(await tieneColumna('propietarios', 'codigo'))) {
 if (!(await tieneColumna('usuarios', 'propietario_id'))) {
   await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
 }
+// Obliga a cambiar la contraseña temporal en el primer ingreso.
+if (!(await tieneColumna('usuarios', 'debe_cambiar'))) {
+  await db.exec('ALTER TABLE usuarios ADD COLUMN debe_cambiar INTEGER NOT NULL DEFAULT 0');
+}
 // Carné del empleado del propietario.
 if (!(await tieneColumna('empleados_propietario', 'carnet'))) {
   await db.exec('ALTER TABLE empleados_propietario ADD COLUMN carnet TEXT');
