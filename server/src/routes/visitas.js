@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
 import { notificarPropietario } from '../notificaciones.js';
+import { abrirBarreraPara } from '../acceso.js';
 
 const router = Router();
 
@@ -88,7 +89,11 @@ router.post('/', ah(async (req, res) => {
     ]
   );
   notificarVisita(info.lastID, 'registrada');
-  res.status(201).json(await db.get(SELECT_VISITA + ' WHERE vi.id = ?', [info.lastID]));
+  // Si la visita entra directamente (escaneo en el portón), abre el brazo.
+  const entroDirecto = (estado ?? 'pendiente') === 'dentro';
+  const barrera = entroDirecto ? await abrirBarreraPara('entrada') : null;
+  const visita = await db.get(SELECT_VISITA + ' WHERE vi.id = ?', [info.lastID]);
+  res.status(201).json({ ...visita, barrera });
 }));
 
 // PATCH /api/visitas/:id/estado  (cambiar estado del flujo de acceso)
@@ -122,7 +127,12 @@ router.patch('/:id/estado', ah(async (req, res) => {
   if (estado === 'dentro' && visita.estado !== 'dentro') {
     notificarVisita(Number(req.params.id), 'ingreso');
   }
-  res.json(await db.get(SELECT_VISITA + ' WHERE vi.id = ?', [req.params.id]));
+  // Abre el brazo del portón al registrar entrada (y salida según configuración).
+  let barrera = null;
+  if (estado === 'dentro' && visita.estado !== 'dentro') barrera = await abrirBarreraPara('entrada');
+  else if (estado === 'finalizada' && visita.estado !== 'finalizada') barrera = await abrirBarreraPara('salida');
+  const actualizada = await db.get(SELECT_VISITA + ' WHERE vi.id = ?', [req.params.id]);
+  res.json({ ...actualizada, barrera });
 }));
 
 // DELETE /api/visitas/:id

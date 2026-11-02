@@ -72,6 +72,15 @@ export async function probarBarrera() {
   return abrirBarrera();
 }
 
+// Señal de apertura según la dirección del movimiento. En entrada siempre abre;
+// en salida solo si está configurado. Es best-effort: si no hay relé configurado
+// devuelve 'no_configurada' y no interrumpe el registro del acceso.
+export async function abrirBarreraPara(direccion = 'entrada') {
+  const abrirSalida = (await config('acceso_abrir_en_salida', '1')) === '1';
+  if (direccion === 'salida' && !abrirSalida) return 'omitida';
+  return abrirBarrera();
+}
+
 // Envía la señal de apertura a la barrera (si está configurada). Best-effort.
 async function abrirBarrera() {
   const url = (await config('acceso_rele_url', '')).trim();

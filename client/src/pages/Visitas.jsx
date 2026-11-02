@@ -11,6 +11,14 @@ const ESTADOS = [
   { valor: 'rechazada', label: 'Rechazada' },
 ];
 
+// Aviso del resultado de la barrera del portón. Solo molesta al usuario si pasó
+// algo que deba saber; si no hay relé configurado no muestra nada.
+function avisarBarrera(barrera) {
+  if (!barrera || barrera === 'no_configurada' || barrera === 'omitida') return;
+  if (barrera === 'abierta') return; // éxito silencioso (lo normal)
+  alert('⚠️ No se pudo abrir el brazo del portón automáticamente. Ábrelo de forma manual y revisa la configuración del relé en "Control de acceso (QR)".');
+}
+
 // Acciones disponibles según el estado actual de la visita.
 const ACCIONES = {
   pendiente: [
@@ -71,7 +79,8 @@ export default function Visitas() {
     if (estado === 'autorizada' && !autorizado_por) {
       autorizado_por = prompt('¿Quién autoriza la visita? (propietario)') || '';
     }
-    await api.patch(`/visitas/${visita.id}/estado`, { estado, autorizado_por });
+    const r = await api.patch(`/visitas/${visita.id}/estado`, { estado, autorizado_por });
+    avisarBarrera(r?.barrera);
     cargar();
   }
 
@@ -168,6 +177,7 @@ const PUESTO = { domestica: 'Empleada doméstica', jardinero: 'Jardinero', cuida
 function ModalAccesoEmpleado({ empleado, onCerrar }) {
   const [guardando, setGuardando] = useState(null); // 'entrada' | 'salida'
   const [resultado, setResultado] = useState(null);
+  const [barrera, setBarrera] = useState(null);
   const [error, setError] = useState(null);
 
   async function registrar(tipo) {
@@ -176,6 +186,8 @@ function ModalAccesoEmpleado({ empleado, onCerrar }) {
     try {
       const r = await api.post('/empleados-propietario/acceso', { codigo: empleado.codigo, tipo });
       setResultado(r.tipo);
+      setBarrera(r.barrera);
+      avisarBarrera(r.barrera);
     } catch (e) {
       setError(e.message);
       setGuardando(null);
@@ -200,6 +212,7 @@ function ModalAccesoEmpleado({ empleado, onCerrar }) {
         {resultado ? (
           <>
             <p className="ok-msg">✓ {resultado === 'entrada' ? 'Entrada' : 'Salida'} registrada para {empleado.nombre}.</p>
+            {barrera === 'abierta' && <p className="ok-msg">🚧 Brazo del portón abierto.</p>}
             <div className="pie-modal"><button onClick={onCerrar}>Cerrar</button></div>
           </>
         ) : (
@@ -251,10 +264,11 @@ function ModalVisita({ visitantePre, onCerrar, onGuardado }) {
     setGuardando(true);
     setError(null);
     try {
-      await api.post('/visitas', {
+      const r = await api.post('/visitas', {
         ...datos,
         propietario_id: datos.propietario_id || null,
       });
+      avisarBarrera(r?.barrera);
       onGuardado();
     } catch (e) {
       setError(e.message);

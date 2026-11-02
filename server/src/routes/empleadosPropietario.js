@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db, { generarCodigo, SQL } from '../db.js';
 import { ah } from '../async.js';
 import { crearCrud } from '../crud.js';
+import { abrirBarreraPara } from '../acceso.js';
 
 const router = Router();
 
@@ -44,8 +45,10 @@ router.post('/acceso', ah(async (req, res) => {
      VALUES (?, ?, ?, ?)`,
     [e.id, e.propietario_id ?? null, mov, req.usuario?.id ?? null]
   );
+  // Envía la señal para abrir el brazo del portón (best-effort).
+  const barrera = await abrirBarreraPara(mov);
   res.status(201).json({
-    ok: true, tipo: mov,
+    ok: true, tipo: mov, barrera,
     empleado: { id: e.id, nombre: e.nombre, puesto: e.puesto, propietario_nombre: e.propietario_nombre, propiedad: e.propiedad },
   });
 }));
