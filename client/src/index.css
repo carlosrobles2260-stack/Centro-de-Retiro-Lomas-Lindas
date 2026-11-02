@@ -284,6 +284,20 @@ td .acciones button { padding: 7px 12px; font-size: 14px; }
 .mc-user { display: flex; align-items: center; gap: 12px; font-size: 14px; }
 .mc-main { max-width: 760px; margin: 0 auto; padding: 22px 16px 40px; }
 .mc-main h2 { font-size: 16px; margin: 26px 0 10px; }
+
+/* Secciones plegables/desplegables del portal del propietario */
+.mc-seccion { background: #fff; border: 1px solid var(--borde, #e3ddd0); border-radius: 14px; margin: 14px 0; overflow: hidden; }
+.mc-seccion-cab {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: #fff; border: 0; cursor: pointer; text-align: left;
+  padding: 16px 18px; font-size: 18px; font-weight: 700; color: var(--verde);
+}
+.mc-seccion-cab:hover { background: var(--arena); }
+.mc-seccion-cab .chevron { font-size: 15px; transition: transform 0.18s ease; opacity: 0.8; }
+.mc-seccion.cerrada .mc-seccion-cab .chevron { transform: rotate(-90deg); }
+.mc-seccion-cuerpo { padding: 4px 16px 18px; border-top: 1px solid var(--arena); }
+.mc-seccion-cuerpo > .card:first-child,
+.mc-seccion-cuerpo > .tabla-wrap:first-child { margin-top: 12px; }
 .mc-saldo { text-align: center; padding: 24px; }
 .mc-saldo .etiqueta { color: var(--texto-suave); font-size: 15px; }
 .mc-monto { font-size: 38px; font-weight: 800; margin: 6px 0; }

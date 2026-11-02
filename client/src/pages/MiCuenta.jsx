@@ -402,6 +402,32 @@ function NucleoFamiliar() {
   );
 }
 
+// Sección plegable/desplegable del portal del propietario. Recuerda en el
+// dispositivo (localStorage) si el residente la dejó abierta o cerrada.
+function Seccion({ titulo, clave, children, abiertoPorDefecto = true }) {
+  const storageKey = `mc_sec_${clave}`;
+  const [abierto, setAbierto] = useState(() => {
+    try {
+      const v = localStorage.getItem(storageKey);
+      return v === null ? abiertoPorDefecto : v === '1';
+    } catch { return abiertoPorDefecto; }
+  });
+  const alternar = () => setAbierto((a) => {
+    const n = !a;
+    try { localStorage.setItem(storageKey, n ? '1' : '0'); } catch {}
+    return n;
+  });
+  return (
+    <section className={`mc-seccion ${abierto ? 'abierta' : 'cerrada'}`}>
+      <button type="button" className="mc-seccion-cab" onClick={alternar} aria-expanded={abierto}>
+        <span>{titulo}</span>
+        <span className="chevron" aria-hidden="true">▾</span>
+      </button>
+      {abierto && <div className="mc-seccion-cuerpo">{children}</div>}
+    </section>
+  );
+}
+
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
@@ -445,20 +471,26 @@ export default function MiCuenta() {
               </div>
             )}
 
-            {!datos.es_inquilino && <VotacionDirectiva />}
+            {!datos.es_inquilino && (
+              <Seccion titulo="Votación de la Directiva" clave="votacion">
+                <VotacionDirectiva />
+              </Seccion>
+            )}
 
-            <h2>Mi pase de acceso</h2>
-            <PaseAcceso />
+            <Seccion titulo="Mi pase de acceso" clave="pase">
+              <PaseAcceso />
+            </Seccion>
 
-            <h2>Núcleo familiar</h2>
-            <NucleoFamiliar />
+            <Seccion titulo="Núcleo familiar" clave="familia">
+              <NucleoFamiliar />
+            </Seccion>
 
-            <h2>Autorizar invitados</h2>
-            <AutorizarInvitado />
+            <Seccion titulo="Autorizar invitados" clave="invitados">
+              <AutorizarInvitado />
+            </Seccion>
 
             {!datos.es_inquilino && (
-              <>
-                <h2>Mis cuotas</h2>
+              <Seccion titulo="Mis cuotas" clave="cuotas">
                 <div className="tabla-wrap">
                   {datos.facturas.length === 0 ? (
                     <div className="vacio">Aún no hay cuotas registradas.</div>
@@ -481,12 +513,11 @@ export default function MiCuenta() {
                     </table>
                   )}
                 </div>
-              </>
+              </Seccion>
             )}
 
             {datos.empleados?.length > 0 && (
-              <>
-                <h2>Mis empleados</h2>
+              <Seccion titulo="Mis empleados" clave="empleados">
                 <div className="tabla-wrap">
                   <table>
                     <thead>
@@ -505,12 +536,11 @@ export default function MiCuenta() {
                     </tbody>
                   </table>
                 </div>
-              </>
+              </Seccion>
             )}
 
             {datos.documentos?.length > 0 && (
-              <>
-                <h2>Normas y reglamentos</h2>
+              <Seccion titulo="Normas y reglamentos" clave="normas">
                 <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto. Presiona una categoría para ver sus documentos.</p>
                 <div className="mc-cats">
                   {agruparDocumentos(datos.documentos).map(([cat, docs]) => (
@@ -523,17 +553,18 @@ export default function MiCuenta() {
                     />
                   ))}
                 </div>
-              </>
+              </Seccion>
             )}
 
-            <h2>Capacitación</h2>
-            <div className="card mc-capacitacion">
-              <div>
-                <strong>Aprende a usar tu portal</strong>
-                <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación. Con autoevaluación.</p>
+            <Seccion titulo="Capacitación" clave="capacitacion">
+              <div className="card mc-capacitacion">
+                <div>
+                  <strong>Aprende a usar tu portal</strong>
+                  <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación. Con autoevaluación.</p>
+                </div>
+                <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
               </div>
-              <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
-            </div>
+            </Seccion>
 
             <p className="mc-pie">Para registrar un pago o aclarar un cargo, comunícate con la administración del centro.</p>
           </>
