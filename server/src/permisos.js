@@ -30,6 +30,7 @@ export const MODULOS = [
   { clave: 'prestamos', etiqueta: 'Préstamos a empleados' },
   { clave: 'acciones_personal', etiqueta: 'Acciones de personal' },
   { clave: 'activos', etiqueta: 'Activos' },
+  { clave: 'bancos', etiqueta: 'Cuentas bancarias y saldos' },
   { clave: 'directiva', etiqueta: 'Galería de la Directiva' },
 ];
 const CLAVES = new Set(MODULOS.map((m) => m.clave));
@@ -49,7 +50,7 @@ const DEFECTO = {
     rw: ['propietarios', 'empleados_propietario', 'visitantes', 'visitas', 'incidentes',
       'tipos_incidencia', 'rondas', 'turnos', 'viajes_vertedero', 'notificaciones',
       'vehiculos', 'geocercas', 'facturas', 'cuentas_por_cobrar', 'gastos', 'documentos',
-      'elecciones', 'empleados', 'nomina', 'prestamos', 'acciones_personal', 'activos'],
+      'elecciones', 'empleados', 'nomina', 'prestamos', 'acciones_personal', 'activos', 'bancos'],
     r: ['panel', 'reportes', 'directiva'],
   },
   presidente: { rw: [], r: TODOS },

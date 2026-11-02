@@ -15,6 +15,7 @@ import facturasRoutes from './routes/facturas.js';
 import gastosRoutes from './routes/gastos.js';
 import dashboardRoutes from './routes/dashboard.js';
 import reportesRoutes from './routes/reportes.js';
+import bancosRoutes from './routes/bancos.js';
 import notificacionesRoutes from './routes/notificaciones.js';
 import tiposIncidenciaRoutes from './routes/tiposIncidencia.js';
 import configuracionRoutes from './routes/configuracion.js';
@@ -140,6 +141,7 @@ app.use('/api/rondas', requiereAuth, permite('rondas'), rondasRoutes);
 app.use('/api/facturas', requiereAuth, permite('facturas'), facturasRoutes);
 app.use('/api/cuentas-por-cobrar', requiereAuth, permite('cuentas_por_cobrar'), cuentasPorCobrarRoutes);
 app.use('/api/gastos', requiereAuth, permite('gastos'), gastosRoutes);
+app.use('/api/bancos', requiereAuth, permite('bancos'), bancosRoutes);
 app.use('/api/reportes', requiereAuth, permite('reportes'), reportesRoutes);
 app.use('/api/notificaciones', requiereAuth, permite('notificaciones'), notificacionesRoutes);
 

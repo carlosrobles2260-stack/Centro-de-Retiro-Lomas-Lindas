@@ -379,6 +379,24 @@ CREATE TABLE IF NOT EXISTS votos (
   fecha        ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
 
+CREATE TABLE IF NOT EXISTS cuentas_bancarias (
+  id         ${T.id},
+  nombre     TEXT NOT NULL,
+  numero     TEXT,
+  orden      INTEGER NOT NULL DEFAULT 0,
+  activo     INTEGER NOT NULL DEFAULT 1,
+  creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
+
+-- Saldo al CIERRE de cada mes por cuenta (se captura del estado de cuenta del banco).
+CREATE TABLE IF NOT EXISTS saldos_banco (
+  id         ${T.id},
+  cuenta_id  INTEGER NOT NULL REFERENCES cuentas_bancarias(id) ON DELETE CASCADE,
+  periodo    TEXT NOT NULL,          -- 'YYYY-MM'
+  saldo      ${T.num} NOT NULL DEFAULT 0,
+  UNIQUE (cuenta_id, periodo)
+);
+
 CREATE TABLE IF NOT EXISTS permisos (
   rol       TEXT NOT NULL,
   modulo    TEXT NOT NULL,

@@ -104,4 +104,74 @@ router.get('/estado-cuenta', ah(async (req, res) => {
   res.json({ totalPorCobrar, total: filas.length, filas });
 }));
 
+// Mes anterior de un 'YYYY-MM'.
+function mesAnterior(periodo) {
+  const [y, m] = periodo.split('-').map(Number);
+  const d = new Date(y, m - 2, 1); // m-2 porque Date es base 0 y queremos el mes anterior
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// GET /api/reportes/estado-ingresos-gastos?desde=2026-01&hasta=2026-09
+// Arma el Estado de Ingresos y Gastos con el mismo formato del contador.
+router.get('/estado-ingresos-gastos', ah(async (req, res) => {
+  const hoy = new Date();
+  const desde = /^\d{4}-\d{2}$/.test(req.query.desde || '') ? req.query.desde : `${hoy.getFullYear()}-01`;
+  const hasta = /^\d{4}-\d{2}$/.test(req.query.hasta || '') ? req.query.hasta : `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+
+  // Lista de períodos del rango.
+  const periodos = [];
+  let p = desde;
+  for (let i = 0; i < 60 && p <= hasta; i++) {
+    periodos.push(p);
+    const [y, m] = p.split('-').map(Number);
+    const d = new Date(y, m, 1);
+    p = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  // Ingresos por mes (pagos de cuotas).
+  const ingFilas = await db.all(
+    `SELECT ${SQL.anioMes('fecha')} AS m, SUM(monto) AS t FROM pagos
+     WHERE ${SQL.anioMes('fecha')} BETWEEN ? AND ? GROUP BY ${SQL.anioMes('fecha')}`,
+    [desde, hasta]
+  );
+  const ingresos = {};
+  for (const f of ingFilas) ingresos[f.m] = Number(f.t) || 0;
+
+  // Gastos por categoría + concepto + mes.
+  const gasFilas = await db.all(
+    `SELECT categoria, concepto, ${SQL.anioMes('fecha')} AS m, SUM(monto) AS t FROM gastos
+     WHERE ${SQL.anioMes('fecha')} BETWEEN ? AND ? GROUP BY categoria, concepto, ${SQL.anioMes('fecha')}`,
+    [desde, hasta]
+  );
+  // Estructura: { categoria: { concepto: { periodo: monto } } }
+  const gastos = {};
+  for (const f of gasFilas) {
+    const cat = f.categoria || 'generales';
+    ((gastos[cat] ||= {})[f.concepto || '(sin concepto)'] ||= {})[f.m] = Number(f.t) || 0;
+  }
+
+  // Cuentas bancarias y saldos (cierre por mes). Inicial de un mes = cierre del mes anterior.
+  const cuentas = await db.all('SELECT id, nombre, numero FROM cuentas_bancarias WHERE activo = 1 ORDER BY orden ASC, id ASC');
+  const periodosConPrevio = [...new Set([mesAnterior(desde), ...periodos])];
+  const saldoFilas = await db.all(
+    `SELECT cuenta_id, periodo, saldo FROM saldos_banco WHERE periodo IN (${periodosConPrevio.map(() => '?').join(',')})`,
+    periodosConPrevio
+  );
+  const saldo = {}; // saldo[cuenta][periodo]
+  for (const f of saldoFilas) (saldo[f.cuenta_id] ||= {})[f.periodo] = Number(f.saldo) || 0;
+
+  const efectivoFinal = {};   // [cuentaId][periodo]
+  const efectivoInicial = {}; // [cuentaId][periodo]
+  for (const c of cuentas) {
+    efectivoFinal[c.id] = {};
+    efectivoInicial[c.id] = {};
+    for (const per of periodos) {
+      efectivoFinal[c.id][per] = saldo[c.id]?.[per] ?? null;
+      efectivoInicial[c.id][per] = saldo[c.id]?.[mesAnterior(per)] ?? null;
+    }
+  }
+
+  res.json({ desde, hasta, periodos, cuentas, ingresos, gastos, efectivoInicial, efectivoFinal });
+}));
+
 export default router;
