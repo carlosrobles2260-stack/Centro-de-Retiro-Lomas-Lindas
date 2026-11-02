@@ -75,11 +75,11 @@ export default function Activos() {
         descripcion="Inventario y valoración de los bienes de la asociación. Los activos fijos (p. ej. terrenos) conservan su valor; los depreciables bajan su valor en libros con el tiempo (depreciación lineal)."
         endpoint="/activos"
         columnas={[
-          { key: 'nombre', label: 'Activo', render: (f) => <><strong>{f.nombre}</strong>{f.codigo && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.codigo}</div>}</> },
+          { key: 'nombre', label: 'Activo', render: (f) => <><strong>{f.nombre}</strong>{f.codigo && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{f.codigo}</div>}</> },
           { key: 'categoria', label: 'Categoría', render: (f) => etq(CATEGORIAS, f.categoria) },
           { key: 'depreciable', label: 'Tipo', render: (f) => Number(f.depreciable) ? <span className="badge amarillo">Depreciable</span> : <span className="badge gris">Fijo</span> },
           { key: 'valor_adquisicion', label: 'Adquisición', render: (f) => dinero(f.valor_adquisicion) },
-          { key: 'valor_libros', label: 'Valor en libros', render: (f) => <><strong>{dinero(f.valor_libros)}</strong>{Number(f.depreciable) && f.depreciacion_anual ? <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>−{dinero(f.depreciacion_anual)}/año</div> : null}</> },
+          { key: 'valor_libros', label: 'Valor en libros', render: (f) => <><strong>{dinero(f.valor_libros)}</strong>{Number(f.depreciable) && f.depreciacion_anual ? <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>−{dinero(f.depreciacion_anual)}/año</div> : null}</> },
           { key: 'estado', label: 'Estado', render: (f) => etq(ESTADOS, f.estado) },
           { key: 'responsable_nombre', label: 'Responsable' },
         ]}

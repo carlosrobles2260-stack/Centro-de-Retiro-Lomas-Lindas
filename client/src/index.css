@@ -289,6 +289,7 @@ td .acciones .acc-acceso { min-width: 104px; }
 
 /* ===== Mapa en tiempo real (GPS) ===== */
 .mapa-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: stretch; }
+@media (max-width: 860px) { .mapa-layout { grid-template-columns: 1fr; } }
 .mapa-lienzo { height: 540px; border-radius: var(--radio); border: 1px solid var(--borde); overflow: hidden; z-index: 0; }
 .mapa-panel { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; overflow-y: auto; max-height: 540px; }
 .mapa-panel h3 { margin: 0 0 10px; font-size: 15px; }
@@ -431,7 +432,7 @@ td .acciones .acc-acceso { min-width: 104px; }
 .mc-inv-acc { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 button.wa { background: #25D366; color: #fff; }
 button.wa:hover { background: #1fb858; }
-button.chico { padding: 6px 12px; font-size: 13px; }
+button.chico { padding: 7px 12px; font-size: 14px; }
 .secundario-link { display: inline-block; background: #fff; color: var(--verde); border: 1px solid var(--borde); border-radius: 10px; padding: 11px 18px; text-decoration: none; font-weight: 600; }
 .secundario-link.chico { padding: 6px 12px; font-size: 13px; }
 .primario-link { display: inline-block; background: var(--verde); color: #fff; border-radius: 10px; padding: 12px 20px; text-decoration: none; font-weight: 600; white-space: nowrap; }

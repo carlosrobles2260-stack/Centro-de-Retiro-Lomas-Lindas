@@ -219,7 +219,7 @@ function FormModal({ titulo, campos, valores, fuentes, onGuardar, onCerrar }) {
                   onChange={(e) => leerArchivo(c.base64Campo || `${c.name}_base64`, e.target.files?.[0])}
                 />
                 {valores[c.name] && !datos[c.base64Campo || `${c.name}_base64`] && (
-                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                  <div style={{ fontSize: 14, marginTop: 4 }}>
                     Actual: <a href={valores[c.name]} target="_blank" rel="noreferrer">ver archivo</a>
                   </div>
                 )}

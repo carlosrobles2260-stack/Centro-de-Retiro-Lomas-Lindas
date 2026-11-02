@@ -111,12 +111,12 @@ export default function Propietarios() {
                 <tr key={p.id}>
                   <td>
                     {p.nombre}
-                    {p.acceso_email && <div style={{ fontSize: 12, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
+                    {p.acceso_email && <div style={{ fontSize: 14, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
                   </td>
                   <td>{p.carnet || '—'}</td>
                   <td>
                     {p.propiedad || '—'}
-                    {p.tipo_propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{etiquetaTipo(p.tipo_propiedad)}</div>}
+                    {p.tipo_propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{etiquetaTipo(p.tipo_propiedad)}</div>}
                   </td>
                   <td>{p.telefono || '—'}</td>
                   <td>
@@ -127,7 +127,7 @@ export default function Propietarios() {
                             <img src={f} alt="propiedad" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
                           </a>
                         ))}
-                        {p.fotos.length > 3 && <span style={{ fontSize: 12, color: 'var(--texto-suave)', alignSelf: 'center' }}>+{p.fotos.length - 3}</span>}
+                        {p.fotos.length > 3 && <span style={{ fontSize: 14, color: 'var(--texto-suave)', alignSelf: 'center' }}>+{p.fotos.length - 3}</span>}
                       </div>
                     ) : '—'}
                   </td>

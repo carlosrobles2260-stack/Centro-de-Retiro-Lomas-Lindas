@@ -37,7 +37,7 @@ export default function Documentos() {
         endpoint="/documentos"
         filtros={[{ name: 'categoria', label: 'Categoría', opciones: CATEGORIAS }]}
         columnas={[
-          { key: 'titulo', label: 'Documento', render: (f) => <><strong>{f.titulo}</strong>{f.descripcion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.descripcion}</div>}</> },
+          { key: 'titulo', label: 'Documento', render: (f) => <><strong>{f.titulo}</strong>{f.descripcion && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{f.descripcion}</div>}</> },
           { key: 'categoria', label: 'Categoría', render: (f) => <span className="badge azul">{etq(CATEGORIAS, f.categoria)}</span> },
           { key: 'fecha', label: 'Fecha', render: (f) => (f.fecha ? fecha(f.fecha) : '—') },
           { key: 'archivo', label: 'Archivo / enlace', render: (f) => (f.archivo || f.enlace) ? <a href={f.archivo || f.enlace} target="_blank" rel="noreferrer">Ver</a> : (f.contenido ? 'Texto' : '—') },

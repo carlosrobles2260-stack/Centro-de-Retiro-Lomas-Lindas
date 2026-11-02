@@ -67,7 +67,7 @@ export default function Notificaciones() {
                   <td>{n.destino || <span style={{ color: 'var(--rojo)' }}>sin correo</span>}</td>
                   <td>
                     {n.asunto}
-                    {n.detalle && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{n.detalle}</div>}
+                    {n.detalle && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{n.detalle}</div>}
                   </td>
                   <td><Badge estado={n.estado} /></td>
                   <td>

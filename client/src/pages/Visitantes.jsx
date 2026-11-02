@@ -18,7 +18,7 @@ export default function Visitantes() {
           { key: 'tipo', label: 'Tipo', render: (f) => <span style={{ textTransform: 'capitalize' }}>{f.tipo}{f.parentesco ? ` · ${f.parentesco}` : ''}</span> },
           { key: 'propietario_nombre', label: 'Propietario' },
           { key: 'placa_vehiculo', label: 'Placa' },
-          { key: 'codigo', label: 'Código', render: (f) => <code style={{ fontSize: 12 }}>{f.codigo}</code> },
+          { key: 'codigo', label: 'Código', render: (f) => <code style={{ fontSize: 14 }}>{f.codigo}</code> },
         ]}
         campos={[
           { name: 'nombre', label: 'Nombre completo', requerido: true },

@@ -76,7 +76,7 @@ export default function Login() {
             {aviso ? (
               <>
                 <p className="ok-msg" style={{ textAlign: 'center' }}>{aviso}</p>
-                <p style={{ textAlign: 'center', color: 'var(--texto-suave)', fontSize: 13 }}>
+                <p style={{ textAlign: 'center', color: 'var(--texto-suave)', fontSize: 15 }}>
                   Revisa tu correo y abre el enlace para crear una nueva contraseña. El enlace es válido por 1 hora.
                 </p>
               </>

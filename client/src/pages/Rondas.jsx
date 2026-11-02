@@ -42,11 +42,11 @@ export default function Rondas() {
       <div className="card" style={{ marginBottom: 18, display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
           <div>
-            <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>Rondas de hoy</div>
+            <div style={{ fontSize: 15, color: 'var(--texto-suave)' }}>Rondas de hoy</div>
             <div style={{ fontSize: 28, fontWeight: 700 }}>{rondasHoy === null ? '…' : hechas}</div>
           </div>
           <div>
-            <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>Meta por turno</div>
+            <div style={{ fontSize: 15, color: 'var(--texto-suave)' }}>Meta por turno</div>
             {editandoMeta ? (
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
                 <input type="number" min="0" value={metaBorrador} onChange={(e) => setMetaBorrador(e.target.value)} style={{ width: 80 }} />
@@ -56,17 +56,17 @@ export default function Rondas() {
             ) : (
               <div style={{ fontSize: 28, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 }}>
                 {metaNum}
-                {puedeConfig && <button className="secundario" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => setEditandoMeta(true)}>Cambiar</button>}
+                {puedeConfig && <button className="secundario" style={{ padding: '4px 10px', fontSize: 14 }} onClick={() => setEditandoMeta(true)}>Cambiar</button>}
               </div>
             )}
           </div>
           <div>
-            <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>Cumplimiento</div>
+            <div style={{ fontSize: 15, color: 'var(--texto-suave)' }}>Cumplimiento</div>
             <div style={{ marginTop: 8 }}>
               {metaNum === 0
                 ? <span style={{ color: 'var(--texto-suave)' }}>Sin meta definida</span>
                 : <Badge estado={cumplido ? 'cerrado' : 'abierto'} />}
-              {metaNum > 0 && <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--texto-suave)' }}>{cumplido ? 'Meta cumplida' : `Faltan ${Math.max(0, metaNum - hechas)}`}</span>}
+              {metaNum > 0 && <span style={{ marginLeft: 8, fontSize: 15, color: 'var(--texto-suave)' }}>{cumplido ? 'Meta cumplida' : `Faltan ${Math.max(0, metaNum - hechas)}`}</span>}
             </div>
           </div>
         </div>

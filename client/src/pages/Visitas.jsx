@@ -130,10 +130,10 @@ export default function Visitas() {
                 <tr key={v.id}>
                   <td>
                     <strong>{v.visitante_nombre}</strong>
-                    {v.placa_vehiculo && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>🚗 {v.placa_vehiculo}</div>}
+                    {v.placa_vehiculo && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>🚗 {v.placa_vehiculo}</div>}
                   </td>
                   <td style={{ textTransform: 'capitalize' }}>{v.visitante_tipo}</td>
-                  <td>{v.propietario_nombre || '—'}{v.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{v.propiedad}</div>}</td>
+                  <td>{v.propietario_nombre || '—'}{v.propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{v.propiedad}</div>}</td>
                   <td>{fechaHora(v.fecha_entrada)}</td>
                   <td>{fechaHora(v.fecha_salida)}</td>
                   <td><Badge estado={v.estado} /></td>
@@ -202,7 +202,7 @@ function ModalAccesoEmpleado({ empleado, onCerrar }) {
         <h3>Acceso de empleado</h3>
         <div className="card" style={{ background: 'var(--verde-muy-claro)', borderColor: 'var(--verde-claro)', marginBottom: 14, padding: 12 }}>
           👷 <strong>{empleado.nombre}</strong> · {PUESTO[empleado.puesto] || empleado.puesto || 'Empleado'}
-          <div style={{ fontSize: 13, color: 'var(--texto-suave)', marginTop: 4 }}>
+          <div style={{ fontSize: 15, color: 'var(--texto-suave)', marginTop: 4 }}>
             {empleado.propietario_nombre ? `Propietario: ${empleado.propietario_nombre}` : ''}
             {empleado.propiedad ? ` · ${empleado.propiedad}` : ''}
             {empleado.carnet ? ` · Carné ${empleado.carnet}` : ''}
@@ -291,7 +291,7 @@ function ModalVisita({ visitantePre, onCerrar, onGuardado }) {
             <option value="">Seleccionar visitante...</option>
             {visitantes.map((v) => <option key={v.id} value={v.id}>{v.nombre} {v.documento ? `(${v.documento})` : ''}</option>)}
           </select>
-          <p style={{ fontSize: 12, color: 'var(--texto-suave)', margin: '6px 0 0' }}>
+          <p style={{ fontSize: 14, color: 'var(--texto-suave)', margin: '6px 0 0' }}>
             ¿No está en la lista? Regístralo primero en la sección Visitantes.
           </p>
         </div>

@@ -151,7 +151,7 @@ export default function Nomina() {
               <tbody>
                 {data.empleados.map((f) => (
                   <tr key={f.empleado_id}>
-                    <td><strong>{f.nombre}</strong>{f.puesto && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.puesto}</div>}</td>
+                    <td><strong>{f.nombre}</strong>{f.puesto && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{f.puesto}</div>}</td>
                     <td>{dinero(f.bruto)}</td>
                     <td>{dinero(f.afp)}</td>
                     <td>{dinero(f.sfs)}</td>

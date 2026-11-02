@@ -179,22 +179,24 @@ function FichaEmpleado({ empleado: e, onCerrar }) {
             <p className="descripcion">
               Antigüedad: <strong>{calc.antiguedad.anios} año(s) y {calc.antiguedad.meses} mes(es)</strong> · Salario diario: {dinero(calc.salarioDiario)}
             </p>
-            <table>
-              <thead><tr><th>Concepto</th><th>Días</th><th>Monto</th></tr></thead>
-              <tbody>
-                {calc.componentes.map((c) => (
-                  <tr key={c.clave} style={{ opacity: c.aplica ? 1 : 0.45 }}>
-                    <td>{c.etiqueta}{!c.aplica && ' (no aplica)'}</td>
-                    <td>{c.dias != null ? c.dias : '—'}</td>
-                    <td>{c.aplica ? dinero(c.monto) : '—'}</td>
+            <div className="tabla-wrap">
+              <table>
+                <thead><tr><th>Concepto</th><th>Días</th><th>Monto</th></tr></thead>
+                <tbody>
+                  {calc.componentes.map((c) => (
+                    <tr key={c.clave} style={{ opacity: c.aplica ? 1 : 0.45 }}>
+                      <td>{c.etiqueta}{!c.aplica && ' (no aplica)'}</td>
+                      <td>{c.dias != null ? c.dias : '—'}</td>
+                      <td>{c.aplica ? dinero(c.monto) : '—'}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td colSpan={2} style={{ fontWeight: 700, textAlign: 'right' }}>Total a pagar</td>
+                    <td style={{ fontWeight: 700 }}>{dinero(calc.total)}</td>
                   </tr>
-                ))}
-                <tr>
-                  <td colSpan={2} style={{ fontWeight: 700, textAlign: 'right' }}>Total a pagar</td>
-                  <td style={{ fontWeight: 700 }}>{dinero(calc.total)}</td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

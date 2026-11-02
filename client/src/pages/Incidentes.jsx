@@ -88,10 +88,10 @@ export default function Incidentes() {
                   <td>{fecha(i.fecha)}</td>
                   <td style={{ textTransform: 'capitalize' }}>
                     {i.tipo}
-                    {i.involucrado && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>con {etiquetaInvolucrado(i.involucrado).toLowerCase()}</div>}
+                    {i.involucrado && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>con {etiquetaInvolucrado(i.involucrado).toLowerCase()}</div>}
                   </td>
-                  <td>{i.descripcion}{i.ubicacion && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>📍 {i.ubicacion}</div>}</td>
-                  <td>{i.propietario_nombre || '—'}{i.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{i.propiedad}</div>}</td>
+                  <td>{i.descripcion}{i.ubicacion && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>📍 {i.ubicacion}</div>}</td>
+                  <td>{i.propietario_nombre || '—'}{i.propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{i.propiedad}</div>}</td>
                   <td>
                     {i.foto
                       ? <a href={i.foto} target="_blank" rel="noreferrer"><img src={i.foto} alt="evidencia" style={{ width: 46, height: 46, objectFit: 'cover', borderRadius: 6 }} /></a>

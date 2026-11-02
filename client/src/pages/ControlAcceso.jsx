@@ -80,7 +80,7 @@ export default function ControlAcceso() {
         <div className="campo">
           <label>URL del relé / controlador de la barrera</label>
           <input value={cfg.acceso_rele_url} placeholder="https://… (vacío = no abre nada todavía)" onChange={(e) => set('acceso_rele_url', e.target.value)} />
-          <div style={{ fontSize: 12, color: 'var(--texto-suave)', marginTop: 4 }}>El sistema hace un POST a esta URL cuando un acceso es válido. Déjala vacía hasta tener el equipo del portón.</div>
+          <div style={{ fontSize: 14, color: 'var(--texto-suave)', marginTop: 4 }}>El sistema hace un POST a esta URL cuando un acceso es válido. Déjala vacía hasta tener el equipo del portón.</div>
         </div>
         <div className="fila">
           <div className="campo"><label>Validez del pase QR (segundos)</label><input type="number" min="10" max="300" value={cfg.acceso_token_ttl} onChange={(e) => set('acceso_token_ttl', e.target.value)} /></div>

@@ -69,14 +69,14 @@ export default function Facturas() {
             <tbody>
               {filas.map((f) => (
                 <tr key={f.id}>
-                  <td><strong>{f.propietario_nombre}</strong>{f.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{f.propiedad}</div>}</td>
+                  <td><strong>{f.propietario_nombre}</strong>{f.propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{f.propiedad}</div>}</td>
                   <td>{f.concepto}</td>
                   <td>{fecha(f.fecha_emision)}</td>
                   <td>{fecha(f.fecha_vencimiento)}</td>
                   <td>
                     {dinero(f.monto)}
                     {Number(f.descuento_pct) > 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--verde)', marginTop: 2 }}>
+                      <div style={{ fontSize: 14, color: 'var(--verde)', marginTop: 2 }}>
                         −{f.descuento_pct}% descuento
                         {f.descuento_por_nombre && <div style={{ color: 'var(--texto-suave)' }}>Autorizó: {f.descuento_por_nombre}{f.descuento_en ? ` · ${fecha(f.descuento_en)}` : ''}</div>}
                         {f.descuento_motivo && <div style={{ color: 'var(--texto-suave)', fontStyle: 'italic' }}>«{f.descuento_motivo}»</div>}

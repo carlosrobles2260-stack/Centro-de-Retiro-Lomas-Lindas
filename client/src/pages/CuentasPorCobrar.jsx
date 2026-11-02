@@ -134,9 +134,9 @@ export default function CuentasPorCobrar() {
                 <tr key={p.propietario_id}>
                   <td>
                     <strong>{p.nombre}</strong>
-                    {p.propiedad && <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{p.propiedad}</div>}
+                    {p.propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{p.propiedad}</div>}
                   </td>
-                  <td>{p.cuotas}{p.cuotas_vencidas > 0 && <span style={{ color: 'var(--rojo)', fontSize: 12 }}> · {p.cuotas_vencidas} vencida(s)</span>}</td>
+                  <td>{p.cuotas}{p.cuotas_vencidas > 0 && <span style={{ color: 'var(--rojo)', fontSize: 14 }}> · {p.cuotas_vencidas} vencida(s)</span>}</td>
                   <td style={{ fontWeight: 600 }}>{dinero(p.saldo)}</td>
                   <td style={{ color: p.saldo_vencido > 0 ? 'var(--rojo)' : 'inherit' }}>{dinero(p.saldo_vencido)}</td>
                   <td>{p.dias_max > 0 ? `${p.dias_max} días` : '—'}</td>
@@ -200,7 +200,7 @@ function ModalEmitir({ onCerrar, onHecho }) {
         {cfg && (
           <div className="card" style={{ background: 'var(--verde-muy-claro)', borderColor: 'var(--verde-claro)', padding: 12, marginBottom: 12 }}>
             Solar: <strong>{dinero(cfg.cuota_solar)}</strong> · Edificado: <strong>{dinero(cfg.cuota_edificado)}</strong>
-            <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>Se puede cambiar en «Montos de cuota».</div>
+            <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>Se puede cambiar en «Montos de cuota».</div>
           </div>
         )}
         <div className="campo"><label>Concepto *</label><input value={datos.concepto} required onChange={(e) => set('concepto', e.target.value)} /></div>
@@ -321,7 +321,7 @@ function ModalPago({ propietario, onCerrar, onPagado }) {
             return (
               <div key={f.id} className="card" style={{ padding: 10, marginBottom: 8 }}>
                 <strong>{f.concepto}</strong>
-                <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
+                <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>
                   {f.fecha_vencimiento ? `Vence ${fecha(f.fecha_vencimiento)} · ` : ''}
                   Saldo {dinero(saldo)}
                 </div>

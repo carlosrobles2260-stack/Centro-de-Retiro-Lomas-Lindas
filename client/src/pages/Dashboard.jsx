@@ -60,7 +60,7 @@ export default function Dashboard() {
               <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--borde)' }}>
                 <div>
                   <strong>{v.visitante_nombre}</strong>
-                  <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
+                  <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>
                     {v.propietario_nombre || 'Sin propietario'} · {fechaHora(v.creado_en)}
                   </div>
                 </div>
@@ -68,7 +68,7 @@ export default function Dashboard() {
               </div>
             ))
           )}
-          <Link to="/visitas" style={{ fontSize: 13, display: 'inline-block', marginTop: 10 }}>Ver todas →</Link>
+          <Link to="/visitas" style={{ fontSize: 15, display: 'inline-block', marginTop: 10 }}>Ver todas →</Link>
         </div>
 
         <div className="card">
@@ -80,13 +80,13 @@ export default function Dashboard() {
               <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid var(--borde)' }}>
                 <div>
                   <strong style={{ textTransform: 'capitalize' }}>{i.tipo || 'Incidente'}</strong>
-                  <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>{i.descripcion?.slice(0, 40)} · {fecha(i.fecha)}</div>
+                  <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{i.descripcion?.slice(0, 40)} · {fecha(i.fecha)}</div>
                 </div>
                 <Badge estado={i.gravedad} />
               </div>
             ))
           )}
-          <Link to="/incidentes" style={{ fontSize: 13, display: 'inline-block', marginTop: 10 }}>Ver todos →</Link>
+          <Link to="/incidentes" style={{ fontSize: 15, display: 'inline-block', marginTop: 10 }}>Ver todos →</Link>
         </div>
       </div>
     </div>

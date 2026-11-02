@@ -97,7 +97,7 @@ export default function Credencial({ visitante, onCerrar }) {
         <div style={{ fontFamily: 'monospace', fontSize: 16, letterSpacing: 1 }}>{visitante.codigo}</div>
 
         {aviso && (
-          <p style={{ marginTop: 12, fontSize: 13, color: aviso.ok ? 'var(--verde)' : 'var(--rojo)' }}>
+          <p style={{ marginTop: 12, fontSize: 15, color: aviso.ok ? 'var(--verde)' : 'var(--rojo)' }}>
             {aviso.texto}
           </p>
         )}
