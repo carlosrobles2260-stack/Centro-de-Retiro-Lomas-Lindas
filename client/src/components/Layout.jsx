@@ -12,15 +12,20 @@ const MENU = [
     items: [{ a: '/', texto: 'Panel principal', roles: ['seguridad', 'administracion'] }],
   },
   {
+    grupo: 'Propietarios y residentes',
+    items: [
+      { a: '/propietarios', texto: 'Propietarios', roles: ['seguridad', 'administracion'] },
+      { a: '/empleados-propietario', texto: 'Empleados de propietarios', roles: ['administracion'] },
+      { a: '/visitantes', texto: 'Visitantes', roles: ['seguridad', 'administracion'] },
+    ],
+  },
+  {
     grupo: 'Seguridad y accesos',
     items: [
       { a: '/visitas', texto: 'Registro de visitas', roles: ['seguridad'] },
-      { a: '/propietarios', texto: 'Propietarios', roles: ['seguridad', 'administracion'] },
-      { a: '/visitantes', texto: 'Visitantes', roles: ['seguridad', 'administracion'] },
-      { a: '/empleados-propietario', texto: 'Empleados de propietarios', roles: ['administracion'] },
+      { a: '/control-acceso', texto: 'Control de acceso (QR)', roles: ['administracion'] },
       { a: '/incidentes', texto: 'Incidentes', roles: ['seguridad'] },
       { a: '/tipos-incidencia', texto: 'Tipos de incidencia', roles: ['administracion'] },
-      { a: '/control-acceso', texto: 'Control de acceso (QR)', roles: ['administracion'] },
       { a: '/rondas', texto: 'Rondas de vigilancia', roles: ['seguridad'] },
       { a: '/viajes-vertedero', texto: 'Viajes al vertedero', roles: ['seguridad', 'administracion'] },
       { a: '/notificaciones', texto: 'Notificaciones', roles: ['seguridad', 'administracion'] },
