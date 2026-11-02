@@ -33,6 +33,7 @@ import ControlAcceso from './pages/ControlAcceso.jsx';
 import Turnos from './pages/Turnos.jsx';
 import Elecciones from './pages/Elecciones.jsx';
 import Capacitacion from './pages/Capacitacion.jsx';
+import Directiva from './pages/Directiva.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 
 export default function App() {
@@ -80,6 +81,7 @@ export default function App() {
         <Route path="/turnos" element={<Turnos />} />
         <Route path="/elecciones" element={<Elecciones />} />
         <Route path="/capacitacion" element={<Capacitacion />} />
+        <Route path="/directiva" element={<Directiva />} />
         {usuario.rol === 'admin' && <Route path="/usuarios" element={<Usuarios />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

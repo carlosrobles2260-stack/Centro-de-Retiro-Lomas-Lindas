@@ -201,6 +201,32 @@ th, td { text-align: left; padding: 12px 14px; font-size: 16px; }
 th { background: var(--verde-muy-claro); color: var(--verde); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
 tbody tr { border-top: 1px solid var(--borde); }
 tbody tr:hover { background: #fafbfa; }
+/* ===== Galería de la Directiva / Presidentes ===== */
+.dir-titulo { font-size: 20px; color: var(--verde); margin: 26px 0 14px; }
+.dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+.dir-card {
+  background: #fff; border: 1px solid var(--borde); border-radius: 16px;
+  padding: 20px 14px 16px; text-align: center; box-shadow: var(--sombra);
+}
+.dir-foto {
+  width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
+  margin: 0 auto 12px; display: block; border: 3px solid var(--verde-muy-claro);
+}
+.dir-foto-vacia {
+  background: var(--verde); color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; font-weight: 700;
+}
+.dir-nombre { font-size: 17px; font-weight: 700; color: var(--texto); }
+.dir-cargo { font-size: 15px; color: var(--verde); font-weight: 600; margin-top: 2px; }
+.dir-periodo { font-size: 14px; color: var(--texto-suave); margin-top: 4px; }
+.dir-acc { display: flex; gap: 6px; justify-content: center; margin-top: 12px; }
+.dir-foto-sel { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
+.dir-subir {
+  display: inline-block; cursor: pointer; font-size: 14px; font-weight: 600;
+  color: var(--verde); background: var(--verde-muy-claro); padding: 8px 16px; border-radius: 8px;
+}
+.dir-subir:hover { background: #dce8e0; }
+
 /* Buscador sobre las tablas */
 .barra-busqueda { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; flex-wrap: wrap; }
 .barra-busqueda input[type="search"] { flex: 1; min-width: 260px; max-width: 520px; }

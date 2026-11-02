@@ -6,13 +6,16 @@ import InstalarApp from './InstalarApp.jsx';
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
 // Versión visible de la app (sirve para confirmar qué build está cargado).
-const VERSION = 'v2026.11.02-12';
+const VERSION = 'v2026.11.02-13';
 
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
   {
     grupo: 'General',
-    items: [{ a: '/', texto: 'Panel principal', roles: ['seguridad', 'administracion'] }],
+    items: [
+      { a: '/', texto: 'Panel principal', roles: ['seguridad', 'administracion'] },
+      { a: '/directiva', texto: 'Directiva', roles: ['seguridad', 'administracion', 'presidente'] },
+    ],
   },
   {
     grupo: 'Propietarios y residentes',

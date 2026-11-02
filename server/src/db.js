@@ -378,6 +378,17 @@ CREATE TABLE IF NOT EXISTS votos (
   plancha_id   INTEGER NOT NULL REFERENCES planchas(id),
   fecha        ${T.ts} NOT NULL DEFAULT ${T.ahora}
 );
+
+CREATE TABLE IF NOT EXISTS directiva (
+  id         ${T.id},
+  tipo       TEXT NOT NULL DEFAULT 'directiva',   -- 'directiva' | 'presidente'
+  cargo      TEXT,
+  nombre     TEXT NOT NULL,
+  periodo    TEXT,
+  foto       TEXT,
+  orden      INTEGER NOT NULL DEFAULT 0,
+  creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
+);
 `;
 
 // Crea el esquema (idempotente).
