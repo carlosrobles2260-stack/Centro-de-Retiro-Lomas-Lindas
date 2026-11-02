@@ -1,20 +1,32 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { fechaHora, Badge } from '../lib/format.jsx';
+import Paginacion from '../components/Paginacion.jsx';
 
 export default function Notificaciones() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [filtro, setFiltro] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
-    const qs = filtro ? `?estado=${filtro}` : '';
-    setFilas(await api.get('/notificaciones' + qs));
+    const qs = new URLSearchParams();
+    if (filtro) qs.set('estado', filtro);
+    qs.set('pagina', String(pagina));
+    qs.set('limite', '20');
+    const r = await api.get('/notificaciones?' + qs.toString());
+    const lista = Array.isArray(r) ? r : (r.datos || []);
+    setFilas(lista);
+    setPaginas(Array.isArray(r) ? 1 : (r.paginas || 1));
+    setTotal(Array.isArray(r) ? lista.length : (r.total || 0));
     setCargando(false);
-  }, [filtro]);
+  }, [filtro, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { setPagina(1); }, [filtro]);
 
   async function reenviar(n) {
     await api.post(`/notificaciones/${n.id}/reenviar`);
@@ -81,6 +93,8 @@ export default function Notificaciones() {
           </table>
         )}
       </div>
+
+      {!cargando && <Paginacion pagina={pagina} paginas={paginas} total={total} etiqueta="notificación" etiquetaPlural="notificaciones" onCambio={setPagina} />}
     </div>
   );
 }

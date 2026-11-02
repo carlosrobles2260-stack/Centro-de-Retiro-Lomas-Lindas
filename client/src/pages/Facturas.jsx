@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { dinero, fecha, Badge } from '../lib/format.jsx';
+import Paginacion from '../components/Paginacion.jsx';
 
 export default function Facturas() {
   const [filas, setFilas] = useState([]);
@@ -9,15 +10,26 @@ export default function Facturas() {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [modalNueva, setModalNueva] = useState(false);
   const [modalPago, setModalPago] = useState(null);
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
-    const qs = filtroEstado ? `?estado=${filtroEstado}` : '';
-    setFilas(await api.get('/facturas' + qs));
+    const params = new URLSearchParams();
+    if (filtroEstado) params.set('estado', filtroEstado);
+    params.set('pagina', String(pagina));
+    params.set('limite', '20');
+    const r = await api.get('/facturas?' + params.toString());
+    const lista = Array.isArray(r) ? r : (r.datos || []);
+    setFilas(lista);
+    setPaginas(Array.isArray(r) ? 1 : (r.paginas || 1));
+    setTotal(Array.isArray(r) ? lista.length : (r.total || 0));
     setCargando(false);
-  }, [filtroEstado]);
+  }, [filtroEstado, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { setPagina(1); }, [filtroEstado]);
   useEffect(() => { api.get('/propietarios').then(setPropietarios).catch(() => {}); }, []);
 
   async function eliminar(f) {
@@ -99,6 +111,8 @@ export default function Facturas() {
           </table>
         )}
       </div>
+
+      {!cargando && <Paginacion pagina={pagina} paginas={paginas} total={total} etiqueta="factura" onCambio={setPagina} />}
 
       {modalNueva && (
         <ModalNuevaFactura

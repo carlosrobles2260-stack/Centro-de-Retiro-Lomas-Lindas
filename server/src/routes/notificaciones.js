@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db.js';
 import { ah } from '../async.js';
 import { enviar } from '../notificaciones.js';
+import { responderLista } from '../paginar.js';
 
 const router = Router();
 
@@ -12,10 +13,9 @@ router.get('/', ah(async (req, res) => {
     FROM notificaciones n
     LEFT JOIN propietarios p ON p.id = n.propietario_id
   `;
-  if (req.query.estado) {
-    return res.json(await db.all(base + ' WHERE n.estado = ? ORDER BY n.creado_en DESC', [req.query.estado]));
-  }
-  res.json(await db.all(base + ' ORDER BY n.creado_en DESC'));
+  const where = req.query.estado ? ' WHERE n.estado = ?' : '';
+  const params = req.query.estado ? [req.query.estado] : [];
+  await responderLista(req, res, base + where + ' ORDER BY n.creado_en DESC', params);
 }));
 
 // POST /api/notificaciones/:id/reenviar  (reintenta el envío)

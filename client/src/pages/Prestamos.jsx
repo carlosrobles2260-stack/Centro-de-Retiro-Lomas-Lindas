@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { dinero, fecha, Badge } from '../lib/format.jsx';
+import Paginacion from '../components/Paginacion.jsx';
 
 const PERIODICIDAD = [
   { valor: 'semanal', label: 'Semanal' },
@@ -16,6 +17,11 @@ export default function Prestamos() {
   const [nuevo, setNuevo] = useState(false);
   const [descuento, setDescuento] = useState(null);
   const [historial, setHistorial] = useState(null);
+  const [pagina, setPagina] = useState(1);
+  const POR_PAGINA = 20;
+  const paginas = Math.max(1, Math.ceil(filas.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, paginas);
+  const visibles = filas.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -57,7 +63,7 @@ export default function Prestamos() {
                 <tr><th>Empleado</th><th>Monto</th><th>Cuota</th><th>Periodicidad</th><th>Pagado</th><th>Saldo</th><th>Restan</th><th>Estado</th><th>Acciones</th></tr>
               </thead>
               <tbody>
-                {filas.map((p) => (
+                {visibles.map((p) => (
                   <tr key={p.id}>
                     <td><strong>{p.empleado_nombre}</strong></td>
                     <td>{dinero(p.monto)}</td>
@@ -80,6 +86,8 @@ export default function Prestamos() {
             </table>
           )}
       </div>
+
+      {!cargando && <Paginacion pagina={paginaActual} paginas={paginas} total={filas.length} etiqueta="préstamo" onCambio={setPagina} />}
 
       {nuevo && <ModalNuevo onCerrar={() => setNuevo(false)} onGuardado={() => { setNuevo(false); cargar(); }} />}
       {descuento && <ModalDescuento prestamo={descuento} onCerrar={() => setDescuento(null)} onGuardado={() => { setDescuento(null); cargar(); }} />}

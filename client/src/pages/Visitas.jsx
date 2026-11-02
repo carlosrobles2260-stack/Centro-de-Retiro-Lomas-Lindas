@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { fechaHora, Badge } from '../lib/format.jsx';
 import EscanerQR from '../components/EscanerQR.jsx';
+import Paginacion from '../components/Paginacion.jsx';
 
 const ESTADOS = [
   { valor: 'pendiente', label: 'Pendiente' },
@@ -43,18 +44,27 @@ export default function Visitas() {
   const [escaneando, setEscaneando] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
     const qs = new URLSearchParams();
     if (filtroEstado) qs.set('estado', filtroEstado);
     if (buscar) qs.set('buscar', buscar);
-    const datos = await api.get('/visitas' + (qs.toString() ? `?${qs}` : ''));
-    setFilas(datos);
+    qs.set('pagina', String(pagina));
+    qs.set('limite', '20');
+    const r = await api.get('/visitas?' + qs.toString());
+    const lista = Array.isArray(r) ? r : (r.datos || []);
+    setFilas(lista);
+    setPaginas(Array.isArray(r) ? 1 : (r.paginas || 1));
+    setTotal(Array.isArray(r) ? lista.length : (r.total || 0));
     setCargando(false);
-  }, [filtroEstado, buscar]);
+  }, [filtroEstado, buscar, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { setPagina(1); }, [filtroEstado, buscar]);
 
   async function alEscanear(codigo) {
     setEscaneando(false);
@@ -152,6 +162,8 @@ export default function Visitas() {
           </table>
         )}
       </div>
+
+      {!cargando && <Paginacion pagina={pagina} paginas={paginas} total={total} etiqueta="visita" onCambio={setPagina} />}
 
       {escaneando && <EscanerQR onDetectado={alEscanear} onCerrar={() => setEscaneando(false)} />}
       {empleadoAcceso && (

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
+import { responderLista } from '../paginar.js';
 
 const router = Router();
 
@@ -40,7 +41,7 @@ router.get('/', ah(async (req, res) => {
     params.push(req.query.propietario_id);
   }
   const where = cond.length ? ' WHERE ' + cond.join(' AND ') : '';
-  res.json(await db.all(SELECT_FACTURA + where + ' ORDER BY f.fecha_emision DESC', params));
+  await responderLista(req, res, SELECT_FACTURA + where + ' ORDER BY f.fecha_emision DESC', params);
 }));
 
 // GET /api/facturas/:id  (incluye pagos)

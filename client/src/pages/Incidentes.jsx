@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { Badge, fecha } from '../lib/format.jsx';
 import { archivoAImagenBase64 } from '../lib/imagen.js';
+import Paginacion from '../components/Paginacion.jsx';
 
 const GRAVEDADES = ['baja', 'media', 'alta', 'critica'];
 const ESTADOS = ['abierto', 'en_proceso', 'cerrado'];
@@ -23,17 +24,27 @@ export default function Incidentes() {
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroGravedad, setFiltroGravedad] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
     const qs = new URLSearchParams();
     if (filtroEstado) qs.set('estado', filtroEstado);
     if (filtroGravedad) qs.set('gravedad', filtroGravedad);
-    setFilas(await api.get('/incidentes' + (qs.toString() ? `?${qs}` : '')));
+    qs.set('pagina', String(pagina));
+    qs.set('limite', '20');
+    const r = await api.get('/incidentes?' + qs.toString());
+    const lista = Array.isArray(r) ? r : (r.datos || []);
+    setFilas(lista);
+    setPaginas(Array.isArray(r) ? 1 : (r.paginas || 1));
+    setTotal(Array.isArray(r) ? lista.length : (r.total || 0));
     setCargando(false);
-  }, [filtroEstado, filtroGravedad]);
+  }, [filtroEstado, filtroGravedad, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { setPagina(1); }, [filtroEstado, filtroGravedad]);
   useEffect(() => {
     api.get('/empleados').then(setEmpleados).catch(() => {});
     api.get('/propietarios').then(setPropietarios).catch(() => {});
@@ -112,6 +123,8 @@ export default function Incidentes() {
           </table>
         )}
       </div>
+
+      {!cargando && <Paginacion pagina={pagina} paginas={paginas} total={total} etiqueta="incidente" onCambio={setPagina} />}
 
       {modal && (
         <ModalIncidente

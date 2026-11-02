@@ -3,6 +3,7 @@ import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
 import { notificarPropietario } from '../notificaciones.js';
 import { abrirBarreraPara } from '../acceso.js';
+import { responderLista } from '../paginar.js';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.get('/', ah(async (req, res) => {
     params.push(q, q, q);
   }
   const where = cond.length ? ' WHERE ' + cond.join(' AND ') : '';
-  res.json(await db.all(SELECT_VISITA + where + ' ORDER BY vi.creado_en DESC', params));
+  await responderLista(req, res, SELECT_VISITA + where + ' ORDER BY vi.creado_en DESC', params);
 }));
 
 // GET /api/visitas/:id

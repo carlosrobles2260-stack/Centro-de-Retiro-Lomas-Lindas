@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { dinero, fecha } from '../lib/format.jsx';
 import { exportarExcel, exportarPDF } from '../lib/exportar.js';
+import Paginacion from '../components/Paginacion.jsx';
 
 const efectivo = (f) => Number(f.monto);
 
@@ -30,6 +31,7 @@ export default function CuentasPorCobrar() {
   const [emitir, setEmitir] = useState(false);
   const [montos, setMontos] = useState(false); // editor de montos de cuota
   const [pago, setPago] = useState(null); // propietario para registrar pago
+  const [pagina, setPagina] = useState(1);
 
   const cargar = useCallback(async () => {
     try { setDatos(await api.get('/cuentas-por-cobrar')); setError(null); }
@@ -73,6 +75,10 @@ export default function CuentasPorCobrar() {
 
   const { resumen, propietarios } = datos;
   const totalBarra = resumen.total || 1;
+  const POR_PAGINA = 20;
+  const paginas = Math.max(1, Math.ceil(propietarios.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, paginas);
+  const visibles = propietarios.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA);
 
   return (
     <div>
@@ -130,7 +136,7 @@ export default function CuentasPorCobrar() {
               </tr>
             </thead>
             <tbody>
-              {propietarios.map((p) => (
+              {visibles.map((p) => (
                 <tr key={p.propietario_id}>
                   <td>
                     <strong>{p.nombre}</strong>
@@ -152,6 +158,8 @@ export default function CuentasPorCobrar() {
           </table>
         )}
       </div>
+
+      <Paginacion pagina={paginaActual} paginas={paginas} total={propietarios.length} etiqueta="propietario" onCambio={setPagina} />
 
       {emitir && <ModalEmitir onCerrar={() => setEmitir(false)} onHecho={(msg) => { setEmitir(false); setMensaje(msg); cargar(); }} />}
       {montos && <ModalMontos onCerrar={() => setMontos(false)} onGuardado={(msg) => { setMontos(false); setMensaje(msg); }} />}

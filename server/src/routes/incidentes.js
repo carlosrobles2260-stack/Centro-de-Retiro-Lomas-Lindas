@@ -3,6 +3,7 @@ import db, { SQL } from '../db.js';
 import { ah } from '../async.js';
 import { guardarImagenBase64 } from '../fotos.js';
 import { enviarEmail } from '../notificaciones.js';
+import { responderLista } from '../paginar.js';
 
 const router = Router();
 
@@ -55,7 +56,7 @@ router.get('/', ah(async (req, res) => {
   if (req.query.estado) { cond.push('i.estado = ?'); params.push(req.query.estado); }
   if (req.query.gravedad) { cond.push('i.gravedad = ?'); params.push(req.query.gravedad); }
   const where = cond.length ? ' WHERE ' + cond.join(' AND ') : '';
-  res.json(await db.all(SELECT_INCIDENTE + where + ' ORDER BY i.fecha DESC', params));
+  await responderLista(req, res, SELECT_INCIDENTE + where + ' ORDER BY i.fecha DESC', params);
 }));
 
 // GET /api/incidentes/:id
