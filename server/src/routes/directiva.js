@@ -8,9 +8,22 @@ const router = Router();
 
 const CAMPOS = ['tipo', 'cargo', 'nombre', 'periodo', 'anio_desde', 'anio_hasta', 'orden'];
 
+// Pasa un nombre a tipo título ("CARLOS ROBLES" -> "Carlos Robles"), dejando en
+// minúscula los conectores comunes (de, del, la, los…).
+const CONECTORES = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'do', 'van', 'von']);
+function tituloNombre(s) {
+  if (!s) return s;
+  return String(s).trim().replace(/\s+/g, ' ').toLowerCase().split(' ').map((w, i) => {
+    if (i > 0 && CONECTORES.has(w)) return w;
+    // Respeta guiones y apóstrofes internos (O'Brien, Jean-Paul).
+    return w.replace(/(^|[-'’])(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase());
+  }).join(' ');
+}
+
 function soloCampos(body) {
   const datos = {};
   for (const c of CAMPOS) if (body[c] !== undefined) datos[c] = body[c];
+  if (datos.nombre !== undefined) datos.nombre = tituloNombre(datos.nombre);
   // Los años vacíos van como null (no romper columnas INTEGER).
   for (const c of ['anio_desde', 'anio_hasta']) {
     if (datos[c] === '' || datos[c] === undefined) datos[c] = null;

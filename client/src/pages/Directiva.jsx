@@ -154,7 +154,7 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
 
   return (
     <div className="modal-fondo" onClick={onCerrar}>
-      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={enviar}>
+      <form className="modal modal-directiva" onClick={(e) => e.stopPropagation()} onSubmit={enviar}>
         <h3>{esNuevo ? 'Agregar a la galería' : 'Editar'}</h3>
 
         <div className="dir-foto-sel">
