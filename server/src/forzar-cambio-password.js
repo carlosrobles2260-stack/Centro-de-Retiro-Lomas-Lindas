@@ -13,11 +13,33 @@
 import db from './db.js';
 import bcrypt from 'bcryptjs';
 
-// Cuentas de ejemplo con su contraseña por defecto conocida.
+// Contraseñas compartidas por defecto de las cuentas de práctica (mismos valores
+// y variables de entorno que usan los seeds, para que la comparación coincida).
+const PASS_DIRECTIVA = process.env.DIRECTIVA_PASSWORD || 'Directiva2026';
+const PASS_PRACTICA = process.env.PRACTICA_PASSWORD || 'Propietario2026';
+
+// Cuentas con contraseña por defecto conocida. Al entrar, cada quien crea la suya.
 const CUENTAS = [
+  // Cuentas base del sistema.
   { email: 'admin@lomaslindas.com', password: 'admin123' },
   { email: 'seguridad@lomaslindas.com', password: 'seguridad123' },
   { email: 'oficina@lomaslindas.com', password: 'oficina123' },
+  // Cuentas de práctica de la Directiva (rol administración).
+  { email: 'presidencia@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'vicepresidencia@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'secretaria@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'tesoreria@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'vocal1@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'vocal2@lomaslindas.com', password: PASS_DIRECTIVA },
+  { email: 'vocal3@lomaslindas.com', password: PASS_DIRECTIVA },
+  // Cuentas de práctica con rol propietario.
+  { email: 'prop.presidencia@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.vicepresidencia@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.secretaria@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.tesoreria@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.vocal1@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.vocal2@lomaslindas.com', password: PASS_PRACTICA },
+  { email: 'prop.vocal3@lomaslindas.com', password: PASS_PRACTICA },
 ];
 
 let forzados = 0;
