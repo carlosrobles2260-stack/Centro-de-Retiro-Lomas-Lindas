@@ -405,6 +405,10 @@ if (!(await tieneColumna('visitantes', 'codigo'))) {
 if (!(await tieneColumna('visitantes', 'email'))) {
   await db.exec('ALTER TABLE visitantes ADD COLUMN email TEXT');
 }
+// Parentesco del núcleo familiar (cuando el visitante es de tipo 'familiar').
+if (!(await tieneColumna('visitantes', 'parentesco'))) {
+  await db.exec('ALTER TABLE visitantes ADD COLUMN parentesco TEXT');
+}
 if (!(await tieneColumna('incidentes', 'responsable_id'))) {
   await db.exec('ALTER TABLE incidentes ADD COLUMN responsable_id INTEGER REFERENCES empleados(id)');
 }

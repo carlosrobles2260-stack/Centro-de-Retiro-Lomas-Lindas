@@ -15,7 +15,7 @@ export default function Visitantes() {
         columnas={[
           { key: 'nombre', label: 'Nombre' },
           { key: 'documento', label: 'Documento' },
-          { key: 'tipo', label: 'Tipo', render: (f) => <span style={{ textTransform: 'capitalize' }}>{f.tipo}</span> },
+          { key: 'tipo', label: 'Tipo', render: (f) => <span style={{ textTransform: 'capitalize' }}>{f.tipo}{f.parentesco ? ` · ${f.parentesco}` : ''}</span> },
           { key: 'propietario_nombre', label: 'Propietario' },
           { key: 'placa_vehiculo', label: 'Placa' },
           { key: 'codigo', label: 'Código', render: (f) => <code style={{ fontSize: 12 }}>{f.codigo}</code> },
@@ -31,6 +31,17 @@ export default function Visitantes() {
               { valor: 'familiar', label: 'Familiar' },
               { valor: 'invitado', label: 'Invitado' },
               { valor: 'proveedor', label: 'Proveedor' },
+            ],
+          },
+          {
+            name: 'parentesco', label: 'Parentesco (si es familiar)', type: 'select',
+            opciones: [
+              { valor: 'conyuge', label: 'Cónyuge' },
+              { valor: 'hijo', label: 'Hijo' },
+              { valor: 'hija', label: 'Hija' },
+              { valor: 'padre', label: 'Padre' },
+              { valor: 'madre', label: 'Madre' },
+              { valor: 'otro', label: 'Otro familiar' },
             ],
           },
           { name: 'propietario_id', label: 'Propietario asociado', type: 'select', fuente: '/propietarios', labelKey: 'nombre' },

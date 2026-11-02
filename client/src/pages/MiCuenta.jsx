@@ -308,6 +308,100 @@ function AutorizarInvitado() {
   );
 }
 
+// Núcleo familiar: cónyuge e hijos del residente, cada uno con su credencial
+// de acceso (QR) para entrar al proyecto.
+const PARENTESCOS = [
+  { v: 'conyuge', t: 'Cónyuge' }, { v: 'hijo', t: 'Hijo' }, { v: 'hija', t: 'Hija' },
+  { v: 'padre', t: 'Padre' }, { v: 'madre', t: 'Madre' }, { v: 'otro', t: 'Otro familiar' },
+];
+const etiquetaParentesco = (v) => PARENTESCOS.find((p) => p.v === v)?.t || v || '';
+
+function NucleoFamiliar() {
+  const [lista, setLista] = useState([]);
+  const [form, setForm] = useState({ nombre: '', parentesco: 'conyuge', documento: '', telefono: '' });
+  const [nuevo, setNuevo] = useState(null);
+  const [error, setError] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const cargar = () => api.get('/mi-cuenta/familia').then(setLista).catch(() => {});
+  useEffect(() => { cargar(); }, []);
+  const credUrl = (codigo) => `${window.location.origin}/credencial/${codigo}`;
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function crear(e) {
+    e.preventDefault();
+    if (!form.nombre.trim()) { setError('Escribe el nombre del familiar.'); return; }
+    setEnviando(true); setError(null);
+    try {
+      const r = await api.post('/mi-cuenta/familia', form);
+      setNuevo({ nombre: form.nombre.trim(), codigo: r.codigo });
+      setForm({ nombre: '', parentesco: 'conyuge', documento: '', telefono: '' });
+      cargar();
+    } catch (err) { setError(err.message); }
+    finally { setEnviando(false); }
+  }
+  async function eliminar(id) {
+    if (!confirm('¿Quitar este familiar? Perderá su credencial de acceso.')) return;
+    try { await api.del(`/mi-cuenta/familia/${id}`); cargar(); } catch (e) { setError(e.message); }
+  }
+  function compartir(nombre, codigo) {
+    const texto = `Hola ${nombre}, aquí está tu credencial de acceso al Centro de Retiro Lomas Lindas. Preséntala en la entrada: ${credUrl(codigo)}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+  }
+
+  return (
+    <div className="card mc-inv">
+      <p className="descripcion">Registra a tu cónyuge, hijos u otros familiares que viven contigo. Cada uno recibe su credencial de acceso al proyecto.</p>
+      <form className="mc-inv-form" onSubmit={crear}>
+        <div className="fila">
+          <div className="campo"><label>Nombre del familiar *</label><input value={form.nombre} onChange={(e) => set('nombre', e.target.value)} placeholder="Nombre y apellido" required /></div>
+          <div className="campo"><label>Parentesco</label>
+            <select value={form.parentesco} onChange={(e) => set('parentesco', e.target.value)}>
+              {PARENTESCOS.map((p) => <option key={p.v} value={p.v}>{p.t}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="fila">
+          <div className="campo"><label>Documento (opcional)</label><input value={form.documento} onChange={(e) => set('documento', e.target.value)} placeholder="Cédula / ID" /></div>
+          <div className="campo"><label>Teléfono (opcional)</label><input value={form.telefono} onChange={(e) => set('telefono', e.target.value)} placeholder="Teléfono" /></div>
+        </div>
+        {error && <p className="error">{error}</p>}
+        <button className="primario" disabled={enviando}>{enviando ? 'Guardando...' : 'Agregar familiar'}</button>
+      </form>
+
+      {nuevo && (
+        <div className="mc-inv-ok">
+          <strong>✓ Credencial lista para {nuevo.nombre}</strong>
+          <p className="descripcion">Compártela para que entre al proyecto.</p>
+          <div className="mc-inv-acc">
+            <button className="wa" onClick={() => compartir(nuevo.nombre, nuevo.codigo)}>Compartir por WhatsApp</button>
+            <a className="secundario-link" href={credUrl(nuevo.codigo)} target="_blank" rel="noreferrer">Ver credencial</a>
+          </div>
+        </div>
+      )}
+
+      {lista.length > 0 && (
+        <div className="mc-inv-lista">
+          <h3>Mi familia</h3>
+          {lista.map((f) => (
+            <div key={f.id} className="mc-inv-item">
+              <div>
+                <strong>{f.nombre}</strong>
+                <span className="mc-inv-sub">{etiquetaParentesco(f.parentesco)}{f.documento ? ` · ${f.documento}` : ''}</span>
+              </div>
+              <div className="mc-inv-item-acc">
+                <button className="wa chico" onClick={() => compartir(f.nombre, f.codigo)}>WhatsApp</button>
+                <a className="secundario-link chico" href={credUrl(f.codigo)} target="_blank" rel="noreferrer">Ver</a>
+                <button className="peligro chico" onClick={() => eliminar(f.id)}>Quitar</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Vista del propietario que inició sesión: su estado de cuenta de cuotas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
@@ -355,6 +449,9 @@ export default function MiCuenta() {
 
             <h2>Mi pase de acceso</h2>
             <PaseAcceso />
+
+            <h2>Núcleo familiar</h2>
+            <NucleoFamiliar />
 
             <h2>Autorizar invitados</h2>
             <AutorizarInvitado />

@@ -70,4 +70,49 @@ router.delete('/invitados/:id', requiereRol('propietario', 'inquilino'), ah(asyn
   res.json({ ok: true });
 }));
 
+// ===== Núcleo familiar: cónyuge e hijos del residente (con credencial de acceso) =====
+
+// GET /api/mi-cuenta/familia -> miembros del núcleo familiar.
+router.get('/familia', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
+  const propId = req.usuario?.propietario_id;
+  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad' });
+  const familia = await db.all(
+    `SELECT id, nombre, parentesco, documento, telefono, codigo, creado_en
+       FROM visitantes
+      WHERE propietario_id = ? AND tipo = 'familiar'
+      ORDER BY id DESC`,
+    [propId]
+  );
+  res.json(familia);
+}));
+
+// POST /api/mi-cuenta/familia -> agrega un familiar y genera su credencial.
+router.post('/familia', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
+  const propId = req.usuario?.propietario_id;
+  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad' });
+  const { nombre, parentesco, documento, telefono } = req.body || {};
+  if (!nombre || !String(nombre).trim()) {
+    return res.status(400).json({ error: 'El nombre del familiar es obligatorio.' });
+  }
+  const codigo = generarCodigo();
+  const info = await db.run(
+    `INSERT INTO visitantes (nombre, documento, telefono, tipo, propietario_id, parentesco, codigo)
+     VALUES (?, ?, ?, 'familiar', ?, ?, ?)`,
+    [String(nombre).trim(), documento || null, telefono || null, propId, parentesco || null, codigo]
+  );
+  res.status(201).json({ id: info.lastID, codigo });
+}));
+
+// DELETE /api/mi-cuenta/familia/:id -> quita un familiar.
+router.delete('/familia/:id', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
+  const propId = req.usuario?.propietario_id;
+  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad' });
+  const info = await db.run(
+    "DELETE FROM visitantes WHERE id = ? AND propietario_id = ? AND tipo = 'familiar'",
+    [req.params.id, propId]
+  );
+  if (info.changes === 0) return res.status(404).json({ error: 'Familiar no encontrado' });
+  res.json({ ok: true });
+}));
+
 export default router;

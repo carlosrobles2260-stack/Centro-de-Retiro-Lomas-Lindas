@@ -65,7 +65,7 @@ router.post('/:id/enviar-credencial', ah(async (req, res) => {
 
 crearCrud(router, {
   tabla: 'visitantes',
-  campos: ['nombre', 'documento', 'telefono', 'email', 'tipo', 'propietario_id', 'placa_vehiculo', 'notas'],
+  campos: ['nombre', 'documento', 'telefono', 'email', 'tipo', 'parentesco', 'propietario_id', 'placa_vehiculo', 'notas'],
   orden: 'nombre',
   alCrear: (datos) => { datos.codigo = generarCodigo(); },
   listSql: (req) => {
