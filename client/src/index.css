@@ -140,7 +140,7 @@ label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-su
 .sidebar .pie button { width: 100%; margin-top: 8px; background: rgba(255,255,255,0.15); }
 .sidebar .pie button:hover { background: rgba(255,255,255,0.28); }
 
-.contenido { margin-left: 240px; flex: 1; padding: 28px 32px; max-width: 1200px; }
+.contenido { margin-left: 240px; flex: 1; min-width: 0; padding: 28px 32px; }
 .contenido h2 { margin: 0 0 4px; font-size: 24px; }
 .contenido .descripcion { color: var(--texto-suave); margin: 0 0 24px; }
 
@@ -166,7 +166,7 @@ label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-su
 .barra .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
 .barra .filtros input, .barra .filtros select { width: auto; min-width: 150px; }
 
-.tabla-wrap { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra); }
+.tabla-wrap { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); overflow-x: auto; box-shadow: var(--sombra); }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px 14px; font-size: 16px; }
 th { background: var(--verde-muy-claro); color: var(--verde); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
