@@ -230,13 +230,14 @@ tbody tr:hover { background: #fafbfa; }
 }
 .dir-subir:hover { background: #dce8e0; }
 /* Ventana compacta para agregar/editar (cabe sin desplazar) */
-.modal-directiva h3 { margin-bottom: 12px; }
-.modal-directiva .dir-foto-sel { margin-bottom: 10px; gap: 6px; }
-.modal-directiva .dir-foto { width: 104px; max-width: 104px; margin-bottom: 0; border-width: 3px; }
-.modal-directiva .dir-foto-vacia { font-size: 30px; }
-.modal-directiva .dir-subir { padding: 6px 14px; font-size: 13px; }
-.modal-directiva .campo { margin-bottom: 10px; }
+.modal-directiva h3 { margin-bottom: 10px; }
+.modal-directiva .dir-foto-sel { margin-bottom: 8px; gap: 5px; }
+.modal-directiva .dir-foto { width: 78px; max-width: 78px; margin-bottom: 0; border-width: 2px; }
+.modal-directiva .dir-foto-vacia { font-size: 26px; }
+.modal-directiva .dir-subir { padding: 5px 12px; font-size: 13px; }
+.modal-directiva .campo { margin-bottom: 9px; }
 .modal-directiva .campo label { margin-bottom: 4px; }
+.modal-directiva .fila > * { flex: 1 1 90px; }
 
 /* Buscador sobre las tablas */
 .barra-busqueda { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; flex-wrap: wrap; }

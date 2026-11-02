@@ -186,16 +186,16 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
         <div className="fila">
           <div className="campo">
             <label>Año desde</label>
-            <input type="number" value={datos.anio_desde} onChange={(e) => set('anio_desde', e.target.value)} placeholder="Ej.: 2026" />
+            <input type="number" value={datos.anio_desde} onChange={(e) => set('anio_desde', e.target.value)} placeholder="2026" />
           </div>
           <div className="campo">
             <label>Año hasta</label>
-            <input type="number" value={datos.anio_hasta} onChange={(e) => set('anio_hasta', e.target.value)} placeholder="Vacío = actual" />
+            <input type="number" value={datos.anio_hasta} onChange={(e) => set('anio_hasta', e.target.value)} placeholder="actual" />
           </div>
-        </div>
-        <div className="campo">
-          <label>Orden (menor aparece primero)</label>
-          <input type="number" value={datos.orden} onChange={(e) => set('orden', e.target.value)} />
+          <div className="campo">
+            <label>Orden</label>
+            <input type="number" value={datos.orden} onChange={(e) => set('orden', e.target.value)} title="Menor aparece primero" />
+          </div>
         </div>
 
         {error && <p className="error">{error}</p>}
