@@ -115,8 +115,8 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
     tipo: miembro.tipo || 'directiva',
     cargo: miembro.cargo || '',
     nombre: miembro.nombre || '',
-    anio_desde: miembro.anio_desde ?? '',
-    anio_hasta: miembro.anio_hasta ?? '',
+    fecha_desde: (miembro.fecha_desde || '').slice(0, 10),
+    fecha_hasta: (miembro.fecha_hasta || '').slice(0, 10),
     orden: miembro.orden ?? 0,
   });
   const [fotoNueva, setFotoNueva] = useState(null); // base64 si se sube una nueva
@@ -185,18 +185,19 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
         )}
         <div className="fila">
           <div className="campo">
-            <label>Año desde</label>
-            <input type="number" value={datos.anio_desde} onChange={(e) => set('anio_desde', e.target.value)} placeholder="2026" />
+            <label>Fecha desde</label>
+            <input type="date" value={datos.fecha_desde} onChange={(e) => set('fecha_desde', e.target.value)} />
           </div>
           <div className="campo">
-            <label>Año hasta</label>
-            <input type="number" value={datos.anio_hasta} onChange={(e) => set('anio_hasta', e.target.value)} placeholder="actual" />
+            <label>Fecha hasta</label>
+            <input type="date" value={datos.fecha_hasta} onChange={(e) => set('fecha_hasta', e.target.value)} title="Vacío = actual" />
           </div>
-          <div className="campo">
+          <div className="campo campo-orden">
             <label>Orden</label>
             <input type="number" value={datos.orden} onChange={(e) => set('orden', e.target.value)} title="Menor aparece primero" />
           </div>
         </div>
+        <p className="descripcion" style={{ marginTop: -2 }}>El período se mostrará como dd/mm/aa. Deja «Fecha hasta» vacía si aún está en funciones.</p>
 
         {error && <p className="error">{error}</p>}
         <div className="pie-modal">

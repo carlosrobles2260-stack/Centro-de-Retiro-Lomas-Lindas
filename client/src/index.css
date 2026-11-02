@@ -237,7 +237,8 @@ tbody tr:hover { background: #fafbfa; }
 .modal-directiva .dir-subir { padding: 5px 12px; font-size: 13px; }
 .modal-directiva .campo { margin-bottom: 9px; }
 .modal-directiva .campo label { margin-bottom: 4px; }
-.modal-directiva .fila > * { flex: 1 1 90px; }
+.modal-directiva .fila > * { flex: 1 1 120px; }
+.modal-directiva .fila > .campo-orden { flex: 0 0 72px; }
 
 /* Buscador sobre las tablas */
 .barra-busqueda { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; flex-wrap: wrap; }

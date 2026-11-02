@@ -387,6 +387,8 @@ CREATE TABLE IF NOT EXISTS directiva (
   periodo    TEXT,
   anio_desde INTEGER,
   anio_hasta INTEGER,
+  fecha_desde TEXT,
+  fecha_hasta TEXT,
   foto       TEXT,
   orden      INTEGER NOT NULL DEFAULT 0,
   creado_en  ${T.ts} NOT NULL DEFAULT ${T.ahora}
@@ -416,6 +418,12 @@ async function tieneColumna(tabla, columna) {
 for (const col of ['anio_desde', 'anio_hasta']) {
   if (!(await tieneColumna('directiva', col))) {
     await db.exec(`ALTER TABLE directiva ADD COLUMN ${col} INTEGER`);
+  }
+}
+// Fechas del período (dd/mm/aa en pantalla; se guardan en ISO yyyy-mm-dd).
+for (const col of ['fecha_desde', 'fecha_hasta']) {
+  if (!(await tieneColumna('directiva', col))) {
+    await db.exec(`ALTER TABLE directiva ADD COLUMN ${col} TEXT`);
   }
 }
 

@@ -6,7 +6,7 @@ import { guardarImagenBase64 } from '../fotos.js';
 
 const router = Router();
 
-const CAMPOS = ['tipo', 'cargo', 'nombre', 'periodo', 'anio_desde', 'anio_hasta', 'orden'];
+const CAMPOS = ['tipo', 'cargo', 'nombre', 'periodo', 'anio_desde', 'anio_hasta', 'fecha_desde', 'fecha_hasta', 'orden'];
 
 // Pasa un nombre a tipo título ("CARLOS ROBLES" -> "Carlos Robles"), dejando en
 // minúscula los conectores comunes (de, del, la, los…).
@@ -29,13 +29,29 @@ function soloCampos(body) {
     if (datos[c] === '' || datos[c] === undefined) datos[c] = null;
     else if (datos[c] !== null) datos[c] = parseInt(datos[c], 10) || null;
   }
+  // Fechas vacías -> null.
+  for (const c of ['fecha_desde', 'fecha_hasta']) {
+    if (datos[c] === '' || datos[c] === undefined) datos[c] = null;
+  }
   return datos;
 }
 
-// Arma el texto del período a partir de los años (ej. "2026 - 2028" o "2026 - actual").
+// Formatea una fecha ISO (yyyy-mm-dd) a dd/mm/aa.
+function fmtFecha(iso) {
+  if (!iso) return null;
+  const [y, m, d] = String(iso).slice(0, 10).split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y.slice(2)}`;
+}
+
+// Arma el texto del período. Prioriza fechas (dd/mm/aa); si no, usa años.
 function armarPeriodo(datos) {
-  if (datos.anio_desde == null) return datos.periodo ?? null;
-  return datos.anio_hasta == null ? `${datos.anio_desde} - actual` : `${datos.anio_desde} - ${datos.anio_hasta}`;
+  if (datos.fecha_desde) {
+    const h = datos.fecha_hasta ? fmtFecha(datos.fecha_hasta) : 'actual';
+    return `${fmtFecha(datos.fecha_desde)} - ${h}`;
+  }
+  if (datos.anio_desde != null) return datos.anio_hasta == null ? `${datos.anio_desde} - actual` : `${datos.anio_desde} - ${datos.anio_hasta}`;
+  return datos.periodo ?? null;
 }
 
 // Si viene una foto nueva en base64, la guarda y devuelve su URL; si no, conserva la actual.
