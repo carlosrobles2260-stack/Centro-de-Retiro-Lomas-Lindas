@@ -172,8 +172,11 @@ th, td { text-align: left; padding: 12px 14px; font-size: 16px; }
 th { background: var(--verde-muy-claro); color: var(--verde); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
 tbody tr { border-top: 1px solid var(--borde); }
 tbody tr:hover { background: #fafbfa; }
-td .acciones { display: flex; gap: 6px; }
-td .acciones button { padding: 7px 12px; font-size: 14px; }
+td .acciones { display: flex; gap: 6px; align-items: center; }
+td .acciones button { padding: 7px 12px; font-size: 14px; white-space: nowrap; }
+/* Ancho fijo para el botón que cambia de texto (Acceso/Restablecer), así los
+   botones Editar/Eliminar quedan alineados en todas las filas. */
+td .acciones .acc-acceso { min-width: 104px; }
 .vacio { padding: 40px; text-align: center; color: var(--texto-suave); }
 
 /* ===== Badges ===== */

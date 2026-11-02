@@ -101,7 +101,7 @@ export default function Propietarios() {
                     <div className="acciones">
                       <button className="secundario" onClick={() => verCuenta(p)} title="Abrir el estado de cuenta">Cuenta</button>
                       <button className="secundario" onClick={() => copiarEnlace(p)} title="Copiar el enlace privado">Enlace</button>
-                      <button className="secundario" onClick={() => crearAcceso(p)} title="Crear o restablecer el acceso con contraseña">{p.acceso_email ? 'Restablecer' : 'Acceso'}</button>
+                      <button className="secundario acc-acceso" onClick={() => crearAcceso(p)} title="Crear o restablecer el acceso con contraseña">{p.acceso_email ? 'Restablecer' : 'Acceso'}</button>
                       <button className="secundario" onClick={() => setModal(p)}>Editar</button>
                       <button className="peligro" onClick={() => eliminar(p)}>Eliminar</button>
                     </div>
