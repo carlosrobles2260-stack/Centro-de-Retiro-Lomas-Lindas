@@ -6,7 +6,7 @@ import InstalarApp from './InstalarApp.jsx';
 const ROLES = { admin: 'Administrador', seguridad: 'Seguridad', administracion: 'Administración', presidente: 'Presidencia' };
 
 // Versión visible de la app (sirve para confirmar qué build está cargado).
-const VERSION = 'v2026.11.02-7';
+const VERSION = 'v2026.11.02-8';
 
 // Define qué roles ven cada enlace. 'admin' ve todo.
 const MENU = [
@@ -114,6 +114,7 @@ export default function Layout() {
         <button className="hamburguesa" aria-label="Abrir menú" onClick={() => setMenuAbierto(true)}>☰</button>
         <img src="/emblema.png" alt="" />
         <strong>Lomas Lindas</strong>
+        <button className="salir-movil" onClick={logout}>Salir</button>
       </header>
 
       {menuAbierto && <div className="sidebar-overlay" onClick={cerrarMenu} />}
@@ -159,13 +160,17 @@ export default function Layout() {
           })}
         </nav>
         <div className="pie">
-          <div><strong>{usuario.nombre}</strong></div>
-          <div style={{ opacity: 0.8, fontSize: 12 }}>{ROLES[usuario.rol] || usuario.rol}</div>
           <InstalarApp />
-          <button onClick={logout}>Cerrar sesión</button>
         </div>
       </aside>
       <main className="contenido">
+        <header className="barra-superior">
+          <div className="bs-usuario">
+            <strong>{usuario.nombre}</strong>
+            <span>{ROLES[usuario.rol] || usuario.rol}</span>
+          </div>
+          <button className="bs-salir" onClick={logout}>Cerrar sesión</button>
+        </header>
         <Outlet />
       </main>
     </div>
