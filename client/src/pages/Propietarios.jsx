@@ -18,6 +18,7 @@ export default function Propietarios() {
   const [acceso, setAcceso] = useState(null); // resultado de crear/restablecer acceso
   const [q, setQ] = useState('');          // texto de búsqueda (lo que se escribe)
   const [busqueda, setBusqueda] = useState(''); // búsqueda aplicada (con retardo)
+  const [filtroLoc, setFiltroLoc] = useState(''); // '' todos | '1' localizables | '0' no
   const [pagina, setPagina] = useState(1);
   const [paginas, setPaginas] = useState(1);
   const [total, setTotal] = useState(0);
@@ -26,6 +27,7 @@ export default function Propietarios() {
     setCargando(true);
     const params = new URLSearchParams({ pagina: String(pagina), limite: String(POR_PAGINA) });
     if (busqueda) params.set('q', busqueda);
+    if (filtroLoc) params.set('localizable', filtroLoc);
     const r = await api.get(`/propietarios?${params.toString()}`);
     setFilas(r.datos || []);
     setPaginas(r.paginas || 1);
@@ -33,7 +35,7 @@ export default function Propietarios() {
     setCargando(false);
     // Si quedamos en una página que ya no existe (p. ej. al eliminar), retrocede.
     if (pagina > (r.paginas || 1)) setPagina(r.paginas || 1);
-  }, [pagina, busqueda]);
+  }, [pagina, busqueda, filtroLoc]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -87,6 +89,16 @@ export default function Propietarios() {
           placeholder="Buscar por nombre, propiedad, carnet, documento o correo…"
           aria-label="Buscar propietario"
         />
+        <select
+          value={filtroLoc}
+          onChange={(e) => { setFiltroLoc(e.target.value); setPagina(1); }}
+          aria-label="Filtrar por localizable"
+          title="Filtrar por si se puede contactar"
+        >
+          <option value="">Todos</option>
+          <option value="1">Localizables</option>
+          <option value="0">No localizables</option>
+        </select>
         {!cargando && (
           <span className="busqueda-conteo">
             {total} propietario{total === 1 ? '' : 's'}{busqueda ? ' encontrados' : ''}
@@ -103,7 +115,7 @@ export default function Propietarios() {
           <table>
             <thead>
               <tr>
-                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Fotos</th><th>Estado</th><th>Acciones</th>
+                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Contacto</th><th>Fotos</th><th>Estado</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -119,6 +131,13 @@ export default function Propietarios() {
                     {p.tipo_propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{etiquetaTipo(p.tipo_propiedad)}</div>}
                   </td>
                   <td>{p.telefono || '—'}</td>
+                  <td>
+                    {Number(p.localizable ?? 1) ? (
+                      <span style={{ fontSize: 13, color: 'var(--verde)' }}>✓ Localizable</span>
+                    ) : (
+                      <span style={{ fontSize: 13, color: '#b45309', fontWeight: 600 }}>⚠ No localizable</span>
+                    )}
+                  </td>
                   <td>
                     {p.fotos?.length ? (
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -206,6 +225,7 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
     representante: propietario.representante || '',
     representante_telefono: propietario.representante_telefono || '',
     representante_documento: propietario.representante_documento || '',
+    localizable: propietario.localizable ?? 1,
     activo: propietario.activo ?? 1,
   });
   const [fotos, setFotos] = useState(propietario.fotos || []); // URLs ya guardadas
@@ -231,7 +251,7 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
     setGuardando(true);
     setError(null);
     try {
-      const payload = { ...datos, activo: Number(datos.activo) ? 1 : 0, fotos, fotos_base64: nuevas };
+      const payload = { ...datos, activo: Number(datos.activo) ? 1 : 0, localizable: Number(datos.localizable) ? 1 : 0, fotos, fotos_base64: nuevas };
       if (esNuevo) await api.post('/propietarios', payload);
       else await api.put(`/propietarios/${propietario.id}`, payload);
       onGuardado();
@@ -365,6 +385,13 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="campo">
+          <label className="sync-check">
+            <input type="checkbox" checked={!!Number(datos.localizable)} onChange={(e) => set('localizable', e.target.checked ? 1 : 0)} />
+            Se puede localizar / contactar (para el cobro)
+          </label>
         </div>
 
         <div className="campo">

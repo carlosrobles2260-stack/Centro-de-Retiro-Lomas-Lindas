@@ -521,6 +521,8 @@ for (const [col, tipo] of [
   ['representante', 'TEXT'],
   ['representante_telefono', 'TEXT'],
   ['representante_documento', 'TEXT'],
+  // 1 = se puede localizar/contactar para el cobro; 0 = no localizable.
+  ['localizable', 'INTEGER DEFAULT 1'],
 ]) {
   if (!(await tieneColumna('propietarios', col))) {
     await db.exec(`ALTER TABLE propietarios ADD COLUMN ${col} ${tipo}`);

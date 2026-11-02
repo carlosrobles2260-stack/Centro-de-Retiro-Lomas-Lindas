@@ -15,6 +15,7 @@ const CAMPOS = [
   'telefono', 'movil', 'email', 'direccion',
   'vive_fuera', 'pais_residencia',
   'representante', 'representante_telefono', 'representante_documento',
+  'localizable',
   'activo',
 ];
 
@@ -53,6 +54,11 @@ router.get('/', ah(async (req, res) => {
     cond.push('(LOWER(p.nombre) LIKE ? OR LOWER(p.propiedad) LIKE ? OR LOWER(p.carnet) LIKE ? OR LOWER(p.documento) LIKE ? OR LOWER(p.email) LIKE ?)');
     const like = `%${q}%`;
     params.push(like, like, like, like, like);
+  }
+  // Filtro opcional por localizable (?localizable=1 | 0).
+  if (req.query.localizable === '1' || req.query.localizable === '0') {
+    cond.push('COALESCE(p.localizable, 1) = ?');
+    params.push(Number(req.query.localizable));
   }
   const whereSql = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
   const selectBase = `
