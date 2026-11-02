@@ -200,9 +200,32 @@ td .acciones button { padding: 7px 12px; font-size: 14px; }
 
 .cargando { padding: 40px; text-align: center; color: var(--texto-suave); }
 
+/* Barra superior y fondo del menú: solo se usan en móvil */
+.topbar-movil { display: none; }
+.sidebar-overlay { display: none; }
+
 @media (max-width: 720px) {
-  .sidebar { width: 100%; height: auto; position: relative; }
-  .contenido { margin-left: 0; padding: 20px; }
+  /* Barra superior fija con el botón de menú */
+  .topbar-movil {
+    display: flex; align-items: center; gap: 12px;
+    position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 90;
+    background: var(--verde); color: #fff; padding: 0 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .topbar-movil img { width: 34px; height: 34px; background: #fff; border-radius: 8px; padding: 3px; }
+  .topbar-movil strong { font-size: 17px; }
+  .hamburguesa { background: transparent; color: #fff; font-size: 26px; line-height: 1; padding: 4px 8px; }
+  .hamburguesa:hover { background: rgba(255,255,255,.12); }
+
+  /* Menú lateral deslizable (oculto por defecto) */
+  .sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh; width: 270px; max-width: 85vw;
+    transform: translateX(-100%); transition: transform .25s ease; z-index: 100;
+  }
+  .sidebar.abierto { transform: translateX(0); box-shadow: 6px 0 28px rgba(0,0,0,.35); }
+  .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 95; }
+
+  .contenido { margin-left: 0; padding: 72px 16px 28px; }
   .app { flex-direction: column; }
 }
 

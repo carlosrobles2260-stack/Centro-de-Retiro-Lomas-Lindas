@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import InstalarApp from './InstalarApp.jsx';
@@ -80,11 +81,22 @@ const MENU = [
 
 export default function Layout() {
   const { usuario, logout } = useAuth();
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const puedeVer = (roles) => usuario.rol === 'admin' || roles.includes(usuario.rol);
+  const cerrarMenu = () => setMenuAbierto(false);
 
   return (
     <div className="app">
-      <aside className="sidebar">
+      {/* Barra superior: solo visible en móvil */}
+      <header className="topbar-movil">
+        <button className="hamburguesa" aria-label="Abrir menú" onClick={() => setMenuAbierto(true)}>☰</button>
+        <img src="/emblema.png" alt="" />
+        <strong>Lomas Lindas</strong>
+      </header>
+
+      {menuAbierto && <div className="sidebar-overlay" onClick={cerrarMenu} />}
+
+      <aside className={`sidebar ${menuAbierto ? 'abierto' : ''}`}>
         <div className="marca">
           <img src="/emblema.png" alt="" className="marca-logo" />
           <div>
@@ -104,6 +116,7 @@ export default function Layout() {
                     key={i.a}
                     to={i.a}
                     end={i.a === '/'}
+                    onClick={cerrarMenu}
                     className={({ isActive }) => (isActive ? 'activo' : '')}
                   >
                     {i.texto}
