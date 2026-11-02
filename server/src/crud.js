@@ -12,13 +12,31 @@ import { ah } from './async.js';
  * @param {Function} [opts.alCrear]  Hook para agregar campos generados antes de insertar.
  */
 export function crearCrud(router, { tabla, campos, orden = 'id DESC', listSql, alCrear }) {
-  // Listar
+  // Listar.
+  // - Sin ?pagina: devuelve todo (compatibilidad con selects, exportaciones, etc.).
+  // - Con ?pagina: devuelve { datos, total, pagina, limite, paginas } (paginado).
   router.get('/', ah(async (req, res) => {
+    let baseSql, baseParams;
     if (listSql) {
-      const { sql, params } = listSql(req);
-      return res.json(await db.all(sql, params));
+      const r = listSql(req);
+      baseSql = r.sql;
+      baseParams = r.params || [];
+    } else {
+      baseSql = `SELECT * FROM ${tabla} ORDER BY ${orden}`;
+      baseParams = [];
     }
-    res.json(await db.all(`SELECT * FROM ${tabla} ORDER BY ${orden}`));
+
+    if (req.query.pagina === undefined) {
+      return res.json(await db.all(baseSql, baseParams));
+    }
+
+    const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
+    const limite = Math.min(100, Math.max(1, parseInt(req.query.limite, 10) || 20));
+    const offset = (pagina - 1) * limite;
+    const totalRow = await db.get(`SELECT COUNT(*) AS n FROM (${baseSql}) AS sub`, baseParams);
+    const total = Number(totalRow?.n || 0);
+    const datos = await db.all(`SELECT * FROM (${baseSql}) AS sub LIMIT ? OFFSET ?`, [...baseParams, limite, offset]);
+    res.json({ datos, total, pagina, limite, paginas: Math.max(1, Math.ceil(total / limite)) });
   }));
 
   // Obtener uno

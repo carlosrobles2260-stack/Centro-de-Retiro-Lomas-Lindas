@@ -26,31 +26,44 @@ export default function CrudModule({
   onCambio, // callback(filas) tras cada carga (crear/editar/eliminar)
   onCreado, // callback(respuesta) tras crear un registro nuevo
 }) {
+  const POR_PAGINA = 20;
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [modal, setModal] = useState(null); // null | {} (nuevo) | fila (editar)
   const [fuentes, setFuentes] = useState({}); // opciones de FK cargadas
   const [filtroValores, setFiltroValores] = useState({});
+  const [pagina, setPagina] = useState(1);
+  const [paginas, setPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
     try {
-      const qs = new URLSearchParams(
+      const params = new URLSearchParams(
         Object.entries(filtroValores).filter(([, v]) => v)
-      ).toString();
-      const datos = await api.get(endpoint + (qs ? `?${qs}` : ''));
-      setFilas(datos);
+      );
+      params.set('pagina', String(pagina));
+      params.set('limite', String(POR_PAGINA));
+      const r = await api.get(`${endpoint}?${params.toString()}`);
+      const lista = Array.isArray(r) ? r : (r.datos || []);
+      setFilas(lista);
+      setPaginas(Array.isArray(r) ? 1 : (r.paginas || 1));
+      setTotal(Array.isArray(r) ? lista.length : (r.total || 0));
+      if (!Array.isArray(r) && pagina > (r.paginas || 1)) setPagina(r.paginas || 1);
       setError(null);
-      if (onCambio) onCambio(datos);
+      if (onCambio) onCambio(lista);
     } catch (e) {
       setError(e.message);
     } finally {
       setCargando(false);
     }
-  }, [endpoint, filtroValores]);
+  }, [endpoint, filtroValores, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  // Al cambiar un filtro, vuelve a la primera página.
+  useEffect(() => { setPagina(1); }, [filtroValores]);
 
   // Carga las opciones de los campos tipo FK (fuente).
   useEffect(() => {
@@ -144,6 +157,14 @@ export default function CrudModule({
           </table>
         )}
       </div>
+
+      {!cargando && paginas > 1 && (
+        <div className="paginacion">
+          <button className="secundario" disabled={pagina <= 1} onClick={() => setPagina((p) => Math.max(1, p - 1))}>‹ Anterior</button>
+          <span className="paginacion-info">Página {pagina} de {paginas} · {total} registro{total === 1 ? '' : 's'}</span>
+          <button className="secundario" disabled={pagina >= paginas} onClick={() => setPagina((p) => Math.min(paginas, p + 1))}>Siguiente ›</button>
+        </div>
+      )}
 
       {modal && (
         <FormModal

@@ -44,8 +44,13 @@ export default function Activos() {
   }, []);
   useEffect(() => { cargarResumen(); }, [cargarResumen]);
 
-  function exportar(tipo) {
-    const datos = [...filas];
+  async function exportar(tipo) {
+    // Trae TODOS los activos (sin paginar) para que el reporte quede completo.
+    let datos = [];
+    try {
+      const r = await api.get('/activos');
+      datos = Array.isArray(r) ? [...r] : [...(r.datos || [])];
+    } catch { datos = [...filas]; }
     const t = (k) => datos.reduce((a, f) => a + (Number(f[k]) || 0), 0);
     datos.push({ nombre: 'TOTALES', valor_adquisicion: t('valor_adquisicion'), depreciacion_anual: t('depreciacion_anual'), depreciacion_acumulada: t('depreciacion_acumulada'), valor_libros: t('valor_libros') });
     if (tipo === 'excel') exportarExcel({ nombre: 'reporte-depreciacion-activos', hoja: 'Depreciación', columnas: COLUMNAS_DEP, filas: datos });
