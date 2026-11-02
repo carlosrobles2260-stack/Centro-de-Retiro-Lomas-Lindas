@@ -46,8 +46,8 @@ export default function App() {
   // Primer ingreso con contraseña temporal: obliga a crear una propia.
   if (usuario.debe_cambiar) return <CambiarPassword />;
 
-  // El propietario solo ve su estado de cuenta.
-  if (usuario.rol === 'propietario') return <MiCuenta />;
+  // El residente (propietario o inquilino) ve su portal.
+  if (usuario.rol === 'propietario' || usuario.rol === 'inquilino') return <MiCuenta />;
 
   return (
     <Routes>

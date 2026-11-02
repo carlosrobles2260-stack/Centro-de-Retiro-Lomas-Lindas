@@ -452,6 +452,22 @@ if (!(await tieneColumna('propietarios', 'token_cuenta'))) {
 if (!(await tieneColumna('propietarios', 'codigo'))) {
   await db.exec('ALTER TABLE propietarios ADD COLUMN codigo TEXT');
 }
+// Datos personales ampliados de la ficha del propietario.
+for (const [col, tipo] of [
+  ['tipo_documento', "TEXT DEFAULT 'cedula'"],
+  ['fecha_nacimiento', 'TEXT'],
+  ['nacionalidad', 'TEXT'],
+  ['movil', 'TEXT'],
+  ['vive_fuera', 'INTEGER DEFAULT 0'],
+  ['pais_residencia', 'TEXT'],
+  ['representante', 'TEXT'],
+  ['representante_telefono', 'TEXT'],
+  ['representante_documento', 'TEXT'],
+]) {
+  if (!(await tieneColumna('propietarios', col))) {
+    await db.exec(`ALTER TABLE propietarios ADD COLUMN ${col} ${tipo}`);
+  }
+}
 // Enlace de un usuario con su propietario (acceso del propietario con contraseña).
 if (!(await tieneColumna('usuarios', 'propietario_id'))) {
   await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');

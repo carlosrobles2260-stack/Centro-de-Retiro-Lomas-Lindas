@@ -6,6 +6,8 @@ const ROLES = [
   { valor: 'seguridad', label: 'Seguridad' },
   { valor: 'administracion', label: 'Administración' },
   { valor: 'presidente', label: 'Presidencia (directiva)' },
+  { valor: 'propietario', label: 'Propietario' },
+  { valor: 'inquilino', label: 'Inquilino' },
 ];
 
 export default function Usuarios() {
@@ -38,6 +40,7 @@ export default function Usuarios() {
         { name: 'email', label: 'Correo electrónico', type: 'email', requerido: true },
         { name: 'password', label: 'Contraseña (vacío = se genera una temporal y se envía por correo)', type: 'password' },
         { name: 'rol', label: 'Rol', type: 'select', defecto: 'administracion', opciones: ROLES },
+        { name: 'propietario_id', label: 'Propiedad vinculada (obligatoria para Propietario e Inquilino)', type: 'select', fuente: '/propietarios', labelKey: 'nombre' },
         { name: 'activo', label: 'Activo (1 = sí, 0 = no)', type: 'number', defecto: 1 },
       ]}
     />

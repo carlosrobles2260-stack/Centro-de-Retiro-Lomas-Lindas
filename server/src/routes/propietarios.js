@@ -9,7 +9,14 @@ const router = Router();
 
 const nuevoToken = () => generarCodigo() + generarCodigo().slice(3);
 
-const CAMPOS = ['nombre', 'propiedad', 'tipo_propiedad', 'carnet', 'documento', 'telefono', 'email', 'direccion', 'activo'];
+const CAMPOS = [
+  'nombre', 'propiedad', 'tipo_propiedad', 'carnet',
+  'tipo_documento', 'documento', 'fecha_nacimiento', 'nacionalidad',
+  'telefono', 'movil', 'email', 'direccion',
+  'vive_fuera', 'pais_residencia',
+  'representante', 'representante_telefono', 'representante_documento',
+  'activo',
+];
 
 // Convierte el texto JSON de fotos en un arreglo para el cliente.
 function conFotos(fila) {

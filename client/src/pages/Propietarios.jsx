@@ -146,10 +146,19 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
     carnet: propietario.carnet || '',
     tipo_propiedad: propietario.tipo_propiedad || '',
     propiedad: propietario.propiedad || '',
+    tipo_documento: propietario.tipo_documento || 'cedula',
     documento: propietario.documento || '',
+    fecha_nacimiento: propietario.fecha_nacimiento || '',
+    nacionalidad: propietario.nacionalidad || '',
     telefono: propietario.telefono || '',
+    movil: propietario.movil || '',
     email: propietario.email || '',
     direccion: propietario.direccion || '',
+    vive_fuera: propietario.vive_fuera ?? 0,
+    pais_residencia: propietario.pais_residencia || '',
+    representante: propietario.representante || '',
+    representante_telefono: propietario.representante_telefono || '',
+    representante_documento: propietario.representante_documento || '',
     activo: propietario.activo ?? 1,
   });
   const [fotos, setFotos] = useState(propietario.fotos || []); // URLs ya guardadas
@@ -201,9 +210,28 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
             <input value={datos.carnet} onChange={(e) => set('carnet', e.target.value)} placeholder="N.º de carnet del propietario" />
           </div>
           <div className="campo">
-            <label>Documento de identidad</label>
-            <input value={datos.documento} onChange={(e) => set('documento', e.target.value)} />
+            <label>Fecha de nacimiento</label>
+            <input type="date" value={datos.fecha_nacimiento} onChange={(e) => set('fecha_nacimiento', e.target.value)} />
           </div>
+        </div>
+
+        <div className="fila">
+          <div className="campo">
+            <label>Tipo de documento</label>
+            <select value={datos.tipo_documento} onChange={(e) => set('tipo_documento', e.target.value)}>
+              <option value="cedula">Cédula</option>
+              <option value="pasaporte">Pasaporte</option>
+            </select>
+          </div>
+          <div className="campo">
+            <label>N.º de {datos.tipo_documento === 'pasaporte' ? 'pasaporte' : 'cédula'}</label>
+            <input value={datos.documento} onChange={(e) => set('documento', e.target.value)} placeholder={datos.tipo_documento === 'pasaporte' ? 'N.º de pasaporte' : '000-0000000-0'} />
+          </div>
+        </div>
+
+        <div className="campo">
+          <label>Nacionalidad</label>
+          <input value={datos.nacionalidad} onChange={(e) => set('nacionalidad', e.target.value)} placeholder="Ej: Dominicana" />
         </div>
 
         <div className="fila">
@@ -222,18 +250,53 @@ function ModalPropietario({ propietario, onCerrar, onGuardado }) {
 
         <div className="fila">
           <div className="campo">
-            <label>Teléfono</label>
+            <label>Teléfono (fijo)</label>
             <input value={datos.telefono} onChange={(e) => set('telefono', e.target.value)} />
           </div>
           <div className="campo">
-            <label>Correo electrónico</label>
-            <input type="email" value={datos.email} onChange={(e) => set('email', e.target.value)} />
+            <label>Móvil (celular)</label>
+            <input value={datos.movil} onChange={(e) => set('movil', e.target.value)} placeholder="Para WhatsApp" />
           </div>
         </div>
 
         <div className="campo">
-          <label>Dirección</label>
-          <input value={datos.direccion} onChange={(e) => set('direccion', e.target.value)} />
+          <label>Correo electrónico</label>
+          <input type="email" value={datos.email} onChange={(e) => set('email', e.target.value)} />
+        </div>
+
+        <div className="campo">
+          <label>Dirección de residencia (dónde vive)</label>
+          <input value={datos.direccion} onChange={(e) => set('direccion', e.target.value)} placeholder="Calle, número, sector, ciudad" />
+        </div>
+
+        <div className="campo">
+          <label className="sync-check">
+            <input type="checkbox" checked={!!Number(datos.vive_fuera)} onChange={(e) => set('vive_fuera', e.target.checked ? 1 : 0)} />
+            Reside fuera del país
+          </label>
+        </div>
+
+        {!!Number(datos.vive_fuera) && (
+          <div className="campo">
+            <label>País de residencia</label>
+            <input value={datos.pais_residencia} onChange={(e) => set('pais_residencia', e.target.value)} placeholder="Ej: Estados Unidos" />
+          </div>
+        )}
+
+        <div className="fila">
+          <div className="campo">
+            <label>Representante autorizado{!!Number(datos.vive_fuera) && ' *'}</label>
+            <input value={datos.representante} onChange={(e) => set('representante', e.target.value)} placeholder="Nombre de quien lo representa" />
+          </div>
+          <div className="campo">
+            <label>Teléfono del representante</label>
+            <input value={datos.representante_telefono} onChange={(e) => set('representante_telefono', e.target.value)} />
+          </div>
+        </div>
+
+        <div className="campo">
+          <label>Documento del representante</label>
+          <input value={datos.representante_documento} onChange={(e) => set('representante_documento', e.target.value)} placeholder="Cédula / pasaporte del representante" />
         </div>
 
         <div className="campo">

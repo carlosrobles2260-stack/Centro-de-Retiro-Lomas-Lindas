@@ -340,16 +340,18 @@ export default function MiCuenta() {
           <div className="cargando">Cargando...</div>
         ) : (
           <>
-            <div className="mc-saldo card">
-              <div className="etiqueta">Saldo pendiente de cuotas de mantenimiento</div>
-              <div className={`mc-monto ${datos.saldo > 0 ? 'rojo' : 'verde'}`}>{dinero(datos.saldo)}</div>
-              <div className="mc-nota">
-                {datos.saldo > 0 ? `Tienes ${datos.pendientes} cuota(s) por pagar.` : 'Estás al día. ¡Gracias!'}
-                {' · '}Total pagado: {dinero(datos.pagado)}
+            {!datos.es_inquilino && (
+              <div className="mc-saldo card">
+                <div className="etiqueta">Saldo pendiente de cuotas de mantenimiento</div>
+                <div className={`mc-monto ${datos.saldo > 0 ? 'rojo' : 'verde'}`}>{dinero(datos.saldo)}</div>
+                <div className="mc-nota">
+                  {datos.saldo > 0 ? `Tienes ${datos.pendientes} cuota(s) por pagar.` : 'Estás al día. ¡Gracias!'}
+                  {' · '}Total pagado: {dinero(datos.pagado)}
+                </div>
               </div>
-            </div>
+            )}
 
-            <VotacionDirectiva />
+            {!datos.es_inquilino && <VotacionDirectiva />}
 
             <h2>Mi pase de acceso</h2>
             <PaseAcceso />
@@ -357,29 +359,33 @@ export default function MiCuenta() {
             <h2>Autorizar invitados</h2>
             <AutorizarInvitado />
 
-            <h2>Mis cuotas</h2>
-            <div className="tabla-wrap">
-              {datos.facturas.length === 0 ? (
-                <div className="vacio">Aún no hay cuotas registradas.</div>
-              ) : (
-                <table>
-                  <thead>
-                    <tr><th>Concepto</th><th>Emisión</th><th>Vence</th><th>Monto</th><th>Estado</th></tr>
-                  </thead>
-                  <tbody>
-                    {datos.facturas.map((f) => (
-                      <tr key={f.id}>
-                        <td>{f.concepto}</td>
-                        <td>{fecha(f.fecha_emision)}</td>
-                        <td>{fecha(f.fecha_vencimiento)}</td>
-                        <td style={{ fontWeight: 600 }}>{dinero(f.monto)}</td>
-                        <td><Badge estado={f.estado} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            {!datos.es_inquilino && (
+              <>
+                <h2>Mis cuotas</h2>
+                <div className="tabla-wrap">
+                  {datos.facturas.length === 0 ? (
+                    <div className="vacio">Aún no hay cuotas registradas.</div>
+                  ) : (
+                    <table>
+                      <thead>
+                        <tr><th>Concepto</th><th>Emisión</th><th>Vence</th><th>Monto</th><th>Estado</th></tr>
+                      </thead>
+                      <tbody>
+                        {datos.facturas.map((f) => (
+                          <tr key={f.id}>
+                            <td>{f.concepto}</td>
+                            <td>{fecha(f.fecha_emision)}</td>
+                            <td>{fecha(f.fecha_vencimiento)}</td>
+                            <td style={{ fontWeight: 600 }}>{dinero(f.monto)}</td>
+                            <td><Badge estado={f.estado} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
 
             {datos.empleados?.length > 0 && (
               <>

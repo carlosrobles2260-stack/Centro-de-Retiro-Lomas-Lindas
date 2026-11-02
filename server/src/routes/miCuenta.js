@@ -6,26 +6,29 @@ import { datosCuenta } from '../cuenta.js';
 
 const router = Router();
 
-// GET /api/mi-cuenta  -> estado de cuenta del propietario que inició sesión.
-router.get('/', requiereRol('propietario'), ah(async (req, res) => {
+// GET /api/mi-cuenta  -> portal del residente (propietario o inquilino).
+router.get('/', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
   const propId = req.usuario?.propietario_id;
-  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a un propietario' });
+  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad' });
 
   const propietario = await db.get('SELECT id, nombre, propiedad, tipo_propiedad, carnet, telefono, email, token_cuenta FROM propietarios WHERE id = ?', [propId]);
-  if (!propietario) return res.status(404).json({ error: 'Propietario no encontrado' });
+  if (!propietario) return res.status(404).json({ error: 'Propiedad no encontrada' });
 
+  const esInquilino = req.usuario.rol === 'inquilino';
   const datos = await datosCuenta(propId);
-  const empleados = await db.all(
+  // El inquilino no ve las cuotas ni los empleados del propietario (son del dueño).
+  if (esInquilino) { datos.facturas = []; datos.saldo = 0; datos.pagado = 0; datos.pendientes = 0; }
+  const empleados = esInquilino ? [] : await db.all(
     'SELECT id, nombre, puesto, carnet, telefono, codigo, activo FROM empleados_propietario WHERE propietario_id = ? ORDER BY nombre',
     [propId]
   );
-  res.json({ propietario, ...datos, empleados });
+  res.json({ propietario, ...datos, empleados, es_inquilino: esInquilino });
 }));
 
 // ===== Invitados: el propietario genera la autorización (credencial QR) =====
 
 // GET /api/mi-cuenta/invitados -> invitados que el propietario ha autorizado.
-router.get('/invitados', requiereRol('propietario'), ah(async (req, res) => {
+router.get('/invitados', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
   const propId = req.usuario?.propietario_id;
   if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a un propietario' });
   const invitados = await db.all(
@@ -39,7 +42,7 @@ router.get('/invitados', requiereRol('propietario'), ah(async (req, res) => {
 }));
 
 // POST /api/mi-cuenta/invitados -> crea la credencial de acceso de un invitado.
-router.post('/invitados', requiereRol('propietario'), ah(async (req, res) => {
+router.post('/invitados', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
   const propId = req.usuario?.propietario_id;
   if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a un propietario' });
   const { nombre, documento, telefono, placa_vehiculo, notas } = req.body || {};
@@ -56,7 +59,7 @@ router.post('/invitados', requiereRol('propietario'), ah(async (req, res) => {
 }));
 
 // DELETE /api/mi-cuenta/invitados/:id -> el propietario revoca una credencial suya.
-router.delete('/invitados/:id', requiereRol('propietario'), ah(async (req, res) => {
+router.delete('/invitados/:id', requiereRol('propietario', 'inquilino'), ah(async (req, res) => {
   const propId = req.usuario?.propietario_id;
   if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a un propietario' });
   const info = await db.run(

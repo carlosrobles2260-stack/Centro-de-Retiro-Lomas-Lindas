@@ -12,13 +12,13 @@ router.post('/probar-barrera', requiereRol('administracion'), ah(async (req, res
   res.json({ barrera: await probarBarrera() });
 }));
 
-// GET /api/acceso/mi-qr  -> pase (QR) rotativo del propietario que inició sesión.
+// GET /api/acceso/mi-qr  -> pase (QR) rotativo del residente (propietario o inquilino).
 router.get('/mi-qr', ah(async (req, res) => {
-  if (req.usuario?.rol !== 'propietario' && req.usuario?.rol !== 'admin') {
-    return res.status(403).json({ error: 'Solo disponible para el propietario.' });
+  if (!['propietario', 'inquilino', 'admin'].includes(req.usuario?.rol)) {
+    return res.status(403).json({ error: 'Solo disponible para residentes.' });
   }
   const propId = req.usuario?.propietario_id;
-  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a un propietario.' });
+  if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad.' });
   const prop = await db.get('SELECT nombre, codigo FROM propietarios WHERE id = ?', [propId]);
   if (!prop?.codigo) return res.status(404).json({ error: 'El propietario no tiene código de acceso.' });
   res.json({ titular: prop.nombre, ...(await generarPaseQr('propietario', prop.codigo)) });
