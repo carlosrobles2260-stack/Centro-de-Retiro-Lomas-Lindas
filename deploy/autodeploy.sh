@@ -26,3 +26,16 @@ echo "$(date '+%F %T') Cambios detectados ($LOCAL -> $REMOTO). Actualizando..." 
 git pull --quiet origin "$RAMA"
 docker compose up -d --build >> "$LOG" 2>&1
 echo "$(date '+%F %T') ✓ Desplegado $REMOTO" >> "$LOG"
+
+# Seeds idempotentes: crean/actualizan cuentas base sin duplicar.
+# Se corren en cada despliegue; si una cuenta ya existe, el seed la omite.
+echo "$(date '+%F %T') Ejecutando seeds..." >> "$LOG"
+sleep 8   # da tiempo a que el contenedor del servidor y la BD estén listos
+for SEED in seed-directiva.js seed-practica-propietarios.js; do
+  if docker compose exec -T server node "src/$SEED" >> "$LOG" 2>&1; then
+    echo "$(date '+%F %T')   ✓ seed $SEED" >> "$LOG"
+  else
+    echo "$(date '+%F %T')   ⚠ seed $SEED falló (reintenta en el próximo despliegue)" >> "$LOG"
+  fi
+done
+echo "$(date '+%F %T') ✓ Despliegue completo" >> "$LOG"
