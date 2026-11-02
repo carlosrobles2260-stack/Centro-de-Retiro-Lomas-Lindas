@@ -34,7 +34,8 @@ function Tarjeta({ m, puedeEditar, onEditar, onEliminar }) {
 
 export default function Directiva() {
   const { usuario } = useAuth();
-  const puedeEditar = ['admin', 'administracion', 'presidente'].includes(usuario.rol);
+  // Solo el administrador puede agregar/editar/eliminar en la galería. El resto solo ve.
+  const puedeEditar = usuario.rol === 'admin';
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null); // null | {} nuevo | fila editar

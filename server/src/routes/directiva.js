@@ -75,7 +75,7 @@ router.get('/', ah(async (req, res) => {
 }));
 
 // Las modificaciones solo para administración / presidencia.
-router.post('/', requiereRol('admin', 'administracion', 'presidente'), ah(async (req, res) => {
+router.post('/', requiereRol('admin'), ah(async (req, res) => {
   const datos = soloCampos(req.body);
   if (!datos.nombre) return res.status(400).json({ error: 'El nombre es obligatorio' });
   datos.periodo = armarPeriodo(datos);
@@ -86,7 +86,7 @@ router.post('/', requiereRol('admin', 'administracion', 'presidente'), ah(async 
   res.status(201).json(await db.get('SELECT * FROM directiva WHERE id = ?', [info.lastID]));
 }));
 
-router.put('/:id', requiereRol('admin', 'administracion', 'presidente'), ah(async (req, res) => {
+router.put('/:id', requiereRol('admin'), ah(async (req, res) => {
   const actual = await db.get('SELECT * FROM directiva WHERE id = ?', [req.params.id]);
   if (!actual) return res.status(404).json({ error: 'No encontrado' });
   const datos = soloCampos(req.body);
@@ -98,7 +98,7 @@ router.put('/:id', requiereRol('admin', 'administracion', 'presidente'), ah(asyn
   res.json(await db.get('SELECT * FROM directiva WHERE id = ?', [req.params.id]));
 }));
 
-router.delete('/:id', requiereRol('admin', 'administracion', 'presidente'), ah(async (req, res) => {
+router.delete('/:id', requiereRol('admin'), ah(async (req, res) => {
   const info = await db.run('DELETE FROM directiva WHERE id = ?', [req.params.id]);
   if (info.changes === 0) return res.status(404).json({ error: 'No encontrado' });
   res.json({ ok: true });
