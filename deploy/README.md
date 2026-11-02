@@ -4,19 +4,49 @@ Con esto, el servidor revisa GitHub cada pocos minutos y, si hay cambios nuevos,
 se actualiza y reconstruye **solo**. Así no hay que correr comandos a mano en
 cada cambio.
 
-## Configuración (una sola vez, en el servidor)
+## Opción A — Vigilante cada 10 segundos (recomendado, casi inmediato)
+
+Revisa GitHub **cada 10 segundos** y despliega al instante. Se instala como
+servicio del sistema (systemd), así arranca solo y sobrevive a reinicios.
 
 Conéctate al servidor (`ssh root@LA_IP`) y pega este bloque **una vez**:
 
 ```
-chmod +x /opt/lomaslindas/deploy/autodeploy.sh
-# Revisa cada 3 minutos si hay cambios nuevos y despliega
-( crontab -l 2>/dev/null | grep -v autodeploy.sh ; echo "*/3 * * * * /opt/lomaslindas/deploy/autodeploy.sh" ) | crontab -
-echo "Auto-despliegue activado."
+# Quita el cron viejo de 3 minutos si existía
+crontab -l 2>/dev/null | grep -v autodeploy.sh | crontab -
+
+chmod +x /opt/lomaslindas/deploy/autodeploy.sh /opt/lomaslindas/deploy/watch.sh
+cp /opt/lomaslindas/deploy/lomas-autodeploy.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now lomas-autodeploy
+echo "Vigilante de 10s activado."
 ```
 
-Listo. A partir de ahí, cada vez que se suban cambios al repositorio, el
-servidor se actualiza solo en 2-3 minutos.
+Comprobar que corre y ver el registro en vivo:
+
+```
+systemctl status lomas-autodeploy --no-pager
+tail -f /opt/autodeploy.log
+```
+
+> El intervalo se cambia en `lomas-autodeploy.service` (variable
+> `DEPLOY_INTERVALO`, en segundos) y luego `systemctl daemon-reload &&
+> systemctl restart lomas-autodeploy`.
+>
+> Nota: 10 s es el tiempo en **detectar** el commit nuevo. La reconstrucción de
+> la imagen (`docker compose up --build`) tarda su propio tiempo (normalmente
+> entre 20 y 60 s), así que el total deja de ser minutos y pasa a ~1 minuto o
+> menos.
+
+## Opción B — Cron cada 3 minutos (lo anterior)
+
+Si prefieres algo más liviano y no te urgen los segundos:
+
+```
+chmod +x /opt/lomaslindas/deploy/autodeploy.sh
+( crontab -l 2>/dev/null | grep -v autodeploy.sh ; echo "*/3 * * * * /opt/lomaslindas/deploy/autodeploy.sh" ) | crontab -
+echo "Auto-despliegue (cron 3 min) activado."
+```
 
 ## Comprobar que funciona
 
@@ -31,9 +61,8 @@ servidor se actualiza solo en 2-3 minutos.
 
 ## Desactivar el auto-despliegue
 
-```
-crontab -l | grep -v autodeploy.sh | crontab -
-```
+- Vigilante (systemd): `systemctl disable --now lomas-autodeploy`
+- Cron: `crontab -l | grep -v autodeploy.sh | crontab -`
 
 ## Notas
 

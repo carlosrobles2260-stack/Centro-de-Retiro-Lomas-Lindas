@@ -26,11 +26,12 @@ export default function ActualizarApp() {
         });
       });
 
-      // 3) Revisar periódicamente y al volver a la app.
+      // 3) Revisar periódicamente (cada 10 s), al volver a la app y al enfocar.
       const revisar = () => { r.update().catch(() => {}); };
       revisar();
-      setInterval(revisar, 60 * 1000);
+      setInterval(revisar, 10 * 1000);
       document.addEventListener('visibilitychange', () => { if (!document.hidden) revisar(); });
+      window.addEventListener('focus', revisar);
     },
   });
 

@@ -1,0 +1,15 @@
+[Unit]
+Description=Auto-despliegue del ERP Lomas Lindas (vigilante cada 10s)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Revisa GitHub cada 10 segundos (cambia DEPLOY_INTERVALO si quieres otro valor).
+Environment=DEPLOY_INTERVALO=10
+ExecStart=/bin/bash /opt/lomaslindas/deploy/watch.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
