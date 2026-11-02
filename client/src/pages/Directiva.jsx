@@ -62,14 +62,16 @@ export default function Directiva() {
           <h2>Directiva de la asociación</h2>
           <p className="descripcion">Miembros de la Directiva con su cargo y período, y la galería de presidentes de la asociación.</p>
         </div>
-        {puedeEditar && <button onClick={() => setModal({ tipo: 'directiva' })}>+ Agregar</button>}
       </div>
 
       {cargando ? (
         <div className="cargando">Cargando...</div>
       ) : (
         <>
-          <h3 className="dir-titulo">Directiva actual</h3>
+          <div className="dir-seccion-cab">
+            <h3 className="dir-titulo">Directiva actual</h3>
+            {puedeEditar && <button onClick={() => setModal({ tipo: 'directiva' })}>+ Agregar miembro</button>}
+          </div>
           {directiva.length === 0 ? (
             <div className="vacio">Aún no hay miembros de la Directiva registrados.</div>
           ) : (
@@ -80,7 +82,10 @@ export default function Directiva() {
             </div>
           )}
 
-          <h3 className="dir-titulo">🏛️ Galería de presidentes</h3>
+          <div className="dir-seccion-cab">
+            <h3 className="dir-titulo">🏛️ Galería de presidentes</h3>
+            {puedeEditar && <button onClick={() => setModal({ tipo: 'presidente' })}>+ Agregar presidente</button>}
+          </div>
           {presidentes.length === 0 ? (
             <div className="vacio">Aún no hay presidentes en la galería.</div>
           ) : (

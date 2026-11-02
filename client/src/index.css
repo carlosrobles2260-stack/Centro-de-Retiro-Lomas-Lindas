@@ -203,6 +203,8 @@ tbody tr { border-top: 1px solid var(--borde); }
 tbody tr:hover { background: #fafbfa; }
 /* ===== Galería de la Directiva / Presidentes ===== */
 .dir-titulo { font-size: 20px; color: var(--verde); margin: 26px 0 14px; }
+.dir-seccion-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dir-seccion-cab .dir-titulo { margin-bottom: 14px; }
 .dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
 .dir-card {
   background: #fff; border: 1px solid var(--borde); border-radius: 16px;
