@@ -38,10 +38,14 @@ export default function ActualizarApp() {
 
   return (
     <div className="actualizar-barra" role="alert">
-      <span>🔄 Hay una <strong>nueva versión</strong> del sistema.</span>
+      <span className="actualizar-icono" aria-hidden="true">↻</span>
+      <div className="actualizar-texto">
+        <strong>Hay una versión nueva del sistema</strong>
+        <span>Recarga para tener las últimas funciones y correcciones.</span>
+      </div>
       <div className="actualizar-acc">
-        <button type="button" className="secundario" onClick={() => setNeedRefresh(false)}>Ahora no</button>
-        <button type="button" onClick={() => updateServiceWorker(true)}>Actualizar</button>
+        <button type="button" className="actualizar-ok" onClick={() => updateServiceWorker(true)}>Recargar ahora</button>
+        <button type="button" className="actualizar-cerrar" aria-label="Cerrar" onClick={() => setNeedRefresh(false)}>✕</button>
       </div>
     </div>
   );

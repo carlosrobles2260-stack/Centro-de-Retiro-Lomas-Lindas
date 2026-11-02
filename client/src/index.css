@@ -428,16 +428,34 @@ button.chico { padding: 6px 12px; font-size: 13px; }
 
 /* ===== Aviso de nueva versión (PWA) ===== */
 .actualizar-barra {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 200;
-  background: var(--verde); color: #fff; border-radius: 14px; padding: 12px 16px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.28); display: flex; align-items: center; gap: 16px;
-  max-width: 92vw; font-size: 15px; flex-wrap: wrap; justify-content: center;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; z-index: 200;
+  background: var(--verde); color: #fff; border-radius: 16px; padding: 16px 18px;
+  box-shadow: 0 10px 34px rgba(0,0,0,.3); display: flex; align-items: center; gap: 16px;
+  width: min(560px, 92vw); font-size: 15px;
   animation: actualizar-sube .25s ease;
 }
-.actualizar-barra strong { font-weight: 700; }
-.actualizar-barra .actualizar-acc { display: flex; gap: 8px; }
-.actualizar-barra button { padding: 9px 16px; font-size: 14px; background: #fff; color: var(--verde); }
-.actualizar-barra button:hover { background: #eef3ef; }
-.actualizar-barra button.secundario { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
-.actualizar-barra button.secundario:hover { background: rgba(255,255,255,.12); }
+.actualizar-barra .actualizar-icono {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 22px;
+  background: rgba(255,255,255,.18);
+}
+.actualizar-barra .actualizar-texto { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.actualizar-barra .actualizar-texto strong { font-weight: 700; font-size: 16px; }
+.actualizar-barra .actualizar-texto span { opacity: .9; font-size: 13.5px; }
+.actualizar-barra .actualizar-acc { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.actualizar-barra .actualizar-ok {
+  padding: 10px 18px; font-size: 14px; font-weight: 700;
+  background: #fff; color: var(--verde); border-radius: 10px; white-space: nowrap;
+}
+.actualizar-barra .actualizar-ok:hover { background: #eef3ef; }
+.actualizar-barra .actualizar-cerrar {
+  width: 34px; height: 34px; padding: 0; font-size: 15px; line-height: 1;
+  background: rgba(255,255,255,.14); color: #fff; border-radius: 9px;
+}
+.actualizar-barra .actualizar-cerrar:hover { background: rgba(255,255,255,.28); }
 @keyframes actualizar-sube { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@media (max-width: 520px) {
+  .actualizar-barra { flex-wrap: wrap; }
+  .actualizar-barra .actualizar-acc { width: 100%; justify-content: flex-end; }
+  .actualizar-barra .actualizar-ok { flex: 1; }
+}
