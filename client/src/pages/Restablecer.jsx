@@ -49,11 +49,11 @@ export default function Restablecer() {
             <p className="sub" style={{ textAlign: 'center' }}>Crear nueva contraseña</p>
             <div className="campo">
               <label>Nueva contraseña</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus minLength={6} />
+              <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus minLength={6} />
             </div>
             <div className="campo">
               <label>Repetir contraseña</label>
-              <input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+              <input type="password" autoComplete="new-password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
             </div>
             <button type="submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Guardar nueva contraseña'}</button>
             {error && <p className="error">{error}</p>}

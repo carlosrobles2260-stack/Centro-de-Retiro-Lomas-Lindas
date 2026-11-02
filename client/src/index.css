@@ -95,6 +95,8 @@ label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-su
 .login-card button.enlace-texto:hover { background: none; text-decoration: underline; }
 .login-card .link-bloque { display: block; text-align: center; margin-top: 16px; color: var(--verde); font-size: 13px; font-weight: 600; text-decoration: none; }
 .login-card .boton-bloque { display: block; text-align: center; margin-top: 16px; background: var(--verde); color: #fff; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+.login-card .recordar { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--texto); font-weight: 500; margin: 2px 0 14px; cursor: pointer; }
+.login-card .recordar input { width: 20px; height: 20px; accent-color: var(--verde); flex-shrink: 0; margin: 0; }
 .error { color: var(--rojo); font-size: 13px; margin: 10px 0 0; }
 .hint { margin-top: 20px; font-size: 12px; color: var(--texto-suave); background: var(--arena); padding: 10px; border-radius: 8px; }
 

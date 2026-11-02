@@ -44,7 +44,7 @@ router.post('/login', ah(async (req, res) => {
   if (!usuario || !bcrypt.compareSync(password, usuario.password)) {
     return res.status(401).json({ error: 'Credenciales incorrectas' });
   }
-  const token = firmarToken(usuario);
+  const token = firmarToken(usuario, { recordar: !!req.body.recordar });
   res.json({
     token,
     usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol, propietario_id: usuario.propietario_id ?? null, debe_cambiar: usuario.debe_cambiar ? 1 : 0 },

@@ -20,8 +20,8 @@ export function AuthProvider({ children }) {
       .finally(() => setCargando(false));
   }, []);
 
-  async function login(email, password) {
-    const { token, usuario } = await api.post('/auth/login', { email, password });
+  async function login(email, password, recordar = true) {
+    const { token, usuario } = await api.post('/auth/login', { email, password, recordar });
     setToken(token);
     setUsuario(usuario);
   }

@@ -37,15 +37,15 @@ export default function CambiarPassword() {
         <form onSubmit={enviar}>
           <div className="campo">
             <label>Contraseña temporal (la que te enviamos)</label>
-            <input type="password" value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
+            <input type="password" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
           </div>
           <div className="campo">
             <label>Nueva contraseña</label>
-            <input type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} required minLength={6} />
+            <input type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} required minLength={6} />
           </div>
           <div className="campo">
             <label>Repetir nueva contraseña</label>
-            <input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+            <input type="password" autoComplete="new-password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
           </div>
           <button type="submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Guardar y continuar'}</button>
           {error && <p className="error">{error}</p>}

@@ -7,6 +7,7 @@ export default function Login() {
   const [modo, setModo] = useState('login'); // 'login' | 'recuperar'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recordar, setRecordar] = useState(true);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [aviso, setAviso] = useState(null);
@@ -16,7 +17,7 @@ export default function Login() {
     setCargando(true);
     setError(null);
     try {
-      await login(email, password);
+      await login(email, password, recordar);
     } catch (e) {
       setError(e.message);
       setCargando(false);
@@ -52,21 +53,22 @@ export default function Login() {
           <form onSubmit={enviar}>
             <p className="sub" style={{ textAlign: 'center' }}>Sistema de gestión del centro de retiro</p>
             <div className="campo">
-              <label>Correo electrónico</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+              <label htmlFor="login-email">Correo electrónico</label>
+              <input id="login-email" name="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </div>
             <div className="campo">
-              <label>Contraseña</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <label htmlFor="login-password">Contraseña</label>
+              <input id="login-password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            <label className="recordar">
+              <input type="checkbox" checked={recordar} onChange={(e) => setRecordar(e.target.checked)} />
+              <span>Mantener la sesión iniciada en este dispositivo</span>
+            </label>
             <button type="submit" disabled={cargando}>{cargando ? 'Ingresando...' : 'Ingresar'}</button>
             {error && <p className="error">{error}</p>}
             <button type="button" className="enlace-texto" onClick={() => cambiarModo('recuperar')}>
               ¿Olvidaste tu contraseña?
             </button>
-            <div className="hint">
-              <strong>Demo:</strong> admin@lomaslindas.com / admin123
-            </div>
           </form>
         ) : (
           <form onSubmit={recuperar}>

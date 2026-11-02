@@ -3,11 +3,13 @@ import crypto from 'node:crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cambia-este-secreto-en-produccion';
 
-export function firmarToken(usuario) {
+export function firmarToken(usuario, { recordar = false } = {}) {
   return jwt.sign(
     { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol, propietario_id: usuario.propietario_id ?? null },
     JWT_SECRET,
-    { expiresIn: '12h' }
+    // "Mantener sesión iniciada": sesión larga (90 días) para no re-escribir la
+    // contraseña cada vez (pensado en propietarios mayores). Si no, 12 horas.
+    { expiresIn: recordar ? '90d' : '12h' }
   );
 }
 
