@@ -35,6 +35,24 @@ export default function ActualizarApp() {
     },
   });
 
+  // Recarga a prueba de fallos: activa la versión nueva y, si el navegador no
+  // recarga solo (el evento controllerchange no siempre dispara, sobre todo en la
+  // PWA instalada), limpia las cachés y fuerza la recarga para traer los archivos
+  // nuevos sí o sí. Si updateServiceWorker ya recargó, este componente se
+  // desmonta y el respaldo no llega a ejecutarse.
+  const recargar = async () => {
+    try { await updateServiceWorker(true); } catch { /* seguimos al respaldo */ }
+    setTimeout(async () => {
+      try {
+        if ('caches' in window) {
+          const claves = await caches.keys();
+          await Promise.all(claves.map((k) => caches.delete(k)));
+        }
+      } catch { /* ignorar */ }
+      window.location.reload();
+    }, 1500);
+  };
+
   if (!needRefresh) return null;
 
   return (
@@ -45,7 +63,7 @@ export default function ActualizarApp() {
         <span>Recarga para tener las últimas funciones y correcciones.</span>
       </div>
       <div className="actualizar-acc">
-        <button type="button" className="actualizar-ok" onClick={() => updateServiceWorker(true)}>Recargar ahora</button>
+        <button type="button" className="actualizar-ok" onClick={recargar}>Recargar ahora</button>
         <button type="button" className="actualizar-cerrar" aria-label="Cerrar" onClick={() => setNeedRefresh(false)}>✕</button>
       </div>
     </div>
