@@ -64,23 +64,20 @@ input:focus, select:focus, textarea:focus {
 }
 label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-suave); margin-bottom: 6px; }
 
-/* Campo de contraseña con botón de ojo para mostrar/ocultar. */
-.campo-password { position: relative; display: block; }
-.campo-password input { padding-right: 46px; }
+/* Campo de contraseña con botón de ojo (a la derecha, fuera del campo). */
+.campo-password { display: flex; align-items: center; gap: 8px; }
+.campo-password input { flex: 1 1 auto; min-width: 0; }
 .ojo-password {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
   color: var(--texto-suave);
   cursor: pointer;
 }
