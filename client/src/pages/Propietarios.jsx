@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
-import { Badge } from '../lib/format.jsx';
+import { Badge, dinero } from '../lib/format.jsx';
 import { archivoAImagenBase64 } from '../lib/imagen.js';
 
 const TIPOS = [
@@ -19,6 +19,11 @@ export default function Propietarios() {
   const [q, setQ] = useState('');          // texto de búsqueda (lo que se escribe)
   const [busqueda, setBusqueda] = useState(''); // búsqueda aplicada (con retardo)
   const [filtroLoc, setFiltroLoc] = useState(''); // '' todos | '1' localizables | '0' no
+  const [filtroDeuda, setFiltroDeuda] = useState(''); // '' | 'con' | 'sin'
+  const [conTel, setConTel] = useState(false);
+  const [conCorreo, setConCorreo] = useState(false);
+  const [orden, setOrden] = useState('nombre'); // nombre | carnet | saldo | cedula
+  const [dir, setDir] = useState('asc');
   const [pagina, setPagina] = useState(1);
   const [paginas, setPaginas] = useState(1);
   const [total, setTotal] = useState(0);
@@ -28,6 +33,11 @@ export default function Propietarios() {
     const params = new URLSearchParams({ pagina: String(pagina), limite: String(POR_PAGINA) });
     if (busqueda) params.set('q', busqueda);
     if (filtroLoc) params.set('localizable', filtroLoc);
+    if (filtroDeuda) params.set('deuda', filtroDeuda);
+    if (conTel) params.set('con_tel', '1');
+    if (conCorreo) params.set('con_correo', '1');
+    params.set('orden', orden);
+    params.set('dir', dir);
     const r = await api.get(`/propietarios?${params.toString()}`);
     setFilas(r.datos || []);
     setPaginas(r.paginas || 1);
@@ -35,7 +45,10 @@ export default function Propietarios() {
     setCargando(false);
     // Si quedamos en una página que ya no existe (p. ej. al eliminar), retrocede.
     if (pagina > (r.paginas || 1)) setPagina(r.paginas || 1);
-  }, [pagina, busqueda, filtroLoc]);
+  }, [pagina, busqueda, filtroLoc, filtroDeuda, conTel, conCorreo, orden, dir]);
+
+  // Al cambiar un filtro u orden, vuelve a la primera página.
+  const alFiltrar = (fn) => (v) => { fn(v); setPagina(1); };
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -90,18 +103,54 @@ export default function Propietarios() {
           aria-label="Buscar propietario"
         />
         <select
+          value={filtroDeuda}
+          onChange={(e) => alFiltrar(setFiltroDeuda)(e.target.value)}
+          aria-label="Filtrar por deuda"
+          title="Filtrar por deuda"
+        >
+          <option value="">Deuda: todos</option>
+          <option value="con">Con deuda</option>
+          <option value="sin">Al día</option>
+        </select>
+        <select
           value={filtroLoc}
-          onChange={(e) => { setFiltroLoc(e.target.value); setPagina(1); }}
+          onChange={(e) => alFiltrar(setFiltroLoc)(e.target.value)}
           aria-label="Filtrar por localizable"
           title="Filtrar por si se puede contactar"
         >
-          <option value="">Todos</option>
+          <option value="">Contacto: todos</option>
           <option value="1">Localizables</option>
           <option value="0">No localizables</option>
         </select>
+        <label className="chip-filtro" title="Solo con teléfono">
+          <input type="checkbox" checked={conTel} onChange={(e) => alFiltrar(setConTel)(e.target.checked)} /> Con teléfono
+        </label>
+        <label className="chip-filtro" title="Solo con correo">
+          <input type="checkbox" checked={conCorreo} onChange={(e) => alFiltrar(setConCorreo)(e.target.checked)} /> Con correo
+        </label>
+        <select
+          value={orden}
+          onChange={(e) => alFiltrar(setOrden)(e.target.value)}
+          aria-label="Ordenar por"
+          title="Ordenar (indexar) la lista"
+        >
+          <option value="nombre">Ordenar: Nombre</option>
+          <option value="carnet">Ordenar: Carnet</option>
+          <option value="saldo">Ordenar: Saldo</option>
+          <option value="cedula">Ordenar: Cédula</option>
+        </select>
+        <button
+          type="button"
+          className="secundario"
+          onClick={() => alFiltrar(setDir)(dir === 'asc' ? 'desc' : 'asc')}
+          title={dir === 'asc' ? 'Ascendente (A→Z, menor→mayor)' : 'Descendente (Z→A, mayor→menor)'}
+          aria-label="Cambiar dirección del orden"
+        >
+          {dir === 'asc' ? '↑' : '↓'}
+        </button>
         {!cargando && (
           <span className="busqueda-conteo">
-            {total} propietario{total === 1 ? '' : 's'}{busqueda ? ' encontrados' : ''}
+            {total} propietario{total === 1 ? '' : 's'}
           </span>
         )}
       </div>
@@ -115,7 +164,7 @@ export default function Propietarios() {
           <table>
             <thead>
               <tr>
-                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Contacto</th><th>Fotos</th><th>Estado</th><th>Acciones</th>
+                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Saldo</th><th>Contacto</th><th>Fotos</th><th>Estado</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -123,7 +172,9 @@ export default function Propietarios() {
                 <tr key={p.id}>
                   <td>
                     {p.nombre}
-                    {p.acceso_email && <div style={{ fontSize: 14, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
+                    {p.documento && <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>Céd. {p.documento}</div>}
+                    {p.email && <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>✉ {p.email}</div>}
+                    {p.acceso_email && <div style={{ fontSize: 13, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
                   </td>
                   <td>{p.carnet || '—'}</td>
                   <td>
@@ -131,6 +182,9 @@ export default function Propietarios() {
                     {p.tipo_propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{etiquetaTipo(p.tipo_propiedad)}</div>}
                   </td>
                   <td>{p.telefono || '—'}</td>
+                  <td style={{ whiteSpace: 'nowrap', fontWeight: Number(p.saldo) > 0 ? 600 : 400, color: Number(p.saldo) > 0 ? '#b45309' : 'var(--texto-suave)' }}>
+                    {Number(p.saldo) > 0 ? dinero(p.saldo) : '—'}
+                  </td>
                   <td>
                     {Number(p.localizable ?? 1) ? (
                       <span style={{ fontSize: 13, color: 'var(--verde)' }}>✓ Localizable</span>

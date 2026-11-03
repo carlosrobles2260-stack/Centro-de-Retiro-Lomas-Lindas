@@ -60,11 +60,33 @@ router.get('/', ah(async (req, res) => {
     cond.push('COALESCE(p.localizable, 1) = ?');
     params.push(Number(req.query.localizable));
   }
+  // Saldo pendiente del propietario (facturas pendientes/vencidas).
+  const SALDO = `(SELECT COALESCE(SUM(f.monto), 0) FROM facturas f WHERE f.propietario_id = p.id AND f.estado IN ('pendiente','vencida'))`;
+  // Filtros extra: deuda (con/sin), con teléfono, con correo.
+  if (req.query.deuda === 'con') cond.push(`${SALDO} > 0`);
+  else if (req.query.deuda === 'sin') cond.push(`${SALDO} = 0`);
+  if (req.query.con_tel === '1') cond.push("(p.telefono IS NOT NULL AND p.telefono <> '')");
+  if (req.query.con_correo === '1') cond.push("(p.email IS NOT NULL AND p.email <> '')");
+
   const whereSql = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
+
+  // Orden (indexado) por una columna de la lista blanca.
+  const ORDENES = {
+    nombre: 'p.nombre',
+    carnet: "CAST(NULLIF(p.carnet, '') AS INTEGER)",
+    saldo: SALDO,
+    cedula: 'p.documento',
+  };
+  const col = ORDENES[req.query.orden] || 'p.nombre';
+  const dir = req.query.dir === 'desc' ? 'DESC' : 'ASC';
+  const orderSql = req.query.orden === 'nombre' || !req.query.orden
+    ? `ORDER BY p.nombre ${dir}`
+    : `ORDER BY ${col} ${dir}, p.nombre ASC`;
+
   const selectBase = `
-    SELECT p.*,
+    SELECT p.*, ${SALDO} AS saldo,
            (SELECT email FROM usuarios u WHERE u.propietario_id = p.id AND u.rol = 'propietario' AND u.activo = 1 LIMIT 1) AS acceso_email
-    FROM propietarios p ${whereSql} ORDER BY p.nombre`;
+    FROM propietarios p ${whereSql} ${orderSql}`;
 
   if (req.query.pagina !== undefined) {
     const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
