@@ -31,7 +31,7 @@ echo "$(date '+%F %T') ✓ Desplegado $REMOTO" >> "$LOG"
 # Se corren en cada despliegue; si una cuenta ya existe, el seed la omite.
 echo "$(date '+%F %T') Ejecutando seeds..." >> "$LOG"
 sleep 8   # da tiempo a que el contenedor del servidor y la BD estén listos
-for SEED in seed-directiva.js seed-practica-propietarios.js seed-galeria-directiva.js seed-fotos-directiva.js seed-bancos.js seed-propietarios-morosos.js limpiar-datos-prueba.js forzar-cambio-password.js restablecer-admin.js; do
+for SEED in seed-directiva.js seed-practica-propietarios.js seed-galeria-directiva.js seed-fotos-directiva.js seed-bancos.js seed-propietarios-morosos.js limpiar-datos-prueba.js forzar-cambio-password.js restablecer-admin.js seed-acceso-carlos.js; do
   if docker compose exec -T server node "src/$SEED" >> "$LOG" 2>&1; then
     echo "$(date '+%F %T')   ✓ seed $SEED" >> "$LOG"
   else
