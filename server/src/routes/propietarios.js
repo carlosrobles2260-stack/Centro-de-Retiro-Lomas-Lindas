@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import db, { generarCodigo } from '../db.js';
+import db, { generarCodigo, client } from '../db.js';
 import { ah } from '../async.js';
 import { requiereRol } from '../auth.js';
 import { guardarImagenBase64 } from '../fotos.js';
@@ -71,9 +71,14 @@ router.get('/', ah(async (req, res) => {
   const whereSql = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
 
   // Orden (indexado) por una columna de la lista blanca.
+  // Orden por carnet NUMÉRICO, seguro por motor: los carnets no numéricos
+  // (p. ej. códigos de práctica "LL-...") quedan al final, sin romper PostgreSQL.
+  const CARNET_ORD = client === 'postgres'
+    ? "CASE WHEN p.carnet ~ '^[0-9]+$' THEN p.carnet::integer ELSE NULL END"
+    : "CASE WHEN p.carnet GLOB '[0-9]*' AND NOT (p.carnet GLOB '*[^0-9]*') THEN CAST(p.carnet AS INTEGER) ELSE NULL END";
   const ORDENES = {
     nombre: 'p.nombre',
-    carnet: "CAST(NULLIF(p.carnet, '') AS INTEGER)",
+    carnet: CARNET_ORD,
     saldo: SALDO,
     cedula: 'p.documento',
   };
@@ -81,7 +86,7 @@ router.get('/', ah(async (req, res) => {
   const dir = req.query.dir === 'desc' ? 'DESC' : 'ASC';
   const orderSql = req.query.orden === 'nombre' || !req.query.orden
     ? `ORDER BY p.nombre ${dir}`
-    : `ORDER BY ${col} ${dir}, p.nombre ASC`;
+    : `ORDER BY ${col} ${dir} NULLS LAST, p.nombre ASC`;
 
   const selectBase = `
     SELECT p.*, ${SALDO} AS saldo,
