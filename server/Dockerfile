@@ -10,6 +10,9 @@ RUN npm ci --omit=dev
 # Copiar el código fuente.
 COPY src ./src
 
+# Imágenes semilla (fotos de la directiva y presidentes) para restaurarlas.
+COPY seed-fotos ./seed-fotos
+
 ENV NODE_ENV=production
 ENV PORT=4000
 EXPOSE 4000
