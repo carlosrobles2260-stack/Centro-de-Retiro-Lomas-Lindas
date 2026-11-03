@@ -94,65 +94,53 @@ export default function Propietarios() {
         <button onClick={() => setModal({})}>+ Nuevo propietario</button>
       </div>
 
-      <div className="barra-busqueda">
+      <div className="filtros">
         <input
+          className="filtros-buscar"
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por nombre, propiedad, carnet, documento o correo…"
           aria-label="Buscar propietario"
         />
-        <select
-          value={filtroDeuda}
-          onChange={(e) => alFiltrar(setFiltroDeuda)(e.target.value)}
-          aria-label="Filtrar por deuda"
-          title="Filtrar por deuda"
-        >
-          <option value="">Deuda: todos</option>
-          <option value="con">Con deuda</option>
-          <option value="sin">Al día</option>
-        </select>
-        <select
-          value={filtroLoc}
-          onChange={(e) => alFiltrar(setFiltroLoc)(e.target.value)}
-          aria-label="Filtrar por localizable"
-          title="Filtrar por si se puede contactar"
-        >
-          <option value="">Contacto: todos</option>
-          <option value="1">Localizables</option>
-          <option value="0">No localizables</option>
-        </select>
-        <label className="chip-filtro" title="Solo con teléfono">
-          <input type="checkbox" checked={conTel} onChange={(e) => alFiltrar(setConTel)(e.target.checked)} /> Con teléfono
-        </label>
-        <label className="chip-filtro" title="Solo con correo">
-          <input type="checkbox" checked={conCorreo} onChange={(e) => alFiltrar(setConCorreo)(e.target.checked)} /> Con correo
-        </label>
-        <select
-          value={orden}
-          onChange={(e) => alFiltrar(setOrden)(e.target.value)}
-          aria-label="Ordenar por"
-          title="Ordenar (indexar) la lista"
-        >
-          <option value="nombre">Ordenar: Nombre</option>
-          <option value="carnet">Ordenar: Carnet</option>
-          <option value="saldo">Ordenar: Saldo</option>
-          <option value="cedula">Ordenar: Cédula</option>
-        </select>
-        <button
-          type="button"
-          className="secundario"
-          onClick={() => alFiltrar(setDir)(dir === 'asc' ? 'desc' : 'asc')}
-          title={dir === 'asc' ? 'Ascendente (A→Z, menor→mayor)' : 'Descendente (Z→A, mayor→menor)'}
-          aria-label="Cambiar dirección del orden"
-        >
-          {dir === 'asc' ? '↑' : '↓'}
-        </button>
-        {!cargando && (
-          <span className="busqueda-conteo">
-            {total} propietario{total === 1 ? '' : 's'}
-          </span>
-        )}
+        <div className="filtros-controles">
+          <select value={filtroDeuda} onChange={(e) => alFiltrar(setFiltroDeuda)(e.target.value)} aria-label="Filtrar por deuda" title="Filtrar por deuda">
+            <option value="">Deuda: todos</option>
+            <option value="con">Con deuda</option>
+            <option value="sin">Al día</option>
+          </select>
+          <select value={filtroLoc} onChange={(e) => alFiltrar(setFiltroLoc)(e.target.value)} aria-label="Filtrar por localizable" title="Filtrar por si se puede contactar">
+            <option value="">Contacto: todos</option>
+            <option value="1">Localizables</option>
+            <option value="0">No localizables</option>
+          </select>
+          <label className="chip-filtro" title="Solo con teléfono">
+            <input type="checkbox" checked={conTel} onChange={(e) => alFiltrar(setConTel)(e.target.checked)} /> Con teléfono
+          </label>
+          <label className="chip-filtro" title="Solo con correo">
+            <input type="checkbox" checked={conCorreo} onChange={(e) => alFiltrar(setConCorreo)(e.target.checked)} /> Con correo
+          </label>
+          <div className="filtros-orden">
+            <select value={orden} onChange={(e) => alFiltrar(setOrden)(e.target.value)} aria-label="Ordenar por" title="Ordenar (indexar) la lista">
+              <option value="nombre">Ordenar: Nombre</option>
+              <option value="carnet">Ordenar: Carnet</option>
+              <option value="saldo">Ordenar: Saldo</option>
+              <option value="cedula">Ordenar: Cédula</option>
+            </select>
+            <button
+              type="button"
+              className="secundario filtros-dir"
+              onClick={() => alFiltrar(setDir)(dir === 'asc' ? 'desc' : 'asc')}
+              title={dir === 'asc' ? 'Ascendente (A→Z, menor→mayor)' : 'Descendente (Z→A, mayor→menor)'}
+              aria-label="Cambiar dirección del orden"
+            >
+              {dir === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
+          {!cargando && (
+            <span className="filtros-conteo">{total} propietario{total === 1 ? '' : 's'}</span>
+          )}
+        </div>
       </div>
 
       <div className="tabla-wrap">

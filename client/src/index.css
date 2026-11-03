@@ -319,6 +319,19 @@ tbody tr:hover { background: #fafbfa; }
 }
 .chip-filtro input { width: auto; margin: 0; }
 
+/* Barra de filtros de Propietarios: búsqueda arriba, controles compactos abajo. */
+.filtros { margin: 4px 0 14px; }
+.filtros-buscar { width: 100%; max-width: 520px; margin-bottom: 10px; }
+.filtros-controles { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.filtros-controles select { width: auto; min-width: 150px; }
+.filtros-orden { display: inline-flex; align-items: center; gap: 6px; }
+.filtros-dir { width: 44px; min-width: 44px; padding: 11px 0; font-size: 16px; line-height: 1; }
+.filtros-conteo { color: var(--texto-suave); font-size: 14px; margin-left: auto; white-space: nowrap; }
+@media (max-width: 560px) {
+  .filtros-controles select { flex: 1 1 46%; min-width: 0; }
+  .filtros-conteo { margin-left: 0; width: 100%; }
+}
+
 /* Controles de paginación */
 .paginacion { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px 0 4px; }
 .paginacion .paginacion-info { font-size: 15px; color: var(--texto-suave); }
