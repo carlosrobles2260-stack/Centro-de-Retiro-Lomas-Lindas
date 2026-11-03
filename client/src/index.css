@@ -64,6 +64,29 @@ input:focus, select:focus, textarea:focus {
 }
 label { display: block; font-size: 15px; font-weight: 600; color: var(--texto-suave); margin-bottom: 6px; }
 
+/* Campo de contraseña con botón de ojo para mostrar/ocultar. */
+.campo-password { position: relative; display: block; }
+.campo-password input { padding-right: 46px; }
+.ojo-password {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+.ojo-password:hover { color: var(--verde, var(--texto)); background: var(--verde-muy-claro, #eef5ef); }
+.ojo-password:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ===== Login ===== */
 .login-wrap {
   min-height: 100vh;

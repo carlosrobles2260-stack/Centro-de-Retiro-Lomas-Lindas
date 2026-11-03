@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../lib/auth.jsx';
 import { api } from '../lib/api.js';
+import CampoPassword from '../components/CampoPassword.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -58,7 +59,7 @@ export default function Login() {
             </div>
             <div className="campo">
               <label htmlFor="login-password">Contraseña</label>
-              <input id="login-password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <CampoPassword id="login-password" name="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <label className="recordar">
               <input type="checkbox" checked={recordar} onChange={(e) => setRecordar(e.target.checked)} />

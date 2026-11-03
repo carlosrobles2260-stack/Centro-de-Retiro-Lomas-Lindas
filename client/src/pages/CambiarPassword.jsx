@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
+import CampoPassword from '../components/CampoPassword.jsx';
 
 // Cambio obligatorio de contraseña en el primer ingreso (contraseña temporal).
 export default function CambiarPassword() {
@@ -37,15 +38,15 @@ export default function CambiarPassword() {
         <form onSubmit={enviar}>
           <div className="campo">
             <label>Contraseña temporal (la que te enviamos)</label>
-            <input type="password" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
+            <CampoPassword autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} required autoFocus />
           </div>
           <div className="campo">
             <label>Nueva contraseña</label>
-            <input type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} required minLength={6} />
+            <CampoPassword autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} required minLength={6} />
           </div>
           <div className="campo">
             <label>Repetir nueva contraseña</label>
-            <input type="password" autoComplete="new-password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+            <CampoPassword autoComplete="new-password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
           </div>
           <button type="submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Guardar y continuar'}</button>
           {error && <p className="error">{error}</p>}

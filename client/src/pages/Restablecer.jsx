@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
+import CampoPassword from '../components/CampoPassword.jsx';
 
 // Página pública para crear una nueva contraseña a partir del enlace del correo.
 // Lee el token de la dirección: /restablecer?token=...
@@ -49,7 +50,7 @@ export default function Restablecer() {
             <p className="sub" style={{ textAlign: 'center' }}>Crear nueva contraseña</p>
             <div className="campo">
               <label>Nueva contraseña</label>
-              <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus minLength={6} />
+              <CampoPassword autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required autoFocus minLength={6} />
             </div>
             <div className="campo">
               <label>Repetir contraseña</label>
