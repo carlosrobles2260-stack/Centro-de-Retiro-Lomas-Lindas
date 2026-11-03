@@ -8,6 +8,15 @@ const TIPOS = [
   { valor: 'presidente', label: 'Presidente (histórico)' },
 ];
 
+// Cargos (funciones) de la Directiva, para elegir del combobox.
+const CARGOS_DIRECTIVA = [
+  'Presidente', 'Presidenta',
+  'Vicepresidente', 'Vicepresidenta',
+  'Secretario', 'Secretaria',
+  'Tesorero', 'Tesorera',
+  'Vocal',
+];
+
 // Iniciales para el marcador cuando no hay foto.
 function iniciales(nombre = '') {
   return nombre.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || '').join('');
@@ -122,6 +131,8 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
   });
   const [fotoNueva, setFotoNueva] = useState(null); // base64 si se sube una nueva
   const [vistaPrevia, setVistaPrevia] = useState(miembro.foto || null);
+  // Si el cargo guardado no está en la lista, se edita como texto libre ("Otro…").
+  const [cargoOtro, setCargoOtro] = useState(() => !!(miembro.cargo && !CARGOS_DIRECTIVA.includes(miembro.cargo)));
   const [error, setError] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -180,8 +191,28 @@ function ModalMiembro({ miembro, onCerrar, onGuardado }) {
         </div>
         {datos.tipo === 'directiva' && (
           <div className="campo">
-            <label>Cargo</label>
-            <input value={datos.cargo} onChange={(e) => set('cargo', e.target.value)} placeholder="Ej.: Presidente, Tesorero, Vocal…" />
+            <label>Cargo (función)</label>
+            <select
+              value={cargoOtro ? '__otro' : datos.cargo}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '__otro') { setCargoOtro(true); set('cargo', ''); }
+                else { setCargoOtro(false); set('cargo', v); }
+              }}
+            >
+              <option value="">Selecciona el cargo…</option>
+              {CARGOS_DIRECTIVA.map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="__otro">Otro…</option>
+            </select>
+            {cargoOtro && (
+              <input
+                style={{ marginTop: 8 }}
+                value={datos.cargo}
+                onChange={(e) => set('cargo', e.target.value)}
+                placeholder="Especifica el cargo"
+                autoFocus
+              />
+            )}
           </div>
         )}
         <div className="fila">
