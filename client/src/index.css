@@ -344,6 +344,19 @@ td .acciones button { padding: 7px 12px; font-size: 14px; white-space: nowrap; }
 td .acciones .acc-acceso { min-width: 104px; }
 .vacio { padding: 40px; text-align: center; color: var(--texto-suave); }
 
+/* Tabla de Propietarios: compacta para que quepa en pantalla. */
+.tabla-propietarios td, .tabla-propietarios th { vertical-align: top; }
+.tabla-propietarios .prop-nombre { font-weight: 600; }
+.tabla-propietarios .prop-sub { font-size: 13px; color: var(--texto-suave); word-break: break-word; }
+.tabla-propietarios .prop-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.tabla-propietarios .prop-tag { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; }
+.tabla-propietarios .prop-tag.alerta { background: #fde8d3; color: #b45309; }
+.tabla-propietarios .prop-tag.gris { background: #e5e7eb; color: #4b5563; }
+/* Acciones compactas: botones pequeños que se acomodan en dos filas. */
+.tabla-propietarios td .acciones { flex-wrap: wrap; gap: 5px; max-width: 230px; }
+.tabla-propietarios td .acciones button { padding: 4px 9px; font-size: 12.5px; }
+.tabla-propietarios td .acciones .acc-acceso { min-width: 0; }
+
 /* ===== Badges ===== */
 .badge { display: inline-block; padding: 4px 11px; border-radius: 20px; font-size: 13px; font-weight: 600; }
 .badge.gris { background: #eceff0; color: #5d6b63; }

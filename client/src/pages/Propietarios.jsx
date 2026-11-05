@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api.js';
-import { Badge, dinero } from '../lib/format.jsx';
+import { dinero } from '../lib/format.jsx';
 import { archivoAImagenBase64 } from '../lib/imagen.js';
 
 const TIPOS = [
@@ -149,57 +149,41 @@ export default function Propietarios() {
         ) : filas.length === 0 ? (
           <div className="vacio">{busqueda ? `No se encontraron propietarios para "${busqueda}".` : 'No hay propietarios registrados.'}</div>
         ) : (
-          <table>
+          <table className="tabla-propietarios">
             <thead>
               <tr>
-                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Saldo</th><th>Contacto</th><th>Fotos</th><th>Estado</th><th>Acciones</th>
+                <th>Nombre</th><th>Carnet</th><th>Propiedad</th><th>Teléfono</th><th>Saldo</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filas.map((p) => (
                 <tr key={p.id}>
                   <td>
-                    {p.nombre}
-                    {p.documento && <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>Céd. {p.documento}</div>}
-                    {p.email && <div style={{ fontSize: 13, color: 'var(--texto-suave)' }}>✉ {p.email}</div>}
-                    {p.acceso_email && <div style={{ fontSize: 13, color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
+                    <div className="prop-nombre">{p.nombre}</div>
+                    {p.documento && <div className="prop-sub">Céd. {p.documento}</div>}
+                    {p.email && <div className="prop-sub">✉ {p.email}</div>}
+                    {p.acceso_email && <div className="prop-sub" style={{ color: 'var(--verde)' }}>🔑 {p.acceso_email}</div>}
+                    <div className="prop-tags">
+                      {!Number(p.localizable ?? 1) && <span className="prop-tag alerta">No localizable</span>}
+                      {!p.activo && <span className="prop-tag gris">Inactivo</span>}
+                    </div>
                   </td>
                   <td>{p.carnet || '—'}</td>
                   <td>
                     {p.propiedad || '—'}
-                    {p.tipo_propiedad && <div style={{ fontSize: 14, color: 'var(--texto-suave)' }}>{etiquetaTipo(p.tipo_propiedad)}</div>}
+                    {p.tipo_propiedad && <div className="prop-sub">{etiquetaTipo(p.tipo_propiedad)}</div>}
                   </td>
-                  <td>{p.telefono || '—'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{p.telefono || '—'}</td>
                   <td style={{ whiteSpace: 'nowrap', fontWeight: Number(p.saldo) > 0 ? 600 : 400, color: Number(p.saldo) > 0 ? '#b45309' : 'var(--texto-suave)' }}>
                     {Number(p.saldo) > 0 ? dinero(p.saldo) : '—'}
                   </td>
                   <td>
-                    {Number(p.localizable ?? 1) ? (
-                      <span style={{ fontSize: 13, color: 'var(--verde)' }}>✓ Localizable</span>
-                    ) : (
-                      <span style={{ fontSize: 13, color: '#b45309', fontWeight: 600 }}>⚠ No localizable</span>
-                    )}
-                  </td>
-                  <td>
-                    {p.fotos?.length ? (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {p.fotos.slice(0, 3).map((f, i) => (
-                          <a key={i} href={f} target="_blank" rel="noreferrer">
-                            <img src={f} alt="propiedad" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
-                          </a>
-                        ))}
-                        {p.fotos.length > 3 && <span style={{ fontSize: 14, color: 'var(--texto-suave)', alignSelf: 'center' }}>+{p.fotos.length - 3}</span>}
-                      </div>
-                    ) : '—'}
-                  </td>
-                  <td><Badge estado={p.activo ? 'normal' : 'gris'} /></td>
-                  <td>
                     <div className="acciones">
-                      <button className="secundario" onClick={() => verCuenta(p)} title="Abrir el estado de cuenta">Cuenta</button>
-                      <button className="secundario" onClick={() => copiarEnlace(p)} title="Copiar el enlace privado">Enlace</button>
-                      <button className="secundario acc-acceso" onClick={() => crearAcceso(p)} title="Crear o restablecer el acceso con contraseña">{p.acceso_email ? 'Restablecer' : 'Acceso'}</button>
-                      <button className="secundario" onClick={() => setModal(p)}>Editar</button>
-                      <button className="peligro" onClick={() => eliminar(p)}>Eliminar</button>
+                      <button className="secundario chico" onClick={() => verCuenta(p)} title="Abrir el estado de cuenta">Cuenta</button>
+                      <button className="secundario chico" onClick={() => copiarEnlace(p)} title="Copiar el enlace privado">Enlace</button>
+                      <button className="secundario chico acc-acceso" onClick={() => crearAcceso(p)} title="Crear o restablecer el acceso con contraseña">{p.acceso_email ? 'Restablecer' : 'Acceso'}</button>
+                      <button className="secundario chico" onClick={() => setModal(p)}>Editar</button>
+                      <button className="peligro chico" onClick={() => eliminar(p)}>Eliminar</button>
                     </div>
                   </td>
                 </tr>
