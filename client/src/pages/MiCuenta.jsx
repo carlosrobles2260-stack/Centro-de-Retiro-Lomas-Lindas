@@ -490,12 +490,49 @@ function MiPerfil({ datos, usuario }) {
   );
 }
 
-// Estado de cuenta: saldo + detalle de cuotas (meses pendientes y pagados).
+// Cómo pagar la cuota: cuentas bancarias + instrucciones (configurables por el admin).
+function ComoPagar({ pago }) {
+  if (!pago) return null;
+  const { cuentas = [], titular, instrucciones, whatsapp, correo } = pago;
+  if (cuentas.length === 0 && !instrucciones) return null;
+  const TIPO = { ahorros: 'Ahorros', corriente: 'Corriente' };
+  const waLink = whatsapp ? `https://wa.me/${String(whatsapp).replace(/[^\d]/g, '')}` : null;
+  const copiar = (t) => { try { navigator.clipboard.writeText(t); } catch { /* */ } };
+  return (
+    <div className="card mc-pagar">
+      <h4 className="mc-perfil-tit">Cómo pagar tu cuota</h4>
+      {cuentas.length > 0 && (
+        <div className="mc-cuentas">
+          {cuentas.map((c, i) => (
+            <div key={i} className="mc-cuenta">
+              <div className="mc-cuenta-banco">{c.nombre}{c.tipo_cuenta ? ` · ${TIPO[c.tipo_cuenta] || c.tipo_cuenta}` : ''}</div>
+              <div className="mc-cuenta-num">
+                <strong>{c.numero || '—'}</strong>
+                {c.numero && <button type="button" className="secundario chico" onClick={() => copiar(c.numero)}>Copiar</button>}
+              </div>
+              {(c.titular || titular) && <div className="mc-cuenta-titular">A nombre de: {c.titular || titular}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      {instrucciones && <p className="descripcion mc-pagar-inst">{instrucciones}</p>}
+      {(waLink || correo) && (
+        <div className="mc-pagar-contacto">
+          {waLink && <a className="wa" href={waLink} target="_blank" rel="noreferrer">Enviar comprobante por WhatsApp</a>}
+          {correo && <a className="secundario-link" href={`mailto:${correo}?subject=${encodeURIComponent('Comprobante de pago de cuota')}`}>Enviar por correo</a>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Estado de cuenta: saldo + cómo pagar + detalle de cuotas (pendientes y pagados).
 function EstadoCuenta({ datos }) {
   const pendientes = (datos.facturas || []).filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
   return (
     <div className="mc-estado">
       <TarjetaSaldo datos={datos} />
+      <ComoPagar pago={datos.pago} />
       {pendientes.length > 0 && (
         <div className="card mc-pend">
           <h4 className="mc-perfil-tit">Meses / cuotas pendientes</h4>

@@ -528,6 +528,17 @@ for (const [col, tipo] of [
     await db.exec(`ALTER TABLE propietarios ADD COLUMN ${col} ${tipo}`);
   }
 }
+// Cuentas bancarias: datos para que el propietario sepa dónde pagar la cuota.
+for (const [col, tipo] of [
+  ['titular', 'TEXT'],
+  ['tipo_cuenta', 'TEXT'],
+  ['para_pago', 'INTEGER DEFAULT 1'],
+]) {
+  if (!(await tieneColumna('cuentas_bancarias', col))) {
+    await db.exec(`ALTER TABLE cuentas_bancarias ADD COLUMN ${col} ${tipo}`);
+  }
+}
+
 // Enlace de un usuario con su propietario (acceso del propietario con contraseña).
 if (!(await tieneColumna('usuarios', 'propietario_id'))) {
   await db.exec('ALTER TABLE usuarios ADD COLUMN propietario_id INTEGER REFERENCES propietarios(id)');
@@ -631,6 +642,11 @@ for (const d of DOCUMENTOS_BASE) {
 // - gps_token: clave que el proveedor de GPS usa para enviarnos las posiciones.
 const CONFIG_DEFECTO = {
   meta_rondas_turno: '6',
+  // Instrucciones de pago de la cuota que ve el propietario en su portal (editables).
+  pago_titular: 'Asociación de Propietarios Centro de Retiro Lomas Lindas',
+  pago_instrucciones: 'Después de pagar, envía la foto del comprobante a la oficina indicando tu nombre, tu número de carnet y el mes que estás pagando. La administración registrará el pago y tu saldo se actualizará.',
+  pago_whatsapp: '',
+  pago_correo: '',
   // Montos de la cuota de mantenimiento según el tipo de propiedad (editables).
   cuota_solar: '500',
   cuota_edificado: '1000',

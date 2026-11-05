@@ -25,7 +25,23 @@ router.get('/', requiereRol('propietario', 'inquilino'), ah(async (req, res) => 
     'SELECT id, nombre, puesto, carnet, telefono, codigo, activo FROM empleados_propietario WHERE propietario_id = ? ORDER BY nombre',
     [propId]
   );
-  res.json({ propietario, ...datos, empleados, es_inquilino: esInquilino });
+
+  // Cómo pagar la cuota: cuentas marcadas "para pago" + instrucciones configurables.
+  const cuentasPago = await db.all(
+    "SELECT nombre, numero, titular, tipo_cuenta FROM cuentas_bancarias WHERE activo = 1 AND COALESCE(para_pago, 1) = 1 ORDER BY orden ASC, id ASC"
+  );
+  const cfgFilas = await db.all("SELECT clave, valor FROM configuracion WHERE clave IN ('pago_titular','pago_instrucciones','pago_whatsapp','pago_correo')");
+  const cfg = {};
+  for (const f of cfgFilas) cfg[f.clave] = f.valor;
+  const pago = {
+    cuentas: cuentasPago,
+    titular: cfg.pago_titular || '',
+    instrucciones: cfg.pago_instrucciones || '',
+    whatsapp: cfg.pago_whatsapp || '',
+    correo: cfg.pago_correo || '',
+  };
+
+  res.json({ propietario, ...datos, empleados, pago, es_inquilino: esInquilino });
 }));
 
 // ===== Invitados: el propietario genera la autorización (credencial QR) =====

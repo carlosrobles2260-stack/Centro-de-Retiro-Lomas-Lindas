@@ -37,7 +37,7 @@ router.put('/saldos', ah(async (req, res) => {
 // CRUD de cuentas bancarias (nombre, número, orden, activo).
 crearCrud(router, {
   tabla: 'cuentas_bancarias',
-  campos: ['nombre', 'numero', 'orden', 'activo'],
+  campos: ['nombre', 'numero', 'titular', 'tipo_cuenta', 'para_pago', 'orden', 'activo'],
   orden: 'orden ASC, id ASC',
 });
 
