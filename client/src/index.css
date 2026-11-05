@@ -523,6 +523,8 @@ td .acciones .acc-acceso { min-width: 104px; }
    verde ocupa todo el ancho (arriba de la barra lateral). */
 @media (min-width: 900px) {
   .mc-ham { display: none; }
+  /* Altura exacta del encabezado para que la barra lateral calce al pixel. */
+  .mc-top { height: 68px; padding-top: 0; padding-bottom: 0; box-sizing: border-box; }
   .mc-drawer { transform: none; top: 68px; left: 0; width: 260px; box-shadow: none; border-right: 1px solid var(--borde); background: var(--arena); }
   .mc-overlay { display: none; }
   .mc-main { margin-left: 260px; }
