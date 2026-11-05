@@ -11,8 +11,11 @@ router.get('/', requiereRol('propietario', 'inquilino'), ah(async (req, res) => 
   const propId = req.usuario?.propietario_id;
   if (!propId) return res.status(403).json({ error: 'Esta cuenta no está vinculada a una propiedad' });
 
-  const propietario = await db.get('SELECT id, nombre, propiedad, tipo_propiedad, carnet, telefono, email, token_cuenta FROM propietarios WHERE id = ?', [propId]);
+  const propietario = await db.get('SELECT id, nombre, propiedad, tipo_propiedad, carnet, documento, telefono, movil, email, direccion, token_cuenta, fotos_propiedad FROM propietarios WHERE id = ?', [propId]);
   if (!propietario) return res.status(404).json({ error: 'Propiedad no encontrada' });
+  // Las fotos van como arreglo para el cliente (foto del carnet/frente).
+  try { propietario.fotos = propietario.fotos_propiedad ? JSON.parse(propietario.fotos_propiedad) : []; } catch { propietario.fotos = []; }
+  delete propietario.fotos_propiedad;
 
   const esInquilino = req.usuario.rol === 'inquilino';
   const datos = await datosCuenta(propId);

@@ -469,8 +469,63 @@ td .acciones .acc-acceso { min-width: 104px; }
 .mc-marca strong { display: block; line-height: 1.1; }
 .mc-marca span { font-size: 12px; opacity: .85; }
 .mc-user { display: flex; align-items: center; gap: 12px; font-size: 14px; }
-.mc-main { max-width: 760px; margin: 0 auto; padding: 22px 16px 40px; }
+.mc-main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
 .mc-main h2 { font-size: 16px; margin: 26px 0 10px; }
+
+/* ===== Portal del propietario: menú hamburguesa (móvil primero) ===== */
+.micuenta.portal .mc-top { position: sticky; top: 0; z-index: 30; }
+.mc-ham { background: transparent; border: none; color: #fff; font-size: 24px; line-height: 1; padding: 4px 8px; cursor: pointer; border-radius: 8px; }
+.mc-ham:hover { background: rgba(255,255,255,.15); }
+.mc-user-nom { max-width: 38vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Cajón lateral deslizante */
+.mc-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 84%; max-width: 310px; background: #fff; z-index: 60;
+  transform: translateX(-100%); transition: transform .25s ease; overflow-y: auto; box-shadow: 2px 0 18px rgba(0,0,0,.18);
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
+.mc-drawer.abierto { transform: translateX(0); }
+.mc-drawer nav { display: flex; flex-direction: column; gap: 2px; }
+.mc-drawer nav button { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
+  background: transparent; border: none; padding: 13px 14px; border-radius: 10px; font-size: 16px; color: var(--texto); cursor: pointer; }
+.mc-drawer nav button:hover { background: var(--arena); }
+.mc-drawer nav button.activo { background: var(--verde-muy-claro); color: var(--verde); font-weight: 700; }
+.mc-drawer-ic { font-size: 20px; width: 26px; text-align: center; flex: 0 0 auto; }
+.mc-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; }
+.mc-vista-tit { font-size: 20px; margin: 2px 0 14px; }
+
+/* Accesos rápidos del Inicio */
+.mc-accesos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 2px 0 14px; }
+.mc-acceso { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 18px 10px; cursor: pointer; border: 1px solid var(--borde); font-size: 14px; font-weight: 600; color: var(--texto); text-align: center; }
+.mc-acceso:hover { border-color: var(--verde-claro); }
+.mc-acceso-ic { font-size: 28px; }
+
+/* Mi perfil */
+.mc-perfil { display: flex; flex-direction: column; gap: 12px; }
+.mc-perfil-cab { display: flex; align-items: center; gap: 14px; }
+.mc-perfil-foto { width: 74px; height: 74px; border-radius: 12px; object-fit: cover; flex: 0 0 auto; }
+.mc-perfil-foto-vacia { display: flex; align-items: center; justify-content: center; background: var(--verde); color: #fff; font-size: 30px; font-weight: 700; }
+.mc-perfil-carnet { color: var(--texto-suave); font-size: 14px; }
+.mc-perfil-tit { margin: 0 0 8px; font-size: 15px; color: var(--verde); }
+.mc-perfil-fila { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--borde); font-size: 15px; }
+.mc-perfil-fila:last-child { border-bottom: none; }
+.mc-perfil-fila > span { color: var(--texto-suave); flex: 0 0 auto; }
+.mc-perfil-fila > strong { text-align: right; word-break: break-word; }
+
+/* Estado de cuenta: pendientes y contenido editorial */
+.mc-estado { display: flex; flex-direction: column; gap: 12px; }
+.mc-pend-lista { list-style: none; margin: 0; padding: 0; }
+.mc-pend-lista li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--borde); font-size: 15px; }
+.mc-pend-lista li:last-child { border-bottom: none; }
+.mc-contenido { display: flex; flex-direction: column; gap: 12px; }
+.mc-articulo .mc-doc-texto { white-space: pre-wrap; margin-top: 6px; }
+
+/* En pantallas anchas, el cajón queda fijo como barra lateral */
+@media (min-width: 900px) {
+  .mc-ham { display: none; }
+  .micuenta.portal { padding-left: 260px; }
+  .mc-drawer { transform: none; top: 68px; width: 260px; box-shadow: none; border-right: 1px solid var(--borde); }
+  .mc-overlay { display: none; }
+}
 
 /* Secciones plegables/desplegables del portal del propietario */
 .mc-seccion { background: #fff; border: 1px solid var(--borde, #e3ddd0); border-radius: 14px; margin: 14px 0; overflow: hidden; }

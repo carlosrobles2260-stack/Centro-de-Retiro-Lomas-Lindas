@@ -402,57 +402,267 @@ function NucleoFamiliar() {
   );
 }
 
-// Sección plegable/desplegable del portal del propietario. Recuerda en el
-// dispositivo (localStorage) si el residente la dejó abierta o cerrada.
-function Seccion({ titulo, clave, children, abiertoPorDefecto = true }) {
-  const storageKey = `mc_sec_${clave}`;
-  const [abierto, setAbierto] = useState(() => {
-    try {
-      const v = localStorage.getItem(storageKey);
-      return v === null ? abiertoPorDefecto : v === '1';
-    } catch { return abiertoPorDefecto; }
-  });
-  const alternar = () => setAbierto((a) => {
-    const n = !a;
-    try { localStorage.setItem(storageKey, n ? '1' : '0'); } catch {}
-    return n;
-  });
+// Mensaje de sección vacía.
+function Vacio({ texto }) {
+  return <div className="card"><p className="descripcion" style={{ margin: 0 }}>{texto}</p></div>;
+}
+
+// Tarjeta de saldo de cuotas de mantenimiento.
+function TarjetaSaldo({ datos }) {
   return (
-    <section className={`mc-seccion ${abierto ? 'abierta' : 'cerrada'}`}>
-      <button type="button" className="mc-seccion-cab" onClick={alternar} aria-expanded={abierto}>
-        <span>{titulo}</span>
-        <span className="chevron" aria-hidden="true">▾</span>
-      </button>
-      {abierto && <div className="mc-seccion-cuerpo">{children}</div>}
-    </section>
+    <div className="mc-saldo card">
+      <div className="etiqueta">Saldo pendiente de cuotas de mantenimiento</div>
+      <div className={`mc-monto ${datos.saldo > 0 ? 'rojo' : 'verde'}`}>{dinero(datos.saldo)}</div>
+      <div className="mc-nota">
+        {datos.saldo > 0 ? `Tienes ${datos.pendientes} cuota(s) por pagar.` : 'Estás al día. ¡Gracias!'}
+        {' · '}Total pagado: {dinero(datos.pagado)}
+      </div>
+    </div>
   );
 }
 
-// Vista del propietario que inició sesión: su estado de cuenta de cuotas.
+// Inicio: resumen y accesos rápidos.
+function InicioResumen({ datos, ir, esInq }) {
+  const accesos = [
+    { c: 'perfil', t: 'Mi perfil', i: '👤' },
+    { c: 'pase', t: 'Mi pase de acceso', i: '🎫' },
+    { c: 'familia', t: 'Núcleo familiar', i: '👪' },
+    { c: 'invitados', t: 'Invitados', i: '✉️' },
+    !esInq && { c: 'cuenta', t: 'Estado de cuenta', i: '🧾' },
+    { c: 'normativas', t: 'Normativas', i: '📜' },
+  ].filter(Boolean);
+  return (
+    <>
+      {!esInq && <TarjetaSaldo datos={datos} />}
+      <div className="mc-accesos">
+        {accesos.map((a) => (
+          <button key={a.c} className="mc-acceso card" onClick={() => ir(a.c)}>
+            <span className="mc-acceso-ic" aria-hidden="true">{a.i}</span>
+            <span>{a.t}</span>
+          </button>
+        ))}
+      </div>
+      <div className="card mc-capacitacion">
+        <div>
+          <strong>Aprende a usar tu portal</strong>
+          <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación.</p>
+        </div>
+        <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
+      </div>
+    </>
+  );
+}
+
+// Mi perfil: datos personales, foto del carnet/frente y datos de acceso.
+function MiPerfil({ datos, usuario }) {
+  const p = datos.propietario || {};
+  const TIPOS = { solar: 'Solar', edificado: 'Edificado' };
+  const foto = p.fotos?.[0];
+  const fila = (etq, val) => val ? <div className="mc-perfil-fila"><span>{etq}</span><strong>{val}</strong></div> : null;
+  return (
+    <div className="mc-perfil">
+      <div className="card mc-perfil-cab">
+        {foto
+          ? <img className="mc-perfil-foto" src={foto} alt="Foto de la propiedad/carnet" />
+          : <div className="mc-perfil-foto mc-perfil-foto-vacia">{(p.nombre || '?').slice(0, 1)}</div>}
+        <div>
+          <h3 style={{ margin: '0 0 2px' }}>{p.nombre}</h3>
+          {p.carnet && <div className="mc-perfil-carnet">Carnet N.º {p.carnet}</div>}
+        </div>
+      </div>
+      <div className="card">
+        <h4 className="mc-perfil-tit">Datos personales</h4>
+        {fila('Cédula', p.documento)}
+        {fila('Propiedad', p.propiedad)}
+        {fila('Tipo', TIPOS[p.tipo_propiedad] || p.tipo_propiedad)}
+        {fila('Teléfono', p.telefono)}
+        {fila('Móvil', p.movil)}
+        {fila('Correo', p.email)}
+        {fila('Dirección', p.direccion)}
+        {!p.documento && !p.telefono && !p.email && <p className="descripcion">Tu administración puede completar tus datos. Si algo está incorrecto, comunícate con la oficina.</p>}
+      </div>
+      <div className="card">
+        <h4 className="mc-perfil-tit">Datos de acceso</h4>
+        {fila('Usuario', usuario.email)}
+        <p className="descripcion">Tu pase de acceso (QR) está en la sección «Mi pase de acceso». Se renueva solo; no lo compartas.</p>
+      </div>
+    </div>
+  );
+}
+
+// Estado de cuenta: saldo + detalle de cuotas (meses pendientes y pagados).
+function EstadoCuenta({ datos }) {
+  const pendientes = (datos.facturas || []).filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
+  return (
+    <div className="mc-estado">
+      <TarjetaSaldo datos={datos} />
+      {pendientes.length > 0 && (
+        <div className="card mc-pend">
+          <h4 className="mc-perfil-tit">Meses / cuotas pendientes</h4>
+          <ul className="mc-pend-lista">
+            {pendientes.map((f) => (
+              <li key={f.id}>
+                <span>{f.concepto}{f.fecha_vencimiento ? ` · vence ${fecha(f.fecha_vencimiento)}` : ''}</span>
+                <strong>{dinero(f.monto)}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <h4 className="mc-perfil-tit">Historial de cuotas</h4>
+      <div className="tabla-wrap">
+        {(!datos.facturas || datos.facturas.length === 0) ? (
+          <div className="vacio">Aún no hay cuotas registradas.</div>
+        ) : (
+          <table>
+            <thead>
+              <tr><th>Concepto</th><th>Emisión</th><th>Vence</th><th>Monto</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              {datos.facturas.map((f) => (
+                <tr key={f.id}>
+                  <td>{f.concepto}</td>
+                  <td>{fecha(f.fecha_emision)}</td>
+                  <td>{fecha(f.fecha_vencimiento)}</td>
+                  <td style={{ fontWeight: 600 }}>{dinero(f.monto)}</td>
+                  <td><Badge estado={f.estado} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <p className="mc-pie">Para registrar un pago o aclarar un cargo, comunícate con la administración del centro.</p>
+    </div>
+  );
+}
+
+// Lista de empleados del propietario.
+function EmpleadosLista({ empleados }) {
+  return (
+    <div className="tabla-wrap">
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>Carné</th><th>Puesto</th><th>Teléfono</th><th>Credencial</th></tr>
+        </thead>
+        <tbody>
+          {empleados.map((e) => (
+            <tr key={e.id}>
+              <td>{e.nombre}</td>
+              <td>{e.carnet || '—'}</td>
+              <td>{PUESTO[e.puesto] || e.puesto || '—'}</td>
+              <td>{e.telefono || '—'}</td>
+              <td>{e.codigo ? <a href={`/credencial/${e.codigo}`} target="_blank" rel="noreferrer">Ver credencial</a> : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Normativas: documentos agrupados por categoría (estatutos, convivencia, etc.).
+function NormativasVista({ docs, fundamentos }) {
+  return (
+    <>
+      <p className="descripcion">Estatutos, reglamentos, normas de convivencia y de medio ambiente, y resoluciones de la Directiva y de las asambleas. Presiona una categoría para ver sus documentos.</p>
+      <div className="mc-cats">
+        {agruparDocumentos(docs).map(([cat, lista]) => (
+          <GrupoCategoria key={cat} categoria={cat} docs={lista} fundamento={fundamentos?.[cat]} estatutoHref={estatutoHref(docs)} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// Contenido editorial (Historia / Actividades / Contactos) basado en documentos
+// de una categoría. El administrador los publica desde «Normas y reglamentos».
+function ContenidoCategoria({ docs, vacioTexto }) {
+  if (!docs || docs.length === 0) return <Vacio texto={vacioTexto} />;
+  const lista = [...docs].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (Number(a.orden) - Number(b.orden)));
+  return (
+    <div className="mc-contenido">
+      {lista.map((d) => {
+        const destino = d.archivo || d.enlace;
+        return (
+          <article key={d.id} className="card mc-articulo">
+            {d.titulo && <h3 style={{ marginTop: 0 }}>{d.titulo}</h3>}
+            {d.fecha && <div className="mc-doc-fecha">{fecha(d.fecha)}</div>}
+            {d.descripcion && <p className="descripcion">{d.descripcion}</p>}
+            {d.contenido && <div className="mc-doc-texto">{d.contenido}</div>}
+            {destino && <a className="mc-doc-link" href={destino} target="_blank" rel="noreferrer">Ver documento</a>}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+// Categorías que son contenido editorial (van en su propia sección, no en Normativas).
+const CATS_CONTENIDO = ['historia', 'actividades', 'contactos'];
+
+// Portal del propietario: navegación con menú hamburguesa y vistas.
 export default function MiCuenta() {
   const { usuario, logout } = useAuth();
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState(null);
+  const [vista, setVista] = useState('inicio');
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
     api.get('/mi-cuenta').then(setDatos).catch((e) => setError(e.message));
   }, []);
 
+  const docs = datos?.documentos || [];
+  const docsNormativas = docs.filter((d) => !CATS_CONTENIDO.includes(d.categoria));
+  const docsCat = (c) => docs.filter((d) => d.categoria === c);
+  const esInq = datos?.es_inquilino;
+
+  const menu = [
+    { clave: 'inicio', t: 'Inicio', i: '🏠' },
+    { clave: 'perfil', t: 'Mi perfil', i: '👤' },
+    { clave: 'pase', t: 'Mi pase de acceso', i: '🎫' },
+    !esInq && { clave: 'cuenta', t: 'Estado de cuenta', i: '🧾' },
+    { clave: 'familia', t: 'Núcleo familiar', i: '👪' },
+    { clave: 'invitados', t: 'Invitados', i: '✉️' },
+    (datos?.empleados?.length > 0) && { clave: 'empleados', t: 'Mis empleados', i: '🧰' },
+    { clave: 'normativas', t: 'Normativas', i: '📜' },
+    { clave: 'historia', t: 'Nuestra historia', i: '📖' },
+    { clave: 'actividades', t: 'Actividades', i: '📅' },
+    { clave: 'contactos', t: 'Contactos de interés', i: '📞' },
+  ].filter(Boolean);
+
+  const ir = (clave) => { setVista(clave); setMenuAbierto(false); try { window.scrollTo(0, 0); } catch { /* */ } };
+  const tituloVista = menu.find((m) => m.clave === vista)?.t || '';
+
   return (
-    <div className="micuenta">
+    <div className="micuenta portal">
       <header className="mc-top">
+        <button className="mc-ham" onClick={() => setMenuAbierto((v) => !v)} aria-label="Abrir menú">☰</button>
         <div className="mc-marca">
           <img src="/emblema.png" alt="" />
           <div>
             <strong>Lomas Lindas</strong>
-            <span>Estado de cuenta</span>
+            <span>Portal del propietario</span>
           </div>
         </div>
         <div className="mc-user">
-          <span>{usuario.nombre}</span>
-          <button className="secundario" onClick={logout}>Cerrar sesión</button>
+          <span className="mc-user-nom">{usuario.nombre}</span>
+          <button className="secundario" onClick={logout}>Salir</button>
         </div>
       </header>
+
+      {menuAbierto && <div className="mc-overlay" onClick={() => setMenuAbierto(false)} />}
+      <aside className={`mc-drawer ${menuAbierto ? 'abierto' : ''}`}>
+        <nav>
+          {menu.map((m) => (
+            <button key={m.clave} className={vista === m.clave ? 'activo' : ''} onClick={() => ir(m.clave)}>
+              <span className="mc-drawer-ic" aria-hidden="true">{m.i}</span>
+              <span>{m.t}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
       <main className="mc-main">
         {error && <p className="error">{error}</p>}
@@ -460,113 +670,20 @@ export default function MiCuenta() {
           <div className="cargando">Cargando...</div>
         ) : (
           <>
-            {!datos.es_inquilino && (
-              <div className="mc-saldo card">
-                <div className="etiqueta">Saldo pendiente de cuotas de mantenimiento</div>
-                <div className={`mc-monto ${datos.saldo > 0 ? 'rojo' : 'verde'}`}>{dinero(datos.saldo)}</div>
-                <div className="mc-nota">
-                  {datos.saldo > 0 ? `Tienes ${datos.pendientes} cuota(s) por pagar.` : 'Estás al día. ¡Gracias!'}
-                  {' · '}Total pagado: {dinero(datos.pagado)}
-                </div>
-              </div>
-            )}
-
-            {!datos.es_inquilino && (
-              <Seccion titulo="Votación de la Directiva" clave="votacion">
-                <VotacionDirectiva />
-              </Seccion>
-            )}
-
-            <Seccion titulo="Mi pase de acceso" clave="pase">
-              <PaseAcceso />
-            </Seccion>
-
-            <Seccion titulo="Núcleo familiar" clave="familia">
-              <NucleoFamiliar />
-            </Seccion>
-
-            <Seccion titulo="Autorizar invitados" clave="invitados">
-              <AutorizarInvitado />
-            </Seccion>
-
-            {!datos.es_inquilino && (
-              <Seccion titulo="Mis cuotas" clave="cuotas">
-                <div className="tabla-wrap">
-                  {datos.facturas.length === 0 ? (
-                    <div className="vacio">Aún no hay cuotas registradas.</div>
-                  ) : (
-                    <table>
-                      <thead>
-                        <tr><th>Concepto</th><th>Emisión</th><th>Vence</th><th>Monto</th><th>Estado</th></tr>
-                      </thead>
-                      <tbody>
-                        {datos.facturas.map((f) => (
-                          <tr key={f.id}>
-                            <td>{f.concepto}</td>
-                            <td>{fecha(f.fecha_emision)}</td>
-                            <td>{fecha(f.fecha_vencimiento)}</td>
-                            <td style={{ fontWeight: 600 }}>{dinero(f.monto)}</td>
-                            <td><Badge estado={f.estado} /></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </Seccion>
-            )}
-
-            {datos.empleados?.length > 0 && (
-              <Seccion titulo="Mis empleados" clave="empleados">
-                <div className="tabla-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Nombre</th><th>Carné</th><th>Puesto</th><th>Teléfono</th><th>Credencial</th></tr>
-                    </thead>
-                    <tbody>
-                      {datos.empleados.map((e) => (
-                        <tr key={e.id}>
-                          <td>{e.nombre}</td>
-                          <td>{e.carnet || '—'}</td>
-                          <td>{PUESTO[e.puesto] || e.puesto || '—'}</td>
-                          <td>{e.telefono || '—'}</td>
-                          <td>{e.codigo ? <a href={`/credencial/${e.codigo}`} target="_blank" rel="noreferrer">Ver credencial</a> : '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Seccion>
-            )}
-
-            {datos.documentos?.length > 0 && (
-              <Seccion titulo="Normas y reglamentos" clave="normas">
-                <p className="descripcion">Estatutos, reglamentos, normas y resoluciones de la Directiva y de las asambleas (ordinarias y extraordinarias) de la asociación y del proyecto. Presiona una categoría para ver sus documentos.</p>
-                <div className="mc-cats">
-                  {agruparDocumentos(datos.documentos).map(([cat, docs]) => (
-                    <GrupoCategoria
-                      key={cat}
-                      categoria={cat}
-                      docs={docs}
-                      fundamento={datos.fundamentos?.[cat]}
-                      estatutoHref={estatutoHref(datos.documentos)}
-                    />
-                  ))}
-                </div>
-              </Seccion>
-            )}
-
-            <Seccion titulo="Capacitación" clave="capacitacion">
-              <div className="card mc-capacitacion">
-                <div>
-                  <strong>Aprende a usar tu portal</strong>
-                  <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación. Con autoevaluación.</p>
-                </div>
-                <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
-              </div>
-            </Seccion>
-
-            <p className="mc-pie">Para registrar un pago o aclarar un cargo, comunícate con la administración del centro.</p>
+            {vista !== 'inicio' && <h2 className="mc-vista-tit">{tituloVista}</h2>}
+            {vista === 'inicio' && <InicioResumen datos={datos} ir={ir} esInq={esInq} />}
+            {vista === 'perfil' && <MiPerfil datos={datos} usuario={usuario} />}
+            {vista === 'pase' && <PaseAcceso />}
+            {vista === 'cuenta' && !esInq && <EstadoCuenta datos={datos} />}
+            {vista === 'familia' && <NucleoFamiliar />}
+            {vista === 'invitados' && <AutorizarInvitado />}
+            {vista === 'empleados' && <EmpleadosLista empleados={datos.empleados} />}
+            {vista === 'normativas' && (docsNormativas.length
+              ? <NormativasVista docs={docsNormativas} fundamentos={datos.fundamentos} />
+              : <Vacio texto="Aún no hay normativas publicadas." />)}
+            {vista === 'historia' && <ContenidoCategoria docs={docsCat('historia')} vacioTexto="El administrador aún no ha publicado la historia y evolución del proyecto." />}
+            {vista === 'actividades' && <ContenidoCategoria docs={docsCat('actividades')} vacioTexto="Aún no hay actividades publicadas." />}
+            {vista === 'contactos' && <ContenidoCategoria docs={docsCat('contactos')} vacioTexto="Aún no hay contactos de interés publicados." />}
           </>
         )}
       </main>
