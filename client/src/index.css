@@ -519,12 +519,13 @@ td .acciones .acc-acceso { min-width: 104px; }
 .mc-contenido { display: flex; flex-direction: column; gap: 12px; }
 .mc-articulo .mc-doc-texto { white-space: pre-wrap; margin-top: 6px; }
 
-/* En pantallas anchas, el cajón queda fijo como barra lateral */
+/* En pantallas anchas, el cajón queda fijo como barra lateral y el encabezado
+   verde ocupa todo el ancho (arriba de la barra lateral). */
 @media (min-width: 900px) {
   .mc-ham { display: none; }
-  .micuenta.portal { padding-left: 260px; }
-  .mc-drawer { transform: none; top: 68px; width: 260px; box-shadow: none; border-right: 1px solid var(--borde); }
+  .mc-drawer { transform: none; top: 68px; left: 0; width: 260px; box-shadow: none; border-right: 1px solid var(--borde); background: var(--arena); }
   .mc-overlay { display: none; }
+  .mc-main { margin-left: 260px; }
 }
 
 /* Secciones plegables/desplegables del portal del propietario */
