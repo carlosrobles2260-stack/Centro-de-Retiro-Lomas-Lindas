@@ -646,6 +646,7 @@ export default function MiCuenta() {
             <span>Portal del propietario</span>
           </div>
         </div>
+        <div className="mc-top-centro">Directiva 2026–2028</div>
         <div className="mc-user">
           <span className="mc-user-nom">{usuario.nombre}</span>
           <button className="secundario" onClick={logout}>Salir</button>
