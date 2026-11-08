@@ -481,11 +481,12 @@ td .acciones .acc-acceso { min-width: 104px; }
 .mc-top-centro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   color: #fff; font-weight: 700; font-size: 16px; white-space: nowrap; pointer-events: none; letter-spacing: .2px; }
 @media (max-width: 680px) {
-  /* En móvil solo el logo a la izquierda; el título "Directiva 2026–2028" queda
-     centrado y legible, sin superponerse con el nombre. */
-  .mc-marca > div { display: none; }
+  /* En móvil el encabezado muestra solo ☰ · "Directiva 2026–2028" · Salir.
+     Se oculta la marca (logo + texto) para que el título quede centrado y
+     legible, sin que nada se le monte encima. */
+  .mc-marca { display: none; }
   .mc-user-nom { display: none; }
-  .mc-top-centro { font-size: 15px; }
+  .mc-top-centro { font-size: 16px; }
 }
 
 /* Cajón lateral deslizante */
