@@ -675,12 +675,14 @@ export default function MiCuenta() {
   return (
     <div className="micuenta portal">
       <header className="mc-top">
-        <button className="mc-ham" onClick={() => setMenuAbierto((v) => !v)} aria-label="Abrir menú">☰</button>
-        <div className="mc-marca">
-          <img src="/emblema.png" alt="" />
-          <div>
-            <strong>Lomas Lindas</strong>
-            <span>Portal del propietario</span>
+        <div className="mc-top-izq">
+          <button className="mc-ham" onClick={() => setMenuAbierto((v) => !v)} aria-label="Abrir menú">☰</button>
+          <div className="mc-marca">
+            <img src="/emblema.png" alt="Lomas Lindas" />
+            <div>
+              <strong>Lomas Lindas</strong>
+              <span>Portal del propietario</span>
+            </div>
           </div>
         </div>
         <div className="mc-top-centro">Directiva 2026–2028</div>

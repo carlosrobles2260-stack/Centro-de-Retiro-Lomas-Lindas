@@ -473,20 +473,22 @@ td .acciones .acc-acceso { min-width: 104px; }
 .mc-main h2 { font-size: 16px; margin: 26px 0 10px; }
 
 /* ===== Portal del propietario: menú hamburguesa (móvil primero) ===== */
-.micuenta.portal .mc-top { position: sticky; top: 0; z-index: 30; }
-.mc-ham { background: transparent; border: none; color: #fff; font-size: 24px; line-height: 1; padding: 4px 8px; cursor: pointer; border-radius: 8px; }
+/* Encabezado en 3 columnas: izquierda (☰ + logo) · centro (título) · derecha (Salir). */
+.micuenta.portal .mc-top { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 8px; }
+.mc-top-izq { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mc-ham { background: transparent; border: none; color: #fff; font-size: 24px; line-height: 1; padding: 4px 8px; cursor: pointer; border-radius: 8px; flex: 0 0 auto; }
 .mc-ham:hover { background: rgba(255,255,255,.15); }
-.mc-user-nom { max-width: 38vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc-user { justify-self: end; }
+.mc-user-nom { max-width: 30vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Título centrado del encabezado: "Directiva 2026–2028". */
-.mc-top-centro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  color: #fff; font-weight: 700; font-size: 16px; white-space: nowrap; pointer-events: none; letter-spacing: .2px; }
+.mc-top-centro { justify-self: center; color: #fff; font-weight: 700; font-size: 16px; white-space: nowrap;
+  letter-spacing: .2px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 @media (max-width: 680px) {
-  /* En móvil el encabezado muestra solo ☰ · "Directiva 2026–2028" · Salir.
-     Se oculta la marca (logo + texto) para que el título quede centrado y
-     legible, sin que nada se le monte encima. */
-  .mc-marca { display: none; }
+  /* En móvil: ☰ + logo a la izquierda, título centrado, Salir a la derecha.
+     Se oculta el texto "Lomas Lindas / Portal del propietario" (solo el logo) y
+     el nombre del usuario para que el título centrado no choque con nada. */
+  .mc-marca > div { display: none; }
   .mc-user-nom { display: none; }
-  .mc-top-centro { font-size: 16px; }
 }
 
 /* Cajón lateral deslizante */
