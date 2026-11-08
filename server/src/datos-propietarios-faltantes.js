@@ -1,0 +1,33 @@
+// Propietarios que faltaban en el sistema respecto al archivo del contador
+// (PROPIETARIO_Y_NUMERO_DE_CARNET.xlsx). Son carnets NUEVOS, sin conflicto con
+// los existentes. Nombre tomado de las hojas de cobro (COBRO MENSUAL/PROOPIETARIOS).
+export const FALTANTES = [
+  { carnet: '70', nombre: 'Daniel R. Jimenez' },
+  { carnet: '85', nombre: 'Rafael Chabebe' },
+  { carnet: '104', nombre: 'Luis Jose Ramos' },
+  { carnet: '106', nombre: 'Afif Rizek' },
+  { carnet: '141', nombre: 'Leonel Feliz' },
+  { carnet: '143', nombre: 'Jose Ant. Lopez' },
+  { carnet: '182', nombre: 'Rafael Alberto Romero' },
+  { carnet: '209', nombre: 'Martin Rosario' },
+  { carnet: '213', nombre: 'Fernando Ant. Guzman' },
+  { carnet: '380', nombre: 'Yaniris Torres' },
+  { carnet: '487', nombre: 'Martin Garcia' },
+  { carnet: '488', nombre: 'Alfredo Morel' },
+  { carnet: '489', nombre: 'Katherine Hernandez' },
+  { carnet: '490', nombre: 'Fabio O. Baba' },
+  { carnet: '491', nombre: 'Jose del Carmen Diaz' },
+  { carnet: '492', nombre: 'Gilberto F. Aquino' },
+  { carnet: '493', nombre: 'Antonio M. Rodriguez' },
+  { carnet: '494', nombre: 'Francisco Tulio Reyes' },
+  { carnet: '495', nombre: 'Rafael U. Sepulveda' },
+  { carnet: '496', nombre: 'Florentino Perez' },
+  { carnet: '497', nombre: 'Dayana Almonte' },
+  { carnet: '498', nombre: 'Ernesto A. Jansen y Jhannay Baez' },
+  { carnet: '499', nombre: 'Rosa Elena Guzman' },
+  { carnet: '500', nombre: 'Ana Luisa Ferreiras' },
+  { carnet: '501', nombre: 'Luis F. Medrano' },
+  { carnet: '502', nombre: 'Miguel Ventura 2' },
+  { carnet: '503', nombre: 'Maximo Jordy Peña Valdez' },
+  { carnet: '504', nombre: 'Domingo Ant. Beltran' },
+];
