@@ -445,7 +445,7 @@ function InicioResumen({ datos, ir, esInq }) {
       <div className="card mc-capacitacion">
         <div>
           <strong>Aprende a usar tu portal</strong>
-          <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso, tus cuotas y la votación.</p>
+          <p className="descripcion">Curso corto y autodidacta: autorizar invitados, tu pase de acceso y tus cuotas.</p>
         </div>
         <a className="primario-link" href="/capacitacion-propietarios.html" target="_blank" rel="noreferrer">Abrir capacitación</a>
       </div>
