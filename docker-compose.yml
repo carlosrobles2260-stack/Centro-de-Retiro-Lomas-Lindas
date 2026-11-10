@@ -1,0 +1,77 @@
+# Orquestación del ERP Lomas Lindas: base de datos PostgreSQL + API + frontend.
+# Uso:
+#   1) Copia .env.docker.example a .env y ajusta los valores.
+#   2) docker compose up -d --build
+#   3) (primera vez) docker compose exec server npm run seed
+#   4) Abre http://localhost:8080
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lomas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lomas}
+      POSTGRES_DB: ${POSTGRES_DB:-lomaslindas}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lomas}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      DB_CLIENT: postgres
+      DATABASE_URL: postgres://${POSTGRES_USER:-lomas}:${POSTGRES_PASSWORD:-lomas}@db:5432/${POSTGRES_DB:-lomaslindas}
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    # Las imágenes subidas (fotos de la directiva, galería, incidentes, etc.) se
+    # guardan en /app/uploads. Este volumen las conserva entre despliegues, para
+    # que NO se pierdan al reconstruir el contenedor.
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  client:
+    build: ./client
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - server
+
+  # Proxy inverso con HTTPS automático (Let's Encrypt). Solo se activa si se
+  # define SITE_DOMINIO (p. ej. lomaslindas.duckdns.org). Sirve la app por
+  # https:// y reenvía todo al contenedor 'client'. Necesario para que funcione
+  # el service worker (aviso de nueva versión, instalar como app, etc.).
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_DOMINIO: ${SITE_DOMINIO:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - client
+
+volumes:
+  db_data:
+  uploads_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,163 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+
+import { requiereAuth, requiereRol } from './auth.js';
+import authRoutes from './routes/auth.js';
+import empleadosRoutes from './routes/empleados.js';
+import turnosRoutes from './routes/turnos.js';
+import propietariosRoutes from './routes/propietarios.js';
+import visitantesRoutes from './routes/visitantes.js';
+import visitasRoutes from './routes/visitas.js';
+import incidentesRoutes from './routes/incidentes.js';
+import rondasRoutes from './routes/rondas.js';
+import facturasRoutes from './routes/facturas.js';
+import gastosRoutes from './routes/gastos.js';
+import dashboardRoutes from './routes/dashboard.js';
+import reportesRoutes from './routes/reportes.js';
+import bancosRoutes from './routes/bancos.js';
+import notificacionesRoutes from './routes/notificaciones.js';
+import tiposIncidenciaRoutes from './routes/tiposIncidencia.js';
+import configuracionRoutes from './routes/configuracion.js';
+import viajesVertederoRoutes from './routes/viajesVertedero.js';
+import vehiculosRoutes from './routes/vehiculos.js';
+import geocercasRoutes from './routes/geocercas.js';
+import gpsRoutes from './routes/gps.js';
+import miCuentaRoutes from './routes/miCuenta.js';
+import empleadosPropietarioRoutes from './routes/empleadosPropietario.js';
+import cuentasPorCobrarRoutes from './routes/cuentasPorCobrar.js';
+import prestamosEmpleadoRoutes from './routes/prestamosEmpleado.js';
+import activosRoutes from './routes/activos.js';
+import accionesPersonalRoutes from './routes/accionesPersonal.js';
+import nominaRoutes from './routes/nomina.js';
+import documentosRoutes from './routes/documentos.js';
+import accesoRoutes from './routes/acceso.js';
+import eleccionesRoutes from './routes/elecciones.js';
+import directivaRoutes from './routes/directiva.js';
+import permisosRoutes from './routes/permisos.js';
+import { inicializarPermisos, permite } from './permisos.js';
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }));
+app.use(express.json({ limit: '20mb' })); // permite fotos en base64 y documentos PDF
+
+// Archivos subidos (fotos de incidentes).
+import { UPLOADS_DIR } from './fotos.js';
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+app.get('/api/health', (req, res) => res.json({ ok: true, servicio: 'ERP Lomas Lindas' }));
+
+// Página pública de la credencial del visitante (para compartir por enlace/WhatsApp).
+app.get('/credencial/:codigo', async (req, res) => {
+  try {
+    const { default: db } = await import('./db.js');
+    const { paginaCredencialHTML } = await import('./credencial.js');
+    let v = await db.get(
+      `SELECT v.*, p.nombre AS propietario_nombre FROM visitantes v
+       LEFT JOIN propietarios p ON p.id = v.propietario_id WHERE v.codigo = ?`,
+      [req.params.codigo]
+    );
+    // Si no es un visitante, puede ser un empleado del propietario.
+    if (!v) {
+      const e = await db.get(
+        `SELECT e.*, p.nombre AS propietario_nombre FROM empleados_propietario e
+         LEFT JOIN propietarios p ON p.id = e.propietario_id WHERE e.codigo = ?`,
+        [req.params.codigo]
+      );
+      if (e) v = { ...e, tipo: e.puesto || 'empleado', carne: e.carnet };
+    }
+    if (!v) return res.status(404).send('<h1>Credencial no encontrada</h1>');
+    res.type('html').send(paginaCredencialHTML(v));
+  } catch (e) {
+    res.status(500).send('Error al generar la credencial');
+  }
+});
+
+// Imagen del QR (pase dinámico) de una credencial, para refrescarse desde la
+// página pública. Cada llamada devuelve un pase nuevo de corta vida.
+app.get('/pase/:codigo.png', async (req, res) => {
+  try {
+    const { tipoDeCodigo, generarPase } = await import('./acceso.js');
+    const { generarQrBuffer } = await import('./credencial.js');
+    const tipo = await tipoDeCodigo(req.params.codigo);
+    if (!tipo) return res.status(404).end();
+    const { token } = await generarPase(tipo, req.params.codigo);
+    const buf = await generarQrBuffer(token);
+    res.type('png').set('Cache-Control', 'no-store').send(buf);
+  } catch (e) {
+    res.status(500).end();
+  }
+});
+
+// Página pública del estado de cuenta del propietario (enlace privado por token).
+app.get('/cuenta/:token', async (req, res) => {
+  try {
+    const { default: db } = await import('./db.js');
+    const { datosCuenta, paginaCuentaHTML } = await import('./cuenta.js');
+    const p = await db.get('SELECT * FROM propietarios WHERE token_cuenta = ?', [req.params.token]);
+    if (!p) return res.status(404).send('<h1>Estado de cuenta no encontrado</h1>');
+    const datos = await datosCuenta(p.id);
+    res.type('html').send(paginaCuentaHTML(p, datos));
+  } catch (e) {
+    res.status(500).send('Error al generar el estado de cuenta');
+  }
+});
+
+// Autenticación (login es público; el resto protegido dentro del router)
+app.use('/api/auth', authRoutes);
+
+// Todas las rutas siguientes requieren sesión iniciada. El candado permite()
+// aplica los permisos dinámicos (GET=leer, otros=escribir) por módulo y rol.
+app.use('/api/permisos', requiereAuth, permisosRoutes);
+app.use('/api/dashboard', requiereAuth, permite('panel'), dashboardRoutes);
+app.use('/api/empleados', requiereAuth, permite('empleados'), empleadosRoutes);
+app.use('/api/prestamos-empleado', requiereAuth, permite('prestamos'), prestamosEmpleadoRoutes);
+app.use('/api/activos', requiereAuth, permite('activos'), activosRoutes);
+app.use('/api/acciones-personal', requiereAuth, permite('acciones_personal'), accionesPersonalRoutes);
+app.use('/api/nomina', requiereAuth, permite('nomina'), nominaRoutes);
+app.use('/api/documentos', requiereAuth, permite('documentos'), documentosRoutes);
+// Acceso (escáner del portón + QR del propietario): auth propia, sin candado de módulo.
+app.use('/api/acceso', requiereAuth, accesoRoutes);
+app.use('/api/elecciones', requiereAuth, permite('elecciones'), eleccionesRoutes);
+app.use('/api/directiva', requiereAuth, permite('directiva'), directivaRoutes);
+app.use('/api/turnos', requiereAuth, permite('turnos'), turnosRoutes);
+app.use('/api/propietarios', requiereAuth, permite('propietarios'), propietariosRoutes);
+// Empleados de propietarios: lo usa también el escáner del guardia (/acceso); sin candado de módulo.
+app.use('/api/empleados-propietario', requiereAuth, empleadosPropietarioRoutes);
+app.use('/api/mi-cuenta', requiereAuth, miCuentaRoutes);
+app.use('/api/visitantes', requiereAuth, permite('visitantes'), visitantesRoutes);
+app.use('/api/visitas', requiereAuth, permite('visitas'), visitasRoutes);
+app.use('/api/incidentes', requiereAuth, permite('incidentes'), incidentesRoutes);
+app.use('/api/tipos-incidencia', requiereAuth, permite('tipos_incidencia'), tiposIncidenciaRoutes);
+app.use('/api/configuracion', requiereAuth, configuracionRoutes);
+app.use('/api/viajes-vertedero', requiereAuth, permite('viajes_vertedero'), viajesVertederoRoutes);
+app.use('/api/vehiculos', requiereAuth, permite('vehiculos'), vehiculosRoutes);
+app.use('/api/geocercas', requiereAuth, permite('geocercas'), geocercasRoutes);
+// GPS: la ingesta es pública (autenticada por token); el router gestiona su propia auth.
+app.use('/api/gps', gpsRoutes);
+app.use('/api/rondas', requiereAuth, permite('rondas'), rondasRoutes);
+app.use('/api/facturas', requiereAuth, permite('facturas'), facturasRoutes);
+app.use('/api/cuentas-por-cobrar', requiereAuth, permite('cuentas_por_cobrar'), cuentasPorCobrarRoutes);
+app.use('/api/gastos', requiereAuth, permite('gastos'), gastosRoutes);
+app.use('/api/bancos', requiereAuth, permite('bancos'), bancosRoutes);
+app.use('/api/reportes', requiereAuth, permite('reportes'), reportesRoutes);
+app.use('/api/notificaciones', requiereAuth, permite('notificaciones'), notificacionesRoutes);
+
+// Manejo de errores no capturados.
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
+
+// Carga/siembra los permisos dinámicos antes de aceptar peticiones.
+await inicializarPermisos();
+
+app.listen(PORT, () => {
+  console.log(`✅ API del ERP Lomas Lindas escuchando en http://localhost:${PORT}`);
+  // Inicia la sincronización periódica con el proveedor de GPS (si está activada).
+  import('./gpsSync.js')
+    .then((m) => m.iniciarSincronizacionAutomatica())
+    .catch((e) => console.warn('No se pudo iniciar la sincronización de GPS:', e.message));
+});

@@ -1,0 +1,9 @@
+# Caddy obtiene y renueva el certificado HTTPS automáticamente (Let's Encrypt)
+# para el dominio indicado en la variable SITE_DOMINIO (.env).
+# Reenvía todo el tráfico al contenedor del frontend (nginx), que a su vez ya
+# maneja /api, /credencial, /cuenta y /uploads hacia el backend.
+
+{$SITE_DOMINIO} {
+	encode zstd gzip
+	reverse_proxy client:80
+}

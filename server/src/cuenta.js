@@ -1,0 +1,166 @@
+// Estado de cuenta del propietario: datos (cuotas/facturas y saldo) y la
+// página pública que se comparte por enlace privado.
+import db from './db.js';
+import { logoBuffer } from './credencial.js';
+
+const money = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(Number(n) || 0);
+
+// Monto adeudado de la cuota (no se aplican descuentos a la deuda).
+const efectivo = (f) => Number(f.monto);
+
+// Reúne las facturas (cuotas) del propietario y calcula el saldo pendiente
+// (considera pagos parciales).
+export async function datosCuenta(propietarioId) {
+  const facturas = await db.all(
+    `SELECT f.*, COALESCE((SELECT SUM(monto) FROM pagos WHERE factura_id = f.id), 0) AS pagado
+     FROM facturas f WHERE f.propietario_id = ? ORDER BY f.fecha_emision DESC, f.id DESC`,
+    [propietarioId]
+  );
+  const abiertas = facturas.filter((f) => f.estado === 'pendiente' || f.estado === 'vencida');
+  const saldo = abiertas.reduce((acc, f) => acc + Math.max(0, efectivo(f) - Number(f.pagado)), 0);
+  const pagado = facturas.reduce((acc, f) => acc + Number(f.pagado), 0);
+  // Normas y reglamentos publicados (reglamento interno, convivencia, medio ambiente).
+  const documentos = await db.all(
+    `SELECT id, titulo, categoria, descripcion, contenido, archivo, enlace, fecha
+     FROM documentos WHERE publicado = 1 ORDER BY orden ASC, fecha DESC, titulo ASC`
+  );
+  // Fundamento estatutario de cada categoría (artículo de los Estatutos).
+  const filasFund = await db.all("SELECT clave, valor FROM configuracion WHERE clave LIKE 'fundamento_%'");
+  const fundamentos = {};
+  for (const f of filasFund) fundamentos[f.clave.replace('fundamento_', '')] = f.valor;
+  return { facturas, saldo, pagado, pendientes: abiertas.length, documentos, fundamentos };
+}
+
+function logoDataUrl() {
+  const buf = logoBuffer();
+  return buf ? `data:image/png;base64,${buf.toString('base64')}` : null;
+}
+
+const ETIQUETA_ESTADO = { pendiente: 'Pendiente', vencida: 'Vencida', pagada: 'Pagada', anulada: 'Anulada' };
+const COLOR_ESTADO = { pendiente: '#d98e04', vencida: '#c0392b', pagada: '#2f6e4f', anulada: '#5d6b63' };
+const ETIQUETA_CATEGORIA = {
+  estatutos: 'Estatutos',
+  reglamento_interno: 'Reglamento interno',
+  convivencia: 'Normas de convivencia',
+  medio_ambiente: 'Medio ambiente',
+  resoluciones: 'Resoluciones de la Directiva',
+  resoluciones_asamblea_ordinaria: 'Resoluciones de Asamblea Ordinaria',
+  resoluciones_asamblea_extraordinaria: 'Resoluciones de Asamblea Extraordinaria',
+  otra: 'Otras normas',
+};
+
+// Página web pública del estado de cuenta (enlace privado por propietario).
+export function paginaCuentaHTML(propietario, datos) {
+  const logo = logoDataUrl();
+  const { facturas, saldo, pagado, documentos = [], fundamentos = {} } = datos;
+  const estatutoDoc = documentos.find((d) => d.categoria === 'estatutos' && (d.archivo || d.enlace));
+  const estatutoHref = estatutoDoc ? (estatutoDoc.archivo || estatutoDoc.enlace) : null;
+  const filas = facturas.map((f) => `
+      <tr>
+        <td>${escape(f.concepto)}<div class="sub">${f.fecha_emision || ''}${f.fecha_vencimiento ? ' · vence ' + f.fecha_vencimiento : ''}</div></td>
+        <td class="monto">${money(f.monto)}</td>
+        <td><span class="badge" style="background:${COLOR_ESTADO[f.estado] || '#5d6b63'}">${ETIQUETA_ESTADO[f.estado] || f.estado}</span></td>
+      </tr>`).join('');
+
+  // Bloque de normas y reglamentos, agrupado por categoría. Al abrir una
+  // categoría se listan sus documentos (actas), ordenados por fecha (más
+  // recientes primero).
+  const ORDEN_CAT = Object.keys(ETIQUETA_CATEGORIA);
+  const grupos = new Map();
+  for (const d of documentos) {
+    const k = d.categoria || 'otra';
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(d);
+  }
+  const posCat = (k) => { const i = ORDEN_CAT.indexOf(k); return i < 0 ? 99 : i; };
+  const normas = [...grupos.entries()].sort((a, b) => posCat(a[0]) - posCat(b[0])).map(([cat, docs]) => {
+    const items = docs.slice().sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).map((d) => {
+      const destino = d.archivo || d.enlace;
+      const enlace = destino ? `<a class="doc-link" href="${escape(destino)}" target="_blank" rel="noreferrer">Ver documento</a>` : '';
+      const texto = d.contenido ? `<details><summary>Leer</summary><div class="doc-texto">${escape(d.contenido)}</div></details>` : '';
+      return `
+        <div class="doc-item">
+          <div class="doc-tit">${escape(d.titulo)}</div>
+          ${d.fecha ? `<div class="doc-fecha">${escape(d.fecha)}</div>` : ''}
+          ${d.descripcion ? `<div class="sub">${escape(d.descripcion)}</div>` : ''}
+          <div class="doc-acc">${enlace}${texto}</div>
+        </div>`;
+    }).join('');
+    const fund = cat !== 'estatutos' && fundamentos[cat]
+      ? `<div class="doc-fund">Fundamento: ${escape(fundamentos[cat])}${estatutoHref ? ` · <a href="${escape(estatutoHref)}" target="_blank" rel="noreferrer">Ver estatutos</a>` : ''}</div>`
+      : '';
+    return `
+      <details class="doc-cat">
+        <summary><span>${ETIQUETA_CATEGORIA[cat] || 'Normas'}</span><span class="doc-cat-n">${docs.length} doc.</span></summary>
+        <div class="doc-cat-cuerpo">${fund}${items}</div>
+      </details>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estado de cuenta · ${escape(propietario.nombre)}</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f5f2eb; color: #1f2a24; margin: 0; padding: 18px; }
+  .hoja { max-width: 560px; margin: 0 auto; }
+  .cab { background: #2f6e4f; color: #fff; border-radius: 16px 16px 0 0; padding: 22px; text-align: center; }
+  .cab img { width: 90px; background: #fff; border-radius: 12px; padding: 8px; }
+  .cab h1 { font-size: 18px; margin: 10px 0 2px; }
+  .cab .sub { color: rgba(255,255,255,.85); font-size: 13px; }
+  .saldo { background: #fff; padding: 20px; text-align: center; border-bottom: 1px solid #e4e8e3; }
+  .saldo .lbl { color: #5d6b63; font-size: 13px; }
+  .saldo .val { font-size: 34px; font-weight: 800; color: ${saldo > 0 ? '#c0392b' : '#2f6e4f'}; margin-top: 4px; }
+  .saldo .nota { color: #5d6b63; font-size: 12px; margin-top: 6px; }
+  .cuerpo { background: #fff; border-radius: 0 0 16px 16px; padding: 8px 18px 22px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+  h2 { font-size: 14px; color: #5d6b63; text-transform: uppercase; letter-spacing: .06em; margin: 18px 0 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 10px 0; border-bottom: 1px solid #eef1ee; font-size: 14px; vertical-align: top; }
+  td.monto { text-align: right; font-weight: 600; white-space: nowrap; }
+  .sub { color: #5d6b63; font-size: 12px; margin-top: 2px; }
+  .badge { color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .vacio { color: #5d6b63; text-align: center; padding: 20px; }
+  .pie { text-align: center; color: #5d6b63; font-size: 12px; margin: 16px 0; }
+  .doc-cat { border: 1px solid #e4e8e3; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+  .doc-cat > summary { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+  .doc-cat > summary::-webkit-details-marker { display: none; }
+  .doc-cat[open] > summary { border-bottom: 1px solid #eef1ee; }
+  .doc-cat-n { color: #5d6b63; font-size: 12px; font-weight: 500; }
+  .doc-cat-cuerpo { padding: 2px 14px; }
+  .doc-fund { background: #f2f6f2; border-left: 3px solid #2f6e4f; color: #3a4a42; font-size: 12px; padding: 7px 10px; border-radius: 6px; margin: 8px 0; }
+  .doc-fund a { color: #2f6e4f; font-weight: 600; text-decoration: none; }
+  .doc-item { border-bottom: 1px solid #eef1ee; padding: 12px 0; }
+  .doc-item:last-child { border-bottom: none; }
+  .doc-tit { font-weight: 600; font-size: 14px; }
+  .doc-fecha { color: #5d6b63; font-size: 12px; margin-top: 2px; }
+  .doc-acc { margin-top: 6px; display: flex; gap: 14px; align-items: center; }
+  .doc-link { color: #2f6e4f; font-weight: 600; font-size: 13px; text-decoration: none; }
+  .doc-item details { font-size: 13px; }
+  .doc-item summary { color: #2f6e4f; font-weight: 600; cursor: pointer; }
+  .doc-texto { white-space: pre-wrap; color: #1f2a24; margin-top: 6px; }
+</style></head>
+<body><div class="hoja">
+  <div class="cab">
+    ${logo ? `<img src="${logo}" alt="Lomas Lindas" />` : ''}
+    <h1>${escape(propietario.nombre)}</h1>
+    <div class="sub">${escape(propietario.propiedad || '')}${propietario.carnet ? ' · Carnet ' + escape(propietario.carnet) : ''}</div>
+  </div>
+  <div class="saldo">
+    <div class="lbl">Saldo pendiente de cuotas de mantenimiento</div>
+    <div class="val">${money(saldo)}</div>
+    <div class="nota">${saldo > 0 ? 'Tienes cuotas por pagar.' : 'Estás al día. ¡Gracias!'} · Total pagado: ${money(pagado)}</div>
+  </div>
+  <div class="cuerpo">
+    <h2>Detalle de cuotas</h2>
+    ${facturas.length ? `<table><tbody>${filas}</tbody></table>` : '<div class="vacio">Aún no hay cuotas registradas.</div>'}
+    ${documentos.length ? `<h2>Normas y reglamentos</h2>${normas}` : ''}
+    <div class="pie">Centro de Retiro Lomas Lindas · Estado de cuenta en línea</div>
+  </div>
+</div></body></html>`;
+}
+
+function escape(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}
