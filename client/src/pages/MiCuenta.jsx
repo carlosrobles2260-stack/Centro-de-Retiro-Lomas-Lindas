@@ -12,6 +12,7 @@ const CATEGORIA_DOC = {
   resoluciones: 'Resoluciones de la Directiva',
   resoluciones_asamblea_ordinaria: 'Resoluciones de Asamblea Ordinaria',
   resoluciones_asamblea_extraordinaria: 'Resoluciones de Asamblea Extraordinaria',
+  elecciones: 'Elecciones',
   otra: 'Otras normas',
 };
 const ORDEN_CAT = Object.keys(CATEGORIA_DOC);

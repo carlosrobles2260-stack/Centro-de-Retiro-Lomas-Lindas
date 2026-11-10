@@ -11,6 +11,7 @@ const CATEGORIAS = [
   { valor: 'resoluciones', label: 'Resoluciones de la Directiva' },
   { valor: 'resoluciones_asamblea_ordinaria', label: 'Resoluciones de Asamblea Ordinaria' },
   { valor: 'resoluciones_asamblea_extraordinaria', label: 'Resoluciones de Asamblea Extraordinaria' },
+  { valor: 'elecciones', label: 'Elecciones' },
   { valor: 'otra', label: 'Otras normas' },
   // Contenido del portal del propietario (no son normativas).
   { valor: 'historia', label: 'Nuestra historia y evolución' },
@@ -24,7 +25,7 @@ const PUBLICADO = [
 const etq = (lista, v) => lista.find((x) => String(x.valor) === String(v))?.label || v || '—';
 
 // Categorías que se sustentan en los Estatutos (todas menos estatutos y otras).
-const CAT_FUNDAMENTO = CATEGORIAS.filter((c) => !['estatutos', 'otra', 'historia', 'actividades', 'contactos'].includes(c.valor));
+const CAT_FUNDAMENTO = CATEGORIAS.filter((c) => !['estatutos', 'otra', 'historia', 'actividades', 'contactos', 'elecciones'].includes(c.valor));
 
 export default function Documentos() {
   const [fundamentos, setFundamentos] = useState(false);

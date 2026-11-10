@@ -6,7 +6,7 @@
 import db from './db.js';
 
 const TITULO = 'Requisitos de Votación — Elecciones Junta Directiva 2026-2028 (ASOPROLOLI)';
-const CATEGORIA = 'resoluciones';
+const CATEGORIA = 'elecciones';
 const DESCRIPCION = 'Condiciones indispensables para participar y votar en las asambleas eleccionarias, conforme a los Estatutos de la Asociación de Propietarios de Lomas Lindas (ASOPROLOLI).';
 const CONTENIDO =
 `ASOCIACIÓN DE PROPIETARIOS DE LOMAS LINDAS (ASOPROLOLI)
@@ -35,9 +35,14 @@ Cada propietario tiene derecho a un (1) solo voto. (Artículo 16)
 ¡SU PARTICIPACIÓN ES FUNDAMENTAL!
 Asegúrese de verificar su estado de cuenta y tramitar o depositar sus poderes con la debida anticipación a la celebración de la asamblea.`;
 
-const existe = await db.get('SELECT id FROM documentos WHERE titulo = ?', [TITULO]);
+const existe = await db.get('SELECT id, categoria FROM documentos WHERE titulo = ?', [TITULO]);
 if (existe) {
-  console.log('• ya existía el documento. No se duplica.');
+  if (existe.categoria !== CATEGORIA) {
+    await db.run('UPDATE documentos SET categoria = ? WHERE id = ?', [CATEGORIA, existe.id]);
+    console.log(`↻ documento movido a la categoría "${CATEGORIA}".`);
+  } else {
+    console.log('• ya existía en la categoría correcta. No se duplica.');
+  }
   process.exit(0);
 }
 await db.run(
